@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db/client";
+import { auth } from "@/lib/auth";
 import { regattaSchema } from "@/lib/schemas/regatta";
 import { revalidatePath } from "next/cache";
 import type { ParsedRegattaRow } from "@/lib/import/parse-regatta-list";
@@ -23,6 +24,8 @@ function parseInput(data: FormData) {
 }
 
 export async function createRegatta(data: FormData) {
+  const session = await auth();
+  if (!session) return { ok: false as const, error: "Nicht angemeldet." };
   const parsed = parseInput(data);
   if (!parsed.success) return { ok: false as const, error: parsed.error.flatten() };
 
@@ -39,6 +42,8 @@ export async function createRegatta(data: FormData) {
 }
 
 export async function updateRegatta(id: string, data: FormData) {
+  const session = await auth();
+  if (!session) return { ok: false as const, error: "Nicht angemeldet." };
   const parsed = parseInput(data);
   if (!parsed.success) return { ok: false as const, error: parsed.error.flatten() };
 
@@ -68,6 +73,8 @@ export type ImportRegattaRow = ParsedRegattaRow & {
 export async function importRegattenAction(
   rows: ImportRegattaRow[]
 ): Promise<{ ok: true; created: number; skipped: number } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
   try {
     let created = 0;
     let skipped = 0;
@@ -113,6 +120,8 @@ export async function importRegattenAction(
 export async function fetchM2SRegattaListAction(
   year: number
 ): Promise<{ ok: true; candidates: M2SRegattaCandidate[] } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
   try {
     const result = await fetchClassAssociationRegattas(year);
     if (!Array.isArray(result)) return { ok: false, error: result.error };
@@ -136,6 +145,8 @@ export async function checkM2SRaceCountsAction(
   | { ok: true; diffs: Record<string, RaceDiff>; checked: number }
   | { ok: false; error: string }
 > {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
   try {
     const m2sResult = await fetchClassAssociationRegattas(year);
     if (!Array.isArray(m2sResult)) return { ok: false, error: m2sResult.error };
@@ -174,6 +185,8 @@ export async function checkM2SRaceCountsAction(
 }
 
 export async function deleteRegatta(id: string) {
+  const session = await auth();
+  if (!session) return { ok: false as const, error: "Nicht angemeldet." };
   try {
     await db.$transaction([
       // RankingRegatta and ImportSession have no cascade → delete manually first

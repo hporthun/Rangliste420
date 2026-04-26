@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db/client";
+import { auth } from "@/lib/auth";
 import { calculateDsvRanking } from "@/lib/scoring/dsv";
 import { calculateIdjmQuali } from "@/lib/scoring/idjm-quali";
 import type { RegattaData, AgeCategory, GenderCategory, HelmRanking } from "@/lib/scoring/dsv";
@@ -22,6 +23,7 @@ async function fetchRegattaData(
 
   return regs.map((reg) => ({
     id: reg.id,
+    name: reg.name,
     ranglistenFaktor: Number(reg.ranglistenFaktor),
     completedRaces: reg.completedRaces,
     multiDayAnnouncement: reg.multiDayAnnouncement,
@@ -92,6 +94,8 @@ export type ComputeParams = {
 export async function computeRankingAction(
   params: ComputeParams
 ): Promise<{ ok: true; data: RankingComputeResult } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
   try {
     const { type, seasonStart: seasonStartStr, referenceDate, ageCategory, genderCategory } = params;
     const refDate = new Date(referenceDate);
@@ -146,24 +150,19 @@ export async function computeRankingAction(
       };
     });
 
-    const regattaMetas: RegattaMeta[] = regattas.map((reg) => {
-      const dbReg = reg as unknown as { name: string };
-      return {
-        id: reg.id,
-        name: (dbReg as unknown as RegattaRow).name ?? reg.id,
-        startDate: reg.startDate.toISOString(),
-        ranglistenFaktor: reg.ranglistenFaktor,
-        completedRaces: reg.completedRaces,
-      };
-    });
+    const regattaMetas: RegattaMeta[] = regattas.map((reg) => ({
+      id: reg.id,
+      name: reg.name,
+      startDate: reg.startDate.toISOString(),
+      ranglistenFaktor: reg.ranglistenFaktor,
+      completedRaces: reg.completedRaces,
+    }));
 
     return { ok: true, data: { rows, regattas: regattaMetas } };
   } catch (e) {
     return { ok: false, error: String(e) };
   }
 }
-
-type RegattaRow = { name: string };
 
 // ── Helm detail ───────────────────────────────────────────────────────────────
 
@@ -204,6 +203,8 @@ export async function computeHelmDetailAction(
   params: ComputeParams,
   helmId: string
 ): Promise<{ ok: true; data: HelmDetailData } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
   try {
     const { type, seasonStart: seasonStartStr, referenceDate, ageCategory, genderCategory } = params;
     const refDate = new Date(referenceDate);
@@ -221,6 +222,7 @@ export async function computeHelmDetailAction(
 
     const regattas = dbRegattas.map((reg) => ({
       id: reg.id,
+      name: reg.name,
       ranglistenFaktor: Number(reg.ranglistenFaktor),
       completedRaces: reg.completedRaces,
       multiDayAnnouncement: reg.multiDayAnnouncement,
@@ -336,6 +338,8 @@ export async function saveJahresranklisteAction(
   params: ComputeParams,
   regattaIds: string[]
 ): Promise<{ ok: true; data: { id: string } } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
   try {
     const ranking = await db.ranking.create({
       data: {
@@ -362,6 +366,8 @@ export async function saveJahresranklisteAction(
 export async function deleteRankingAction(
   id: string
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
   try {
     await db.ranking.delete({ where: { id } });
     revalidatePath("/admin/ranglisten");
@@ -376,6 +382,8 @@ export async function renameRankingAction(
   id: string,
   name: string
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
   const trimmed = name.trim();
   if (!trimmed) return { ok: false, error: "Name darf nicht leer sein." };
   try {
@@ -392,6 +400,8 @@ export async function publishRankingAction(
   id: string,
   isPublic: boolean
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
   try {
     await db.ranking.update({
       where: { id },

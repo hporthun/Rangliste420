@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db/client";
+import { auth } from "@/lib/auth";
 import { sailorSchema } from "@/lib/schemas/sailor";
 import { revalidatePath } from "next/cache";
 import { parseStammdaten } from "@/lib/import/parse-stammdaten";
@@ -27,6 +28,8 @@ function parseInput(data: FormData | Record<string, unknown>) {
 }
 
 export async function createSailor(data: FormData) {
+  const session = await auth();
+  if (!session) return { ok: false as const, error: "Nicht angemeldet." };
   const parsed = parseInput(data);
   if (!parsed.success) return { ok: false as const, error: parsed.error.flatten() };
 
@@ -46,6 +49,8 @@ export async function createSailor(data: FormData) {
 }
 
 export async function updateSailor(id: string, data: FormData) {
+  const session = await auth();
+  if (!session) return { ok: false as const, error: "Nicht angemeldet." };
   const parsed = parseInput(data);
   if (!parsed.success) return { ok: false as const, error: parsed.error.flatten() };
 
@@ -67,6 +72,8 @@ export async function updateSailor(id: string, data: FormData) {
 }
 
 export async function deleteSailor(id: string) {
+  const session = await auth();
+  if (!session) return { ok: false as const, error: "Nicht angemeldet." };
   const usedAsHelm = await db.teamEntry.count({ where: { helmId: id } });
   const usedAsCrew = await db.teamEntry.count({ where: { crewId: id } });
 
@@ -102,6 +109,8 @@ export type StammdatenPreviewRow = {
 export async function previewStammdatenAction(
   text: string
 ): Promise<{ ok: true; rows: StammdatenPreviewRow[] } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
   try {
     const parsed = parseStammdaten(text);
     if (parsed.length === 0) return { ok: false, error: "Keine Zeilen erkannt." };
@@ -148,6 +157,8 @@ export async function previewStammdatenAction(
 export async function applyStammdatenAction(
   updates: Array<{ sailorId: string; birthYear: number | null; gender: "M" | "F" | null }>
 ): Promise<{ ok: true; count: number } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
   try {
     let count = 0;
     for (const u of updates) {

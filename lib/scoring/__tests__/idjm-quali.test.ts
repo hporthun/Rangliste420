@@ -26,6 +26,7 @@ function mkResult(
 function mkRegatta(startDate: string, results: ResultData[]): RegattaData {
   return {
     id: uid(),
+    name: "Test-Regatta",
     ranglistenFaktor: 1.0,
     completedRaces: 1,
     multiDayAnnouncement: false,

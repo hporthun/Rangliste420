@@ -85,6 +85,8 @@ model TeamEntry {
 
   // Each helm appears at most once per regatta
   @@unique([regattaId, helmId])
+  @@index([helmId])
+  @@index([crewId])
 }
 
 // ── Result ────────────────────────────────────────────────────────────────────
@@ -107,6 +109,7 @@ model Result {
   updatedAt DateTime @updatedAt
 
   @@unique([regattaId, teamEntryId])
+  @@index([regattaId])
 }
 
 // ── Ranking ───────────────────────────────────────────────────────────────────
@@ -162,6 +165,8 @@ model ImportSession {
   regatta Regatta @relation(fields: [regattaId], references: [id])
 
   createdAt DateTime @default(now())
+
+  @@index([regattaId])
 }
 
 // ── User ──────────────────────────────────────────────────────────────────────
@@ -216,6 +221,8 @@ model WebAuthnCredential {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 // ── WebAuthnChallenge ─────────────────────────────────────────────────────────

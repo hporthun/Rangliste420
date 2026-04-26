@@ -24,6 +24,8 @@ export async function fetchM2SResultsAction(
   | { ok: true; data: ParsedRegatta; regattaName: string }
   | { ok: false; error: string }
 > {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
   try {
     const ids = parseM2SUrl(url);
     if (!ids) {
@@ -64,6 +66,8 @@ export async function fetchM2SClassesAction(
   | { ok: true; classes: { id: string; name: string }[]; resolvedEventId: string }
   | { ok: false; error: string }
 > {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
   try {
     const result = await fetchEventClasses(eventIdOrAlias);
     if (!Array.isArray(result)) {
@@ -79,6 +83,8 @@ export async function fetchM2SClassesAction(
 export async function parseTextAction(
   text: string
 ): Promise<{ ok: true; data: ParsedRegatta } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
   try {
     const data = parsePaste(text);
     if (data.entries.length === 0)
@@ -95,6 +101,8 @@ export async function parsePdfAction(
   | { ok: true; data: ParsedRegatta; format: string }
   | { ok: false; error: string }
 > {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
   try {
     const file = formData.get("file");
     if (!(file instanceof File) || file.size === 0) {
@@ -126,6 +134,8 @@ export async function getMatchSuggestionsAction(
   | { ok: true; data: { suggestions: EntryMatchSuggestion[]; allSailors: SailorSummary[] } }
   | { ok: false; error: string }
 > {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
   try {
     const sailors = await db.sailor.findMany({
       select: {

@@ -36,6 +36,7 @@ export type ResultData = {
 
 export type RegattaData = {
   id: string;
+  name: string;
   ranglistenFaktor: number;
   completedRaces: number;
   multiDayAnnouncement: boolean;

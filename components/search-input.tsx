@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { Search, X } from "lucide-react";
 
 interface Props {
@@ -14,7 +15,6 @@ interface Props {
 /**
  * Live-Suchfeld – aktualisiert den URL-Query-Parameter nach 400 ms Debounce.
  * Alle anderen aktuellen Query-Parameter (z. B. "year") bleiben erhalten.
- * Nutzt window.location statt useSearchParams, benötigt kein Suspense.
  */
 export function SearchInput({
   placeholder = "Suchen…",
@@ -23,17 +23,17 @@ export function SearchInput({
 }: Props) {
   const [value, setValue] = useState(initialValue);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
 
   function navigate(val: string) {
-    // Read live URL to preserve other params (e.g. year)
     const params = new URLSearchParams(window.location.search);
     if (val.trim()) {
       params.set(paramName, val.trim());
     } else {
       params.delete(paramName);
     }
-    // Full navigation — guarantees RSC re-render regardless of router cache
-    window.location.href = `${window.location.pathname}?${params.toString()}`;
+    router.push(`${pathname}?${params.toString()}`);
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {

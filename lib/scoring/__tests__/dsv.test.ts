@@ -64,6 +64,7 @@ function mkRegatta(
 ): RegattaData {
   return {
     id: uid(),
+    name: "Test-Regatta",
     ranglistenFaktor: f,
     completedRaces,
     multiDayAnnouncement: multiDay,

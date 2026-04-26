@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 type Props = {
   years: number[];
   selected: string; // year as string or "all"
@@ -7,14 +9,14 @@ type Props = {
 };
 
 export function YearSelect({ years, selected, basePath }: Props) {
+  const router = useRouter();
+
   function handleChange(value: string) {
     // Persist across navigations
     document.cookie = `admin-year=${value}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
-    // Read live URL params to preserve other filters (e.g. q)
     const params = new URLSearchParams(window.location.search);
     params.set("year", value);
-    // Full navigation — bypasses Next.js router cache, guarantees fresh RSC render
-    window.location.href = `${basePath}?${params.toString()}`;
+    router.push(`${basePath}?${params.toString()}`);
   }
 
   return (
