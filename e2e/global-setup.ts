@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import * as fs from "fs";
 import * as path from "path";
-import { TEST_DB_URL, TEST_DB_URL_UNPOOLED } from "./constants";
+import { TEST_DB_URL } from "./constants";
 
 export default async function globalSetup() {
   // Ensure .auth dir exists for storage state
@@ -11,7 +11,7 @@ export default async function globalSetup() {
 
   // By now the webServer has run `npx prisma migrate deploy` so tables exist.
   // GlobalSetup only seeds the data.
-  const db = new PrismaClient({ datasourceUrl: TEST_DB_URL_UNPOOLED || TEST_DB_URL });
+  const db = new PrismaClient({ datasourceUrl: TEST_DB_URL });
 
   try {
     // Clean slate — FK-safe delete order

@@ -1,5 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
-import { TEST_DB_URL, TEST_DB_URL_UNPOOLED } from "./e2e/constants";
+import { TEST_DB_URL } from "./e2e/constants";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -38,14 +38,13 @@ export default defineConfig({
     },
   ],
   webServer: {
-    // Push schema to test DB (idempotent, no migration files needed)
-    command: "npx prisma db push --accept-data-loss && npm run dev -- -p 3001",
+    // Run SQLite migrations so all tables exist, then start dev server on port 3001
+    command: "npx prisma migrate deploy && npm run dev -- -p 3001",
     url: "http://localhost:3001",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {
       DATABASE_URL: TEST_DB_URL,
-      DATABASE_URL_UNPOOLED: TEST_DB_URL_UNPOOLED,
     },
   },
   globalSetup: "./e2e/global-setup.ts",

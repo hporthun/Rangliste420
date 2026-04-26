@@ -1,10 +1,15 @@
+// Produktions-Schema für Vercel + Neon PostgreSQL.
+// Lokal wird prisma/schema.prisma (SQLite) verwendet.
+// Vercel-Build-Befehl: prisma generate --schema=prisma/schema.prod.prisma && next build
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 // ── Sailor ────────────────────────────────────────────────────────────────────
