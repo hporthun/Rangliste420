@@ -1,0 +1,253 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+// ── Sailor ────────────────────────────────────────────────────────────────────
+model Sailor {
+  id               String    @id @default(cuid())
+  firstName        String
+  lastName         String
+  birthYear        Int?
+  // "M" | "F" | null — null excludes from gender-filtered rankings
+  gender           String?
+  // ISO-3166-1 alpha-3, default GER
+  nationality      String    @default("GER")
+  club             String?
+  sailingLicenseId String?
+  // JSON-serialized string array of alternative names used for fuzzy matching
+  alternativeNames String    @default("[]")
+
+  helmEntries TeamEntry[] @relation("HelmSailor")
+  crewEntries TeamEntry[] @relation("CrewSailor")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ── Regatta ───────────────────────────────────────────────────────────────────
+model Regatta {
+  id                   String    @id @default(cuid())
+  name                 String
+  location             String?
+  // ISO-3166-1 alpha-3; non-GER = foreign regatta
+  country              String    @default("GER")
+  startDate            DateTime
+  endDate              DateTime
+  numDays              Int       @default(1)
+  plannedRaces         Int?
+  completedRaces       Int
+  multiDayAnnouncement Boolean   @default(false)
+  // 0.80–2.60 per DSV-RO
+  ranglistenFaktor     Decimal
+  // "LOW_POINT" | "BONUS_POINT"
+  scoringSystem        String    @default("LOW_POINT")
+  isRanglistenRegatta  Boolean   @default(false)
+  // "MANAGE2SAIL_PASTE" | "MANAGE2SAIL_PDF" | "SAILWAVE" | "GENERIC_CSV" | "MANUAL"
+  sourceType           String    @default("MANAGE2SAIL_PASTE")
+  sourceUrl            String?
+  sourceFile           String?
+  importedAt           DateTime?
+  notes                String?
+
+  teamEntries     TeamEntry[]
+  results         Result[]
+  rankingRegattas RankingRegatta[]
+  importSessions  ImportSession[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ── TeamEntry ─────────────────────────────────────────────────────────────────
+// One row per helm per regatta. Crew can differ across regattas (Schottenwechsel).
+model TeamEntry {
+  id               String   @id @default(cuid())
+  regattaId        String
+  helmId           String
+  // crewId may be null when imported from PDF (only helm known)
+  crewId           String?
+  sailNumber       String?
+  crewSwapApproved Boolean  @default(false)
+  crewSwapNote     String?
+
+  regatta Regatta  @relation(fields: [regattaId], references: [id], onDelete: Cascade)
+  helm    Sailor   @relation("HelmSailor", fields: [helmId], references: [id])
+  crew    Sailor?  @relation("CrewSailor", fields: [crewId], references: [id])
+  result  Result?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Each helm appears at most once per regatta
+  @@unique([regattaId, helmId])
+}
+
+// ── Result ────────────────────────────────────────────────────────────────────
+model Result {
+  id          String   @id @default(cuid())
+  regattaId   String
+  teamEntryId String   @unique
+  finalRank   Int?
+  finalPoints Decimal?
+  // JSON-serialized: Array<{ race: number; points: number; code?: string; isDiscard?: boolean }>
+  racePoints  String   @default("[]")
+  // true if boat reached start area but never crossed finish (DNS/BFD/OCS)
+  // such boats get R_A = 0 but count in s and m-fold in value list
+  inStartArea Boolean  @default(false)
+
+  regatta   Regatta   @relation(fields: [regattaId], references: [id], onDelete: Cascade)
+  teamEntry TeamEntry @relation(fields: [teamEntryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([regattaId, teamEntryId])
+}
+
+// ── Ranking ───────────────────────────────────────────────────────────────────
+// Stored only for: Jahresrangliste (snapshot), JWM_QUALI, JEM_QUALI.
+// Aktuelle Rangliste and IDJM-Quali are computed on-demand, not stored.
+model Ranking {
+  id             String    @id @default(cuid())
+  name           String
+  // "JAHRESRANGLISTE" | "JWM_QUALI" | "JEM_QUALI"
+  type           String
+  // flexible season window (e.g. 2025-01-01 to 2025-11-30)
+  seasonStart    DateTime
+  seasonEnd      DateTime
+  // "U15" | "U16" | "U17" | "U19" | "OPEN"
+  ageCategory    String
+  // "OPEN" | "MEN" | "MIX" | "GIRLS"
+  genderCategory String
+  // JSON-serialized: DsvScoringRule | JwmJemQualiScoringRule
+  scoringRule    String
+  isPublic       Boolean   @default(false)
+  publishedAt    DateTime?
+
+  rankingRegattas RankingRegatta[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ── RankingRegatta ────────────────────────────────────────────────────────────
+// Associates regattas to a ranking. weight only used for JWM/JEM-Quali.
+model RankingRegatta {
+  rankingId String
+  regattaId String
+  weight    Float?
+
+  ranking Ranking @relation(fields: [rankingId], references: [id], onDelete: Cascade)
+  regatta Regatta @relation(fields: [regattaId], references: [id])
+
+  @@id([rankingId, regattaId])
+}
+
+// ── ImportSession ─────────────────────────────────────────────────────────────
+model ImportSession {
+  id             String   @id @default(cuid())
+  regattaId      String
+  createdBy      String
+  // "MANAGE2SAIL_PASTE" | "MANAGE2SAIL_PDF" | ...
+  parserType     String
+  sourceFile     String?
+  // JSON-serialized record of fuzzy-match decisions {accepted: [], rejected: [], created: []}
+  matchDecisions String   @default("{}")
+
+  regatta Regatta @relation(fields: [regattaId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+// ── User ──────────────────────────────────────────────────────────────────────
+model User {
+  id           String  @id @default(cuid())
+  // username is the primary login identifier (set at seed / account settings)
+  username     String? @unique
+  // email is optional; used for display/contact, not required for login
+  email        String? @unique
+  passwordHash String?
+  // "ADMIN" (only role in MVP)
+  role         String  @default("ADMIN")
+
+  // ── TOTP 2-Factor Auth ─────────────────────────────────────────────────────
+  totpSecret      String?
+  totpEnabled     Boolean @default(false)
+  // JSON array of bcrypt-hashed one-time backup codes
+  totpBackupCodes String  @default("[]")
+
+  // ── Brute-force protection ─────────────────────────────────────────────────
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+
+  // ── Password reset ─────────────────────────────────────────────────────────
+  resetToken       String?   @unique
+  resetTokenExpiry DateTime?
+
+  webAuthnCredentials WebAuthnCredential[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ── WebAuthnCredential ────────────────────────────────────────────────────────
+model WebAuthnCredential {
+  id           String    @id @default(cuid())
+  userId       String
+  // base64url-encoded credential ID from the authenticator
+  credentialId String    @unique
+  // base64url-encoded COSE public key
+  publicKey    String
+  counter      BigInt    @default(0)
+  // "singleDevice" | "multiDevice"
+  deviceType   String    @default("singleDevice")
+  backedUp     Boolean   @default(false)
+  // JSON array of AuthenticatorTransport strings
+  transports   String    @default("[]")
+  // user-given name, e.g. "iPhone", "YubiKey"
+  name         String    @default("Passkey")
+  lastUsed     DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+// ── WebAuthnChallenge ─────────────────────────────────────────────────────────
+// Short-lived challenges for WebAuthn register/authenticate flows.
+// Also used as single-use passkey session tokens after successful authentication.
+model WebAuthnChallenge {
+  id        String   @id @default(cuid())
+  // "register" | "authenticate" | "passkey-session"
+  type      String
+  challenge String   @unique
+  userId    String?
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+}
+
+// ── AuditLog ──────────────────────────────────────────────────────────────────
+// Immutable record of security-relevant events.
+model AuditLog {
+  id        String   @id @default(cuid())
+  // Nullable: some events happen before a session is established (login failures)
+  userId    String?
+  // e.g. "LOGIN_SUCCESS" | "LOGIN_FAILED" | "PASSWORD_CHANGE" | "DATA_DELETE_ALL"
+  action    String
+  // Free-text detail, e.g. username used, number of deleted records
+  detail    String?
+  // IP address of the request
+  ip        String?
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId])
+}

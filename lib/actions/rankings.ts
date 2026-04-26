@@ -1,0 +1,406 @@
+"use server";
+
+import { db } from "@/lib/db/client";
+import { calculateDsvRanking } from "@/lib/scoring/dsv";
+import { calculateIdjmQuali } from "@/lib/scoring/idjm-quali";
+import type { RegattaData, AgeCategory, GenderCategory, HelmRanking } from "@/lib/scoring/dsv";
+import { revalidatePath } from "next/cache";
+
+// ── DB → scoring types ────────────────────────────────────────────────────────
+
+async function fetchRegattaData(
+  where: { isRanglistenRegatta: boolean; startDate: { gte: Date; lte: Date } }
+): Promise<RegattaData[]> {
+  const regs = await db.regatta.findMany({
+    where,
+    include: {
+      results: {
+        include: { teamEntry: { include: { helm: true, crew: true } } },
+      },
+    },
+  });
+
+  return regs.map((reg) => ({
+    id: reg.id,
+    ranglistenFaktor: Number(reg.ranglistenFaktor),
+    completedRaces: reg.completedRaces,
+    multiDayAnnouncement: reg.multiDayAnnouncement,
+    startDate: reg.startDate,
+    results: reg.results.map((r) => ({
+      id: r.id,
+      teamEntry: {
+        helmId: r.teamEntry.helmId,
+        crewId: r.teamEntry.crewId,
+        helm: {
+          id: r.teamEntry.helm.id,
+          birthYear: r.teamEntry.helm.birthYear,
+          gender: r.teamEntry.helm.gender,
+        },
+        crew: r.teamEntry.crew
+          ? {
+              id: r.teamEntry.crew.id,
+              birthYear: r.teamEntry.crew.birthYear,
+              gender: r.teamEntry.crew.gender,
+            }
+          : null,
+      },
+      finalRank: r.finalRank,
+      inStartArea: r.inStartArea,
+    })),
+  }));
+}
+
+// ── Display types ─────────────────────────────────────────────────────────────
+
+export type RankingRow = {
+  rank: number;
+  helmId: string;
+  firstName: string;
+  lastName: string;
+  club: string | null;
+  R: number;
+  valuesCount: number;
+};
+
+export type RegattaMeta = {
+  id: string;
+  name: string;
+  startDate: string;
+  ranglistenFaktor: number;
+  completedRaces: number;
+};
+
+export type RankingComputeResult = {
+  rows: RankingRow[];
+  regattas: RegattaMeta[];
+};
+
+export type RankingType = "JAHRESRANGLISTE" | "AKTUELLE" | "IDJM";
+
+export type ComputeParams = {
+  type: RankingType;
+  /** ISO date — first day of the period (Von) */
+  seasonStart: string;
+  /** ISO date — last day of the period / Stichtag (Bis) */
+  referenceDate: string;
+  ageCategory: AgeCategory;
+  genderCategory: GenderCategory;
+};
+
+// ── Compute action ────────────────────────────────────────────────────────────
+
+export async function computeRankingAction(
+  params: ComputeParams
+): Promise<{ ok: true; data: RankingComputeResult } | { ok: false; error: string }> {
+  try {
+    const { type, seasonStart: seasonStartStr, referenceDate, ageCategory, genderCategory } = params;
+    const refDate = new Date(referenceDate);
+    const seasonStart = new Date(seasonStartStr);
+    const seasonYear = refDate.getFullYear();
+
+    const regattas = await fetchRegattaData({
+      isRanglistenRegatta: true,
+      startDate: { gte: seasonStart, lte: refDate },
+    });
+
+    let rankings: HelmRanking[];
+    if (type === "IDJM") {
+      if (ageCategory !== "U19" && ageCategory !== "U16") {
+        return { ok: false, error: "IDJM-Quali ist nur für U19 und U16 verfügbar." };
+      }
+      const result = calculateIdjmQuali({
+        ageCategory: ageCategory as "U19" | "U16",
+        genderCategory,
+        regattas,
+      });
+      rankings = result.rankings;
+    } else {
+      const result = calculateDsvRanking({
+        seasonYear,
+        ageCategory,
+        genderCategory,
+        referenceDate: refDate,
+        regattas,
+      });
+      rankings = result.rankings;
+    }
+
+    // Fetch sailor names
+    const helmIds = rankings.map((r) => r.helmId);
+    const sailors = await db.sailor.findMany({
+      where: { id: { in: helmIds } },
+      select: { id: true, firstName: true, lastName: true, club: true },
+    });
+    const sailorMap = Object.fromEntries(sailors.map((s) => [s.id, s]));
+
+    const rows: RankingRow[] = rankings.map((r) => {
+      const sailor = sailorMap[r.helmId];
+      return {
+        rank: r.rank,
+        helmId: r.helmId,
+        firstName: sailor?.firstName ?? "?",
+        lastName: sailor?.lastName ?? "?",
+        club: sailor?.club ?? null,
+        R: r.R,
+        valuesCount: r.allValues.length,
+      };
+    });
+
+    const regattaMetas: RegattaMeta[] = regattas.map((reg) => {
+      const dbReg = reg as unknown as { name: string };
+      return {
+        id: reg.id,
+        name: (dbReg as unknown as RegattaRow).name ?? reg.id,
+        startDate: reg.startDate.toISOString(),
+        ranglistenFaktor: reg.ranglistenFaktor,
+        completedRaces: reg.completedRaces,
+      };
+    });
+
+    return { ok: true, data: { rows, regattas: regattaMetas } };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+
+type RegattaRow = { name: string };
+
+// ── Helm detail ───────────────────────────────────────────────────────────────
+
+export type ValueDetail = {
+  regattaId: string;
+  regattaName: string;
+  regattaDate: string;
+  f: number;
+  s: number;
+  x: number | null;
+  rA: number;
+  m: number;
+  multiplierIndex: number;
+  inStartArea: boolean;
+};
+
+export type HelmDetailData = {
+  helmId: string;
+  firstName: string;
+  lastName: string;
+  club: string | null;
+  rank: number;
+  R: number;
+  top9: ValueDetail[];
+  nonContributing: ValueDetail[];
+  crewHistory: Array<{
+    regattaId: string;
+    regattaName: string;
+    regattaDate: string;
+    crewId: string | null;
+    crewFirstName: string | null;
+    crewLastName: string | null;
+    sailNumber: string | null;
+  }>;
+};
+
+export async function computeHelmDetailAction(
+  params: ComputeParams,
+  helmId: string
+): Promise<{ ok: true; data: HelmDetailData } | { ok: false; error: string }> {
+  try {
+    const { type, seasonStart: seasonStartStr, referenceDate, ageCategory, genderCategory } = params;
+    const refDate = new Date(referenceDate);
+    const seasonStart = new Date(seasonStartStr);
+    const seasonYear = refDate.getFullYear();
+
+    const dbRegattas = await db.regatta.findMany({
+      where: { isRanglistenRegatta: true, startDate: { gte: seasonStart, lte: refDate } },
+      include: {
+        results: {
+          include: { teamEntry: { include: { helm: true, crew: true } } },
+        },
+      },
+    });
+
+    const regattas = dbRegattas.map((reg) => ({
+      id: reg.id,
+      ranglistenFaktor: Number(reg.ranglistenFaktor),
+      completedRaces: reg.completedRaces,
+      multiDayAnnouncement: reg.multiDayAnnouncement,
+      startDate: reg.startDate,
+      results: reg.results.map((r) => ({
+        id: r.id,
+        teamEntry: {
+          helmId: r.teamEntry.helmId,
+          crewId: r.teamEntry.crewId,
+          helm: {
+            id: r.teamEntry.helm.id,
+            birthYear: r.teamEntry.helm.birthYear,
+            gender: r.teamEntry.helm.gender,
+          },
+          crew: r.teamEntry.crew
+            ? {
+                id: r.teamEntry.crew.id,
+                birthYear: r.teamEntry.crew.birthYear,
+                gender: r.teamEntry.crew.gender,
+              }
+            : null,
+        },
+        finalRank: r.finalRank,
+        inStartArea: r.inStartArea,
+      })),
+    }));
+
+    // Build a regatta name map
+    const regattaNameMap = Object.fromEntries(
+      dbRegattas.map((r) => [r.id, { name: r.name, date: r.startDate.toISOString() }])
+    );
+
+    let rankings: HelmRanking[];
+    if (type === "IDJM") {
+      if (ageCategory !== "U19" && ageCategory !== "U16") {
+        return { ok: false, error: "IDJM nur für U19/U16." };
+      }
+      rankings = calculateIdjmQuali({ ageCategory: ageCategory as "U19" | "U16", genderCategory, regattas }).rankings;
+    } else {
+      rankings = calculateDsvRanking({ seasonYear, ageCategory, genderCategory, referenceDate: refDate, regattas }).rankings;
+    }
+
+    const entry = rankings.find((r) => r.helmId === helmId);
+    if (!entry) return { ok: false, error: "Kein Ranglisten-Eintrag für diesen Segler." };
+
+    const sailor = await db.sailor.findUnique({
+      where: { id: helmId },
+      select: { firstName: true, lastName: true, club: true },
+    });
+
+    function toDetail(v: HelmRanking["top9"][number]): ValueDetail {
+      const reg = regattaNameMap[v.regattaId];
+      return {
+        regattaId: v.regattaId,
+        regattaName: reg?.name ?? v.regattaId,
+        regattaDate: reg?.date ?? "",
+        f: v.f,
+        s: v.s,
+        x: v.x,
+        rA: v.value,
+        m: v.m,
+        multiplierIndex: v.multiplierIndex,
+        inStartArea: v.inStartArea,
+      };
+    }
+
+    // Crew history from DB (all teamEntries for this helm in the season)
+    const teamEntries = await db.teamEntry.findMany({
+      where: {
+        helmId,
+        regatta: { isRanglistenRegatta: true, startDate: { gte: seasonStart, lte: refDate } }, // seasonStart is already a Date here
+      },
+      include: {
+        crew: { select: { firstName: true, lastName: true } },
+        regatta: { select: { id: true, name: true, startDate: true } },
+      },
+      orderBy: { regatta: { startDate: "asc" } },
+    });
+
+    const crewHistory = teamEntries.map((te) => ({
+      regattaId: te.regatta.id,
+      regattaName: te.regatta.name,
+      regattaDate: te.regatta.startDate.toISOString(),
+      crewId: te.crewId,
+      crewFirstName: te.crew?.firstName ?? null,
+      crewLastName: te.crew?.lastName ?? null,
+      sailNumber: te.sailNumber,
+    }));
+
+    return {
+      ok: true,
+      data: {
+        helmId,
+        firstName: sailor?.firstName ?? "?",
+        lastName: sailor?.lastName ?? "?",
+        club: sailor?.club ?? null,
+        rank: entry.rank,
+        R: entry.R,
+        top9: entry.top9.map(toDetail),
+        nonContributing: entry.allValues.slice(9).map(toDetail),
+        crewHistory,
+      },
+    };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+
+// ── Save Jahresrangliste ───────────────────────────────────────────────────────
+
+export async function saveJahresranklisteAction(
+  name: string,
+  params: ComputeParams,
+  regattaIds: string[]
+): Promise<{ ok: true; data: { id: string } } | { ok: false; error: string }> {
+  try {
+    const ranking = await db.ranking.create({
+      data: {
+        name,
+        type: "JAHRESRANGLISTE",
+        seasonStart: new Date(params.seasonStart),
+        seasonEnd: new Date(params.referenceDate),
+        ageCategory: params.ageCategory,
+        genderCategory: params.genderCategory,
+        scoringRule: JSON.stringify({ scoringType: "dsv_standard", ...params }),
+        isPublic: false,
+        rankingRegattas: {
+          create: regattaIds.map((id) => ({ regattaId: id })),
+        },
+      },
+    });
+    revalidatePath("/admin/ranglisten");
+    return { ok: true, data: { id: ranking.id } };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+
+export async function deleteRankingAction(
+  id: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    await db.ranking.delete({ where: { id } });
+    revalidatePath("/admin/ranglisten");
+    revalidatePath(`/rangliste/${id}`);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+
+export async function renameRankingAction(
+  id: string,
+  name: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const trimmed = name.trim();
+  if (!trimmed) return { ok: false, error: "Name darf nicht leer sein." };
+  try {
+    await db.ranking.update({ where: { id }, data: { name: trimmed } });
+    revalidatePath("/admin/ranglisten");
+    revalidatePath(`/rangliste/${id}`);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+
+export async function publishRankingAction(
+  id: string,
+  isPublic: boolean
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    await db.ranking.update({
+      where: { id },
+      data: { isPublic, publishedAt: isPublic ? new Date() : null },
+    });
+    revalidatePath("/admin/ranglisten");
+    revalidatePath(`/rangliste/${id}`);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
