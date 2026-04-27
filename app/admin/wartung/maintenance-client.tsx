@@ -11,16 +11,24 @@ import {
   pruneOrphanTeamEntriesAction,
   pruneEmptyRankingsAction,
   type PruneResult,
+  type RestoreScope,
 } from "@/lib/actions/maintenance";
 import { triggerBackupNowAction } from "@/lib/actions/backup-schedule";
 
 // ── Restore section ────────────────────────────────────────────────────────────
+
+const SCOPE_LABELS: Record<RestoreScope, string> = {
+  all:      "Alles (vollständige Rücksicherung)",
+  sailors:  "Nur Segler",
+  regattas: "Nur Regatten & Ergebnisse",
+};
 
 export function RestoreSection() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [isEncrypted, setIsEncrypted] = useState(false);
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
+  const [scope, setScope] = useState<RestoreScope>("all");
   const [status, setStatus] = useState<
     | { type: "idle" }
     | { type: "loading" }
@@ -31,7 +39,6 @@ export function RestoreSection() {
   async function handleFileChange() {
     const file = fileRef.current?.files?.[0];
     if (!file) { setIsEncrypted(false); return; }
-    // Peek first 30 chars to detect encryption
     const head = await file.slice(0, 30).text();
     setIsEncrypted(head.includes('"encrypted": true') || head.includes('"encrypted":true'));
     setStatus({ type: "idle" });
@@ -51,6 +58,7 @@ export function RestoreSection() {
     try {
       const fd = new FormData();
       fd.append("backup", file);
+      fd.append("scope", scope);
       if (isEncrypted && password) fd.append("password", password);
       const result = await restoreBackupAction(fd);
       if (!result.ok) {
@@ -77,6 +85,34 @@ export function RestoreSection() {
           onChange={handleFileChange}
           className="block w-full text-sm text-muted-foreground file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border file:border-gray-300 file:text-sm file:bg-white file:hover:bg-gray-50 file:cursor-pointer"
         />
+      </div>
+
+      {/* Scope selector (Issue #1) */}
+      <div className="space-y-1.5">
+        <label className="block text-sm font-medium">Umfang der Rücksicherung</label>
+        <div className="flex flex-col gap-1.5">
+          {(Object.keys(SCOPE_LABELS) as RestoreScope[]).map((s) => (
+            <label key={s} className="flex items-center gap-2 cursor-pointer text-sm">
+              <input
+                type="radio"
+                name="restore-scope"
+                value={s}
+                checked={scope === s}
+                onChange={() => setScope(s)}
+                className="h-4 w-4"
+              />
+              {SCOPE_LABELS[s]}
+            </label>
+          ))}
+        </div>
+        {scope !== "all" && (
+          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1.5">
+            Teilweise Rücksicherung: Nur die gewählten Tabellen werden ersetzt.
+            {scope === "sailors"
+              ? " Regatten und Ergebnisse bleiben unberührt."
+              : " Segler und Ranglisten bleiben unberührt."}
+          </p>
+        )}
       </div>
 
       {isEncrypted && (
@@ -114,14 +150,14 @@ export function RestoreSection() {
         <div className="text-sm text-green-800 bg-green-50 border border-green-200 rounded-md px-3 py-2 space-y-1">
           <p className="flex items-center gap-2 font-medium">
             <CheckCircle2 className="h-4 w-4 shrink-0" />
-            Rücksicherung erfolgreich.
+            Rücksicherung erfolgreich ({SCOPE_LABELS[scope]}).
           </p>
           <ul className="ml-6 list-disc text-xs text-green-700">
-            {Object.entries(status.restored).map(([key, count]) => (
-              <li key={key}>
-                {key}: {count}
-              </li>
-            ))}
+            {Object.entries(status.restored)
+              .filter(([, count]) => count > 0)
+              .map(([key, count]) => (
+                <li key={key}>{key}: {count}</li>
+              ))}
           </ul>
         </div>
       )}
@@ -131,10 +167,10 @@ export function RestoreSection() {
         disabled={status.type === "loading"}
         className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 font-medium"
       >
-        {status.type === "loading" ? "Wird wiederhergestellt…" : "Jetzt rücksichern"}
+        {status.type === "loading" ? "Backup erstellen & Daten wiederherstellen…" : "Jetzt rücksichern"}
       </button>
       <p className="text-xs text-muted-foreground">
-        Achtung: Alle vorhandenen Daten werden vor der Rücksicherung gelöscht.
+        Vor der Rücksicherung wird automatisch ein Sicherungs-Backup des aktuellen Stands erstellt.
       </p>
     </div>
   );
@@ -154,7 +190,7 @@ export function DeleteAllSection() {
 
     if (doBackup) {
       setStep("backing-up");
-      const backupRes = await triggerBackupNowAction();
+      const backupRes = await triggerBackupNowAction("Backup vor Datenlöschung");
       if (!backupRes.ok) {
         setError(`Backup fehlgeschlagen: ${backupRes.error}`);
         setStep("confirm2");
@@ -432,7 +468,7 @@ export function PruneSection({ regattaYears }: { regattaYears: number[] }) {
 
     if (doBackup) {
       setStep("backing-up");
-      const backupRes = await triggerBackupNowAction();
+      const backupRes = await triggerBackupNowAction(`Backup vor Datenreduktion (Regatten vor ${beforeYear})`);
       if (!backupRes.ok) {
         setError(`Backup fehlgeschlagen: ${backupRes.error}`);
         setStep("confirm");

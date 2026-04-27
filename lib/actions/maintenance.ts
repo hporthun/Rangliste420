@@ -9,6 +9,11 @@ import { revalidatePath } from "next/cache";
 
 import { logAudit, A } from "@/lib/security/audit";
 import { BACKUP_DIR } from "@/lib/backup/config";
+import { writeBackupFile } from "@/lib/backup/writer";
+
+// ── Restore scope ─────────────────────────────────────────────────────────────
+/** Which tables to wipe and restore from the backup file. */
+export type RestoreScope = "all" | "sailors" | "regattas";
 
 // ── Delete all data (keep Users) ──────────────────────────────────────────────
 
@@ -299,6 +304,7 @@ async function _performRestore(
   rawText: string,
   password: string | null,
   userId: string | undefined,
+  scope: RestoreScope = "all",
 ): Promise<{ ok: true; restored: Record<string, number> } | { ok: false; error: string }> {
   // Decrypt if needed
   let plainText = rawText;
@@ -338,6 +344,15 @@ async function _performRestore(
     return { ok: false, error: "Backup-Daten unvollständig oder fehlerhaft." };
   }
 
+  // ── Pre-restore backup (Issue #3) ─────────────────────────────────────────
+  // Always create a safety backup of the current state before wiping data.
+  // Non-fatal: a failed backup only produces a warning; the restore proceeds.
+  try {
+    await writeBackupFile("Backup vor Rücksicherung");
+  } catch (e) {
+    console.warn("[restore:pre-backup]", e);
+  }
+
   // ── Atomic restore: Phase 1 (delete) + Phase 2 (insert) in one transaction ──
   // If the insert phase fails, the deletes are rolled back automatically —
   // no data loss on partial failures.
@@ -346,23 +361,44 @@ async function _performRestore(
   // nesting exceeded" cannot be triggered here.
   // SQLite column types: String→TEXT, Int→INTEGER, Boolean→INTEGER (0/1),
   //   Decimal→TEXT, DateTime→INTEGER (Unix ms), Float→REAL
+  //
+  // scope="all"     → delete + restore everything
+  // scope="sailors" → delete + restore only Sailor table
+  // scope="regattas"→ delete + restore Regatta + related tables, keep Sailor & Ranking
   let restored: Record<string, number>;
   try {
     restored = await db.$transaction(async (tx) => {
-      // Phase 1: delete existing data (dependency order)
-      try {
-        await tx.importSession.deleteMany();
-        await tx.rankingRegatta.deleteMany();
-        await tx.result.deleteMany();
-        await tx.teamEntry.deleteMany();
-        await tx.regatta.deleteMany();
-        await tx.ranking.deleteMany();
-        await tx.sailor.deleteMany();
-      } catch (e) {
-        throw new Error(`[delete] ${String(e)}`);
+      // ── Phase 1: delete scope-specific tables ──────────────────────────────
+      if (scope === "sailors") {
+        // Only Sailor — TeamEntries keep existing FK refs (SQLite bypasses via raw SQL)
+        try {
+          await tx.sailor.deleteMany();
+        } catch (e) { throw new Error(`[delete:sailors] ${String(e)}`); }
+      } else if (scope === "regattas") {
+        // Regatta-related tables only; keep Sailor and Ranking
+        try {
+          await tx.importSession.deleteMany();
+          await tx.rankingRegatta.deleteMany();
+          await tx.result.deleteMany();
+          await tx.teamEntry.deleteMany();
+          await tx.regatta.deleteMany();
+        } catch (e) { throw new Error(`[delete:regattas] ${String(e)}`); }
+      } else {
+        // scope === "all" — full restore (original behaviour)
+        try {
+          await tx.importSession.deleteMany();
+          await tx.rankingRegatta.deleteMany();
+          await tx.result.deleteMany();
+          await tx.teamEntry.deleteMany();
+          await tx.regatta.deleteMany();
+          await tx.ranking.deleteMany();
+          await tx.sailor.deleteMany();
+        } catch (e) { throw new Error(`[delete] ${String(e)}`); }
       }
 
-      // Phase 2: re-insert via raw SQL
+      // ── Phase 2: re-insert scope-specific data ──────────────────────────────
+      // sailors — restored for scope "all" and "sailors"
+      if (scope === "all" || scope === "sailors") {
       try {
         for (const s of sailors) {
           await tx.$executeRawUnsafe(
@@ -383,7 +419,10 @@ async function _performRestore(
       } catch (e) {
         throw new Error(`[sailors] ${String(e)}`);
       }
+      } // end scope sailors/all
 
+      // regattas — restored for scope "all" and "regattas"
+      if (scope === "all" || scope === "regattas") {
       try {
         for (const r of regattas) {
           await tx.$executeRawUnsafe(
@@ -413,7 +452,10 @@ async function _performRestore(
       } catch (e) {
         throw new Error(`[regattas] ${String(e)}`);
       }
+      } // end scope regattas/all (regattas table)
 
+      // rankings — only for scope "all"
+      if (scope === "all") {
       try {
         for (const r of rankings) {
           await tx.$executeRawUnsafe(
@@ -435,7 +477,10 @@ async function _performRestore(
       } catch (e) {
         throw new Error(`[rankings] ${String(e)}`);
       }
+      } // end scope all (rankings)
 
+      // teamEntries, results, rankingRegattas, importSessions — for scope "all" and "regattas"
+      if (scope === "all" || scope === "regattas") {
       try {
         for (const t of teamEntries) {
           await tx.$executeRawUnsafe(
@@ -503,15 +548,17 @@ async function _performRestore(
       } catch (e) {
         throw new Error(`[importSessions] ${String(e)}`);
       }
+      } // end scope regattas/all (team data)
 
+      // ── Return counts for restored tables ─────────────────────────────────
       return {
-        sailors:         sailors.length,
-        regattas:        regattas.length,
-        rankings:        rankings.length,
-        teamEntries:     teamEntries.length,
-        results:         results.length,
-        rankingRegattas: rankingRegattas.length,
-        importSessions:  importSessions.length,
+        sailors:         (scope === "all" || scope === "sailors")   ? sailors.length         : 0,
+        regattas:        (scope === "all" || scope === "regattas")  ? regattas.length        : 0,
+        rankings:        scope === "all"                            ? rankings.length        : 0,
+        teamEntries:     (scope === "all" || scope === "regattas")  ? teamEntries.length     : 0,
+        results:         (scope === "all" || scope === "regattas")  ? results.length         : 0,
+        rankingRegattas: (scope === "all" || scope === "regattas")  ? rankingRegattas.length : 0,
+        importSessions:  (scope === "all" || scope === "regattas")  ? importSessions.length  : 0,
       };
     }, { timeout: 120_000 });
   } catch (e) {
@@ -549,8 +596,11 @@ export async function restoreBackupAction(
     }
     const rawText = await file.text();
     const password = formData.get("password") as string | null;
+    const scopeRaw = formData.get("scope") as string | null;
+    const scope: RestoreScope =
+      scopeRaw === "sailors" || scopeRaw === "regattas" ? scopeRaw : "all";
 
-    return await _performRestore(rawText, password, session.user?.id);
+    return await _performRestore(rawText, password, session.user?.id, scope);
   } catch (e) {
     console.error("[restore:unknown]", e);
     return { ok: false, error: String(e) };
@@ -562,6 +612,7 @@ export async function restoreBackupAction(
 export async function restoreStoredBackupAction(
   filename: string,
   password?: string,
+  scope: RestoreScope = "all",
 ): Promise<{ ok: true; restored: Record<string, number> } | { ok: false; error: string }> {
   try {
     const session = await auth();
@@ -586,7 +637,7 @@ export async function restoreStoredBackupAction(
       return { ok: false, error: "Datei nicht gefunden." };
     }
 
-    return await _performRestore(rawText, password ?? null, session.user?.id);
+    return await _performRestore(rawText, password ?? null, session.user?.id, scope);
   } catch (e) {
     console.error("[restore:unknown]", e);
     return { ok: false, error: String(e) };

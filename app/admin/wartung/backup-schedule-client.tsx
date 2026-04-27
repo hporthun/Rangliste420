@@ -4,9 +4,15 @@ import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, XCircle, Loader2, Trash2, Download, Save, PlayCircle, Lock, Eye, EyeOff, RotateCcw, AlertTriangle } from "lucide-react";
 import { saveScheduleAction, triggerBackupNowAction, deleteStoredBackupAction } from "@/lib/actions/backup-schedule";
-import { restoreStoredBackupAction } from "@/lib/actions/maintenance";
+import { restoreStoredBackupAction, type RestoreScope } from "@/lib/actions/maintenance";
 import type { BackupSchedule } from "@/lib/backup/types";
 import type { StoredBackup } from "@/lib/backup/writer";
+
+const SCOPE_LABELS: Record<RestoreScope, string> = {
+  all:      "Alles (vollständig)",
+  sailors:  "Nur Segler",
+  regattas: "Nur Regatten & Ergebnisse",
+};
 
 // ── Schedule config ────────────────────────────────────────────────────────────
 
@@ -189,11 +195,11 @@ export function ScheduleConfig({ initial }: { initial: BackupSchedule }) {
 
 type RestoreState =
   | { step: "idle" }
-  | { step: "confirm"; filename: string; isEncrypted: boolean }
-  | { step: "password"; filename: string; password: string; showPw: boolean }
-  | { step: "loading"; filename: string }
-  | { step: "success"; filename: string; restored: Record<string, number> }
-  | { step: "error"; filename: string; message: string };
+  | { step: "confirm";  filename: string; isEncrypted: boolean; scope: RestoreScope }
+  | { step: "password"; filename: string; password: string; showPw: boolean; scope: RestoreScope }
+  | { step: "loading";  filename: string }
+  | { step: "success";  filename: string; restored: Record<string, number> }
+  | { step: "error";    filename: string; message: string };
 
 export function StoredBackupList({ initial }: { initial: StoredBackup[] }) {
   const router = useRouter();
@@ -239,8 +245,8 @@ export function StoredBackupList({ initial }: { initial: StoredBackup[] }) {
   function handleRestoreClick(b: StoredBackup) {
     setRestoreState(
       b.isEncrypted
-        ? { step: "password", filename: b.filename, password: "", showPw: false }
-        : { step: "confirm", filename: b.filename, isEncrypted: false }
+        ? { step: "password", filename: b.filename, password: "", showPw: false, scope: "all" }
+        : { step: "confirm",  filename: b.filename, isEncrypted: false, scope: "all" }
     );
   }
 
@@ -252,9 +258,13 @@ export function StoredBackupList({ initial }: { initial: StoredBackup[] }) {
     if (!filename) return;
     const password =
       restoreState.step === "password" ? restoreState.password : undefined;
+    const scope: RestoreScope =
+      (restoreState.step === "confirm" || restoreState.step === "password")
+        ? restoreState.scope
+        : "all";
 
     setRestoreState({ step: "loading", filename });
-    const res = await restoreStoredBackupAction(filename, password);
+    const res = await restoreStoredBackupAction(filename, password, scope);
     if (!res.ok) {
       setRestoreState({ step: "error", filename, message: res.error });
     } else {
@@ -312,10 +322,33 @@ export function StoredBackupList({ initial }: { initial: StoredBackup[] }) {
         <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 space-y-3">
           <p className="flex items-start gap-2 text-sm font-medium text-amber-900">
             <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-            Alle vorhandenen Daten werden gelöscht und durch{" "}
-            <span className="font-mono font-normal">{restoreState.filename}</span>{" "}
-            ersetzt. Fortfahren?
+            Rücksicherung aus{" "}
+            <span className="font-mono font-normal">{restoreState.filename}</span>.
+            Vorher wird automatisch ein Sicherungs-Backup erstellt.
           </p>
+          {/* Scope selector */}
+          <div className="space-y-1">
+            <p className="text-xs font-medium text-amber-900">Umfang:</p>
+            <div className="flex flex-col gap-1">
+              {(Object.keys(SCOPE_LABELS) as RestoreScope[]).map((s) => (
+                <label key={s} className="flex items-center gap-2 text-xs cursor-pointer">
+                  <input
+                    type="radio"
+                    name="stored-scope-confirm"
+                    value={s}
+                    checked={restoreState.scope === s}
+                    onChange={() =>
+                      setRestoreState((prev) =>
+                        prev.step === "confirm" ? { ...prev, scope: s } : prev
+                      )
+                    }
+                    className="h-3.5 w-3.5"
+                  />
+                  {SCOPE_LABELS[s]}
+                </label>
+              ))}
+            </div>
+          </div>
           <div className="flex gap-2">
             <button
               onClick={() => setRestoreState({ step: "idle" })}
@@ -338,7 +371,31 @@ export function StoredBackupList({ initial }: { initial: StoredBackup[] }) {
           <p className="flex items-start gap-2 text-sm font-medium text-amber-900">
             <Lock className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
             Backup ist verschlüsselt — Passwort eingeben, dann rücksichern.
+            Vorher wird automatisch ein Sicherungs-Backup erstellt.
           </p>
+          {/* Scope selector */}
+          <div className="space-y-1">
+            <p className="text-xs font-medium text-amber-900">Umfang:</p>
+            <div className="flex flex-col gap-1">
+              {(Object.keys(SCOPE_LABELS) as RestoreScope[]).map((s) => (
+                <label key={s} className="flex items-center gap-2 text-xs cursor-pointer">
+                  <input
+                    type="radio"
+                    name="stored-scope-password"
+                    value={s}
+                    checked={restoreState.scope === s}
+                    onChange={() =>
+                      setRestoreState((prev) =>
+                        prev.step === "password" ? { ...prev, scope: s } : prev
+                      )
+                    }
+                    className="h-3.5 w-3.5"
+                  />
+                  {SCOPE_LABELS[s]}
+                </label>
+              ))}
+            </div>
+          </div>
           <div className="relative max-w-xs">
             <input
               type={restoreState.showPw ? "text" : "password"}
