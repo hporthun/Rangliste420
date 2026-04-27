@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { startAuthentication } from "@simplewebauthn/browser";
-import { KeyRound, Fingerprint, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { KeyRound, Fingerprint, ArrowLeft, Eye, EyeOff, Globe } from "lucide-react";
 
 // ── Login form ─────────────────────────────────────────────────────────────────
 
@@ -283,12 +283,19 @@ function LoginForm() {
         {passkeyLoading ? "Warte auf Passkey…" : "Mit Passkey anmelden"}
       </button>
 
-      <div className="text-center">
+      <div className="flex items-center justify-between">
         <Link
           href="/auth/forgot"
           className="text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           Passwort vergessen?
+        </Link>
+        <Link
+          href="/rangliste"
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+        >
+          <Globe className="h-3 w-3" />
+          Zur Rangliste
         </Link>
       </div>
     </div>

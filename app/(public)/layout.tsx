@@ -29,8 +29,16 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         {children}
       </main>
 
-      <footer className="border-t border-border/50 py-3 text-center text-xs text-muted-foreground">
-        420er Rangliste · DSV-Ranglistensystem
+      <footer className="border-t border-border/50 py-3 px-4">
+        <div className="max-w-5xl mx-auto flex items-center justify-between gap-4 text-xs text-muted-foreground">
+          <span>420er Rangliste · DSV-Ranglistensystem</span>
+          <a
+            href="/admin"
+            className="hover:text-foreground transition-colors"
+          >
+            Admin-Zugang →
+          </a>
+        </div>
       </footer>
     </div>
   );

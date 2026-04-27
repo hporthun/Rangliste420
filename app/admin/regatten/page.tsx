@@ -6,8 +6,57 @@ import { cn } from "@/lib/utils";
 import { SearchInput } from "@/components/search-input";
 import { YearSelect } from "@/components/year-select";
 import { RegattaTableWithSync } from "@/components/admin/regatta-table-sync";
+import { PageTour } from "@/components/tour/page-tour";
+import type { TourStep } from "@/components/tour/tour-context";
 
 export const dynamic = "force-dynamic";
+
+// ── Page-specific tour steps ──────────────────────────────────────────────────
+
+const REGATTEN_TOUR: TourStep[] = [
+  {
+    id: "regatten-neu",
+    target: '[data-tour="regatten-neu"]',
+    title: "Neue Regatta anlegen",
+    content:
+      "Legt eine Regatta mit allen Pflichtfeldern an: Datum, Anzahl der Wettfahrten, " +
+      "Ranglistenfaktor f (0,80–2,60) und ob sie als Ranglistenregatta zählt. " +
+      "Der Faktor beeinflusst direkt alle R_A-Werte dieser Regatta.",
+    placement: "bottom-end",
+  },
+  {
+    id: "regatten-import",
+    target: '[data-tour="regatten-import"]',
+    title: "Regattenliste importieren",
+    content:
+      "Lädt verfügbare Regatten aus der Manage2Sail-Klassenübersicht der 420er-KV. " +
+      "Stammdaten und Ranglistenfaktor werden dabei vorausgefüllt.",
+    placement: "bottom-end",
+  },
+  {
+    id: "regatten-filter",
+    target: '[data-tour="regatten-filter"]',
+    title: "Filter nach Jahr & Name",
+    content:
+      "Filtere die Regattenliste nach Saison-Jahr oder suche direkt nach dem Regattenamen. " +
+      "Der gewählte Jahrgang wird als Cookie gespeichert, damit er beim nächsten " +
+      "Besuch noch aktiv ist.",
+    placement: "bottom",
+  },
+  {
+    id: "regatten-tabelle",
+    target: '[data-tour="regatten-tabelle"]',
+    title: "Regattenliste",
+    content:
+      "Klicke auf eine Regatta, um Details einzusehen und Ergebnisse zu importieren. " +
+      "Das grüne 'RL'-Badge markiert Ranglistenregatten. " +
+      "Über den Import-Wizard in der Detailseite lädst du die Ergebnisse aus " +
+      "Manage2Sail (Web-Copy-Paste oder PDF).",
+    placement: "bottom",
+  },
+];
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 type Props = {
   searchParams: Promise<{ year?: string; q?: string }>;
@@ -77,21 +126,26 @@ export default async function RegattenPage({ searchParams }: Props) {
         <h1 className="text-xl font-semibold">
           Regatten ({regattas.length}{q && " gefunden"})
         </h1>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          <PageTour steps={REGATTEN_TOUR} />
           <Link
             href="/admin/regatten/import"
+            data-tour="regatten-import"
             className={cn(buttonVariants({ size: "sm", variant: "outline" }))}
           >
             Liste importieren
           </Link>
-          <Link href="/admin/regatten/neu" className={cn(buttonVariants({ size: "sm" }))}>
+          <Link
+            href="/admin/regatten/neu"
+            data-tour="regatten-neu"
+            className={cn(buttonVariants({ size: "sm" }))}>
             + Neue Regatta
           </Link>
         </div>
       </div>
 
       {/* Filter-Leiste */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3" data-tour="regatten-filter">
         <SearchInput placeholder="Name suchen…" paramName="q" initialValue={q} />
 
         <div className="flex items-center gap-2">
@@ -113,11 +167,13 @@ export default async function RegattenPage({ searchParams }: Props) {
       </div>
 
       {/* Table with M2S sync */}
-      <RegattaTableWithSync
-        regattas={serialized}
-        year={showAll ? "all" : selectedYear}
-        q={q}
-      />
+      <div data-tour="regatten-tabelle">
+        <RegattaTableWithSync
+          regattas={serialized}
+          year={showAll ? "all" : selectedYear}
+          q={q}
+        />
+      </div>
     </div>
   );
 }

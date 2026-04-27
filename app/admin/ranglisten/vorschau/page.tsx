@@ -1,5 +1,42 @@
 import { computeRankingAction, type ComputeParams, type RankingType } from "@/lib/actions/rankings";
 import Link from "next/link";
+import { PageTour } from "@/components/tour/page-tour";
+import type { TourStep } from "@/components/tour/tour-context";
+
+// ── Page-specific tour steps ──────────────────────────────────────────────────
+
+const VORSCHAU_TOUR: TourStep[] = [
+  {
+    id: "vorschau-form",
+    target: '[data-tour="vorschau-form"]',
+    title: "Parameter einstellen",
+    content:
+      "Wähle Typ, Zeitraum, Altersklasse und Gender-Kategorie. " +
+      "Die Jahresrangliste läuft typischerweise vom 01.01. bis 30.11. des Saison-Jahres. " +
+      "Die Aktuelle Rangliste verwendet immer das heutige Datum als Stichtag. " +
+      "Klicke 'Rangliste berechnen', um die Vorschau zu laden.",
+    placement: "bottom",
+  },
+  {
+    id: "vorschau-tabelle",
+    target: '[data-tour="vorschau-tabelle"]',
+    title: "Berechnete Rangliste",
+    content:
+      "Zeigt alle Segler mit ≥ 9 Wertungen. R ist das arithmetische Mittel der 9 besten R_A-Werte. " +
+      "Klicke auf 'Detail →' um alle Wertungen eines Steuermanns mit Formelnachvollziehung zu sehen. " +
+      "Die Rangliste ist noch nicht gespeichert — sie wird bei jedem Aufruf live berechnet.",
+    placement: "bottom",
+  },
+  {
+    id: "vorschau-speichern",
+    target: '[data-tour="vorschau-speichern"]',
+    title: "Rangliste speichern",
+    content:
+      "Nur Jahresranglisten können gespeichert und anschließend veröffentlicht werden. " +
+      "Aktuelle Rangliste und IDJM-Quali werden immer on-demand berechnet und nicht gespeichert.",
+    placement: "bottom-end",
+  },
+];
 
 const AGE_CATEGORIES = ["OPEN", "U19", "U17", "U16", "U15"] as const;
 const GENDER_CATEGORIES = ["OPEN", "MEN", "MIX", "GIRLS"] as const;
@@ -47,16 +84,19 @@ export default async function VorschauPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold">Rangliste berechnen</h1>
-        <p className="text-sm text-muted-foreground">
-          Wähle den Zeitraum und die Parameter. Jahresranglisten können gespeichert und
-          veröffentlicht werden.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold">Rangliste berechnen</h1>
+          <p className="text-sm text-muted-foreground">
+            Wähle den Zeitraum und die Parameter. Jahresranglisten können gespeichert und
+            veröffentlicht werden.
+          </p>
+        </div>
+        <PageTour steps={VORSCHAU_TOUR} />
       </div>
 
       {/* Parameter form — GET-based for server-side rendering */}
-      <form method="GET" className="rounded-md border p-4 space-y-4 bg-gray-50">
+      <form method="GET" className="rounded-md border p-4 space-y-4 bg-gray-50" data-tour="vorschau-form">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground uppercase">Typ</label>
@@ -126,6 +166,7 @@ export default async function VorschauPage({ searchParams }: Props) {
             {type === "JAHRESRANGLISTE" && (
               <Link
                 href={`/admin/ranglisten/neu?${new URLSearchParams(sp as Record<string, string>)}`}
+                data-tour="vorschau-speichern"
                 className="text-xs text-blue-600 hover:underline"
               >
                 Als Jahresrangliste speichern →
@@ -133,7 +174,7 @@ export default async function VorschauPage({ searchParams }: Props) {
             )}
           </div>
 
-          <div className="rounded-md border overflow-hidden">
+          <div className="rounded-md border overflow-hidden" data-tour="vorschau-tabelle">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-xs text-muted-foreground uppercase">
                 <tr>

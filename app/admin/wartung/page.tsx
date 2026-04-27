@@ -5,6 +5,78 @@ import { ScheduleConfig, StoredBackupList } from "./backup-schedule-client";
 import { readSchedule } from "@/lib/backup/config";
 import { listBackups } from "@/lib/backup/writer";
 import { AuditLogSection } from "./audit-log";
+import { PageTour } from "@/components/tour/page-tour";
+import type { TourStep } from "@/components/tour/tour-context";
+
+// ── Page-specific tour steps ──────────────────────────────────────────────────
+
+const WARTUNG_TOUR: TourStep[] = [
+  {
+    id: "wartung-bestand",
+    target: '[data-tour="wartung-bestand"]',
+    title: "Aktueller Datenbestand",
+    content:
+      "Zeigt auf einen Blick, wie viele Datensätze aktuell gespeichert sind. " +
+      "Nützlich zur Kontrolle vor und nach einem Import oder einer Datenreduktion.",
+    placement: "bottom",
+  },
+  {
+    id: "wartung-auto",
+    target: '[data-tour="wartung-auto"]',
+    title: "Automatische Datensicherung",
+    content:
+      "Plane regelmäßige Backups nach Wochentag und Uhrzeit. " +
+      "Backups werden auf dem Server gespeichert und können direkt heruntergeladen " +
+      "oder für eine Rücksicherung verwendet werden. " +
+      "Optionale AES-256-Verschlüsselung schützt die Dateien bei Weitergabe.",
+    placement: "bottom",
+  },
+  {
+    id: "wartung-jetzt",
+    target: '[data-tour="wartung-jetzt"]',
+    title: "Sofortiges Backup",
+    content:
+      "Erstellt sofort einen vollständigen Datenexport als JSON-Datei zum Herunterladen — " +
+      "ohne Zeitplan, ohne Server-Speicherung. " +
+      "Ideal vor größeren Änderungen wie einem Import oder einer Datenreduktion.",
+    placement: "bottom",
+  },
+  {
+    id: "wartung-rueck",
+    target: '[data-tour="wartung-rueck"]',
+    title: "Rücksicherung",
+    content:
+      "Stellt einen früheren Datenstand aus einer Backup-Datei wieder her. " +
+      "Achtung: Alle aktuellen Daten werden dabei unwiderruflich gelöscht " +
+      "und durch den Backup-Stand ersetzt. " +
+      "Verschlüsselte Backups benötigen das Passwort aus dem Zeitplan.",
+    placement: "bottom",
+  },
+  {
+    id: "wartung-reduktion",
+    target: '[data-tour="wartung-reduktion"]',
+    title: "Datenreduktion",
+    content:
+      "Entfernt Regatten (inkl. aller Ergebnisse) vor einem bestimmten Jahr " +
+      "und anschließend alle Segler ohne verbleibende Einträge. " +
+      "Sinnvoll um den Datenbestand nach mehreren Saisons übersichtlich zu halten. " +
+      "Vorher unbedingt ein Backup erstellen!",
+    placement: "bottom",
+  },
+  {
+    id: "wartung-protokoll",
+    target: '[data-tour="wartung-protokoll"]',
+    title: "Sicherheitsprotokoll",
+    content:
+      "Protokolliert alle sicherheitsrelevanten Ereignisse: " +
+      "Anmeldungen, Passwortänderungen, Backups, Rücksicherungen und Datenlöschungen — " +
+      "mit Zeitstempel, Benutzer und IP-Adresse. " +
+      "Die letzten 100 Einträge werden angezeigt.",
+    placement: "bottom",
+  },
+];
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function WartungPage() {
   const [sailorCount, regattaCount, teamEntryCount, resultCount, rankingCount, allRegattas, auditLogs] =
@@ -38,15 +110,21 @@ export default async function WartungPage() {
 
   return (
     <div className="max-w-2xl space-y-8">
-      <div>
-        <h1 className="text-xl font-semibold">Wartung</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Datensicherung, Wiederherstellung und Datenlöschung.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold">Wartung</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Datensicherung, Wiederherstellung und Datenlöschung.
+          </p>
+        </div>
+        <PageTour steps={WARTUNG_TOUR} />
       </div>
 
       {/* Current counts */}
-      <div className="rounded-md border bg-muted/30 px-4 py-3 text-sm">
+      <div
+        data-tour="wartung-bestand"
+        className="rounded-md border bg-muted/30 px-4 py-3 text-sm"
+      >
         <p className="font-medium mb-2">Aktueller Datenbestand</p>
         <div className="grid grid-cols-2 gap-x-6 gap-y-0.5 text-muted-foreground">
           <span>Segler</span><span className="font-medium text-foreground">{sailorCount}</span>
@@ -58,7 +136,7 @@ export default async function WartungPage() {
       </div>
 
       {/* Section 1: Automatic backups */}
-      <section className="space-y-4">
+      <section className="space-y-4" data-tour="wartung-auto">
         <div className="flex items-center gap-2">
           <Clock className="h-5 w-5 text-muted-foreground" />
           <h2 className="text-base font-semibold">Automatische Datensicherung</h2>
@@ -79,7 +157,7 @@ export default async function WartungPage() {
       <hr />
 
       {/* Section 2: Manual one-off backup */}
-      <section className="space-y-3">
+      <section className="space-y-3" data-tour="wartung-jetzt">
         <div className="flex items-center gap-2">
           <Download className="h-5 w-5 text-muted-foreground" />
           <h2 className="text-base font-semibold">Einmalige Datensicherung</h2>
@@ -100,8 +178,8 @@ export default async function WartungPage() {
 
       <hr />
 
-      {/* Section 2: Restore */}
-      <section className="space-y-3">
+      {/* Section 3: Restore */}
+      <section className="space-y-3" data-tour="wartung-rueck">
         <div className="flex items-center gap-2">
           <Upload className="h-5 w-5 text-muted-foreground" />
           <h2 className="text-base font-semibold">Rücksicherung</h2>
@@ -115,8 +193,8 @@ export default async function WartungPage() {
 
       <hr />
 
-      {/* Section 3: Prune old data + orphan cleanup */}
-      <section className="space-y-4">
+      {/* Section 4: Prune old data + orphan cleanup */}
+      <section className="space-y-4" data-tour="wartung-reduktion">
         <div className="flex items-center gap-2">
           <ScissorsLineDashed className="h-5 w-5 text-muted-foreground" />
           <h2 className="text-base font-semibold">Datenreduktion</h2>
@@ -137,7 +215,7 @@ export default async function WartungPage() {
 
       <hr />
 
-      {/* Section 4: Delete all */}
+      {/* Section 5: Delete all */}
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <Trash2 className="h-5 w-5 text-red-500" />
@@ -152,8 +230,8 @@ export default async function WartungPage() {
 
       <hr />
 
-      {/* Section 5: Audit log */}
-      <section className="space-y-3">
+      {/* Section 6: Audit log */}
+      <section className="space-y-3" data-tour="wartung-protokoll">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-5 w-5 text-muted-foreground" />
           <h2 className="text-base font-semibold">Sicherheitsprotokoll</h2>

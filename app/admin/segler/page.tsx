@@ -4,8 +4,59 @@ import { buttonVariants } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SearchInput } from "@/components/search-input";
+import { PageTour } from "@/components/tour/page-tour";
+import type { TourStep } from "@/components/tour/tour-context";
 
 export const dynamic = "force-dynamic";
+
+// ── Page-specific tour steps ──────────────────────────────────────────────────
+
+const SEGLER_TOUR: TourStep[] = [
+  {
+    id: "segler-neu",
+    target: '[data-tour="segler-neu"]',
+    title: "Segler anlegen",
+    content:
+      "Legt einen neuen Segler manuell an. " +
+      "Geburtsjahr und Geschlecht sind optional, werden aber für " +
+      "Alters- und Gender-Kategorien (U15–U19, Männer, Girls) benötigt — " +
+      "Segler ohne diese Daten erscheinen nur in der Open-Kategorie.",
+    placement: "bottom-end",
+  },
+  {
+    id: "segler-import",
+    target: '[data-tour="segler-import"]',
+    title: "Stammdaten importieren",
+    content:
+      "Importiert mehrere Segler auf einmal aus einer CSV-Datei. " +
+      "Praktisch, wenn ein Manage2Sail-Export oder eine Vereinsliste vorliegt. " +
+      "Bestehende Segler werden über Fuzzy-Matching erkannt und nicht doppelt angelegt.",
+    placement: "bottom-end",
+  },
+  {
+    id: "segler-suche",
+    target: '[data-tour="segler-suche"]',
+    title: "Schnellsuche",
+    content:
+      "Filtert die Liste sofort nach Name (Vor- oder Nachname). " +
+      "Der Suchbegriff wird als URL-Parameter gespeichert — " +
+      "du kannst ihn also direkt verlinken oder im Browser-Tab behalten.",
+    placement: "bottom",
+  },
+  {
+    id: "segler-tabelle",
+    target: '[data-tour="segler-tabelle"]',
+    title: "Seglerliste",
+    content:
+      "Gelb hinterlegte Zeilen haben unvollständige Stammdaten. " +
+      "Das ⚠-Symbol markiert Segler ohne Geburtsjahr oder Geschlecht — " +
+      "klicke auf den Namen, um die fehlenden Daten zu ergänzen. " +
+      "Die Spalte 'Regatten' zählt alle Teilnahmen als Steuermann oder Crew.",
+    placement: "bottom",
+  },
+];
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 type Props = {
   searchParams: Promise<{ q?: string }>;
@@ -38,21 +89,35 @@ export default async function SeglerPage({ searchParams }: Props) {
         <h1 className="text-xl font-semibold">
           Segler ({sailors.length}{q && " gefunden"})
         </h1>
-        <div className="flex gap-2">
-          <Link href="/admin/segler/import" className={cn(buttonVariants({ size: "sm", variant: "outline" }))}>
+        <div className="flex items-center gap-2">
+          <PageTour steps={SEGLER_TOUR} />
+          <Link
+            href="/admin/segler/import"
+            data-tour="segler-import"
+            className={cn(buttonVariants({ size: "sm", variant: "outline" }))}
+          >
             Stammdaten importieren
           </Link>
-          <Link href="/admin/segler/neu" className={cn(buttonVariants({ size: "sm" }))}>
+          <Link
+            href="/admin/segler/neu"
+            data-tour="segler-neu"
+            className={cn(buttonVariants({ size: "sm" }))}
+          >
             + Neuer Segler
           </Link>
         </div>
       </div>
 
       {/* Suchfeld */}
-      <SearchInput placeholder="Name suchen…" paramName="q" initialValue={q} />
+      <div data-tour="segler-suche">
+        <SearchInput placeholder="Name suchen…" paramName="q" initialValue={q} />
+      </div>
 
       {warnings.length > 0 && !q && (
-        <div className="flex items-start gap-2 rounded border border-yellow-300 bg-yellow-50 p-3 text-sm text-yellow-800">
+        <div
+          data-tour="segler-warnung"
+          className="flex items-start gap-2 rounded border border-yellow-300 bg-yellow-50 p-3 text-sm text-yellow-800"
+        >
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>
             {warnings.length} Segler ohne vollständige Stammdaten — diese werden aus
@@ -61,7 +126,7 @@ export default async function SeglerPage({ searchParams }: Props) {
         </div>
       )}
 
-      <div className="overflow-hidden rounded border">
+      <div className="overflow-hidden rounded border" data-tour="segler-tabelle">
         <table className="w-full text-sm">
           <thead className="bg-muted/50">
             <tr>

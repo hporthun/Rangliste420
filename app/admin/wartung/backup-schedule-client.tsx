@@ -200,6 +200,7 @@ export function StoredBackupList({ initial }: { initial: StoredBackup[] }) {
   const [backups, setBackups] = useState<StoredBackup[]>(initial);
   const [triggering, startTrigger] = useTransition();
   const [triggerMsg, setTriggerMsg] = useState<string | null>(null);
+  const [triggerComment, setTriggerComment] = useState("");
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [restoreState, setRestoreState] = useState<RestoreState>({ step: "idle" });
@@ -212,11 +213,12 @@ export function StoredBackupList({ initial }: { initial: StoredBackup[] }) {
   function handleNow() {
     setTriggerMsg(null);
     startTrigger(async () => {
-      const res = await triggerBackupNowAction();
+      const res = await triggerBackupNowAction(triggerComment || undefined);
       if (!res.ok) {
         setTriggerMsg("Fehler: " + res.error);
       } else {
         setTriggerMsg("Backup erstellt: " + res.filename);
+        setTriggerComment("");
         router.refresh();
       }
     });
@@ -276,19 +278,28 @@ export function StoredBackupList({ initial }: { initial: StoredBackup[] }) {
   return (
     <div className="space-y-3">
       {/* Manual trigger */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <button
-          onClick={handleNow}
-          disabled={triggering}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm border border-input bg-background rounded-md hover:bg-muted disabled:opacity-50 font-medium"
-        >
-          {triggering
-            ? <Loader2 className="h-4 w-4 animate-spin" />
-            : <PlayCircle className="h-4 w-4" />}
-          Jetzt sichern
-        </button>
+      <div className="space-y-2">
+        <div className="flex items-start gap-2 flex-wrap">
+          <textarea
+            value={triggerComment}
+            onChange={(e) => setTriggerComment(e.target.value)}
+            placeholder="Kommentar (optional) …"
+            rows={2}
+            className="flex-1 min-w-48 max-w-sm rounded-md border border-input bg-background px-3 py-1.5 text-sm resize-none"
+          />
+          <button
+            onClick={handleNow}
+            disabled={triggering}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm border border-input bg-background rounded-md hover:bg-muted disabled:opacity-50 font-medium self-start"
+          >
+            {triggering
+              ? <Loader2 className="h-4 w-4 animate-spin" />
+              : <PlayCircle className="h-4 w-4" />}
+            Jetzt sichern
+          </button>
+        </div>
         {triggerMsg && (
-          <span className="text-xs text-muted-foreground">{triggerMsg}</span>
+          <p className="text-xs text-muted-foreground">{triggerMsg}</p>
         )}
       </div>
 
@@ -421,6 +432,7 @@ export function StoredBackupList({ initial }: { initial: StoredBackup[] }) {
               <tr>
                 <th className="px-3 py-2 text-left">Dateiname</th>
                 <th className="px-3 py-2 text-left">Erstellt</th>
+                <th className="px-3 py-2 text-left hidden md:table-cell">Kommentar</th>
                 <th className="px-3 py-2 text-right">Größe</th>
                 <th className="px-3 py-2 text-right" />
               </tr>
@@ -436,6 +448,9 @@ export function StoredBackupList({ initial }: { initial: StoredBackup[] }) {
                   </td>
                   <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
                     {formatDate(b.createdAt)}
+                  </td>
+                  <td className="px-3 py-2 text-muted-foreground text-xs hidden md:table-cell max-w-xs">
+                    {b.comment ?? <span className="italic opacity-50">—</span>}
                   </td>
                   <td className="px-3 py-2 text-right text-muted-foreground">
                     {formatSize(b.size)}

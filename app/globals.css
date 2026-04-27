@@ -141,6 +141,38 @@
   }
 }
 
+@media print {
+  /* ── Print / PDF styles (used by Benutzerhandbuch "Drucken" button) ── */
+  .maritime-header,
+  .print\:hidden,
+  aside,
+  nav,
+  footer {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt;
+  }
+
+  article {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  h2, h3 {
+    break-after: avoid;
+  }
+
+  .sea-card,
+  [class*="rounded-lg border"] {
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+  }
+}
+
 @layer components {
   /* ── Inputs ──────────────────────────────────────────────────────────── */
   .input {

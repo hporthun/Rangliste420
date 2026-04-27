@@ -94,8 +94,7 @@ export type ComputeParams = {
 export async function computeRankingAction(
   params: ComputeParams
 ): Promise<{ ok: true; data: RankingComputeResult } | { ok: false; error: string }> {
-  const session = await auth();
-  if (!session) return { ok: false, error: "Nicht angemeldet." };
+  // Read-only computation — no auth required (data shown on public pages too)
   try {
     const { type, seasonStart: seasonStartStr, referenceDate, ageCategory, genderCategory } = params;
     const refDate = new Date(referenceDate);
@@ -203,8 +202,7 @@ export async function computeHelmDetailAction(
   params: ComputeParams,
   helmId: string
 ): Promise<{ ok: true; data: HelmDetailData } | { ok: false; error: string }> {
-  const session = await auth();
-  if (!session) return { ok: false, error: "Nicht angemeldet." };
+  // Read-only computation — no auth required (data shown on public pages too)
   try {
     const { type, seasonStart: seasonStartStr, referenceDate, ageCategory, genderCategory } = params;
     const refDate = new Date(referenceDate);

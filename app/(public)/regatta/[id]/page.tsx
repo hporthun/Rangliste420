@@ -48,24 +48,31 @@ export default async function RegattaDetailPage({ params }: Props) {
       </Link>
 
       {/* Title */}
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">{regatta.name}</h1>
-        <p className="text-sm text-muted-foreground">
-          {dateRange(regatta.startDate, regatta.endDate)}
+      <div className="rounded-xl border bg-gradient-to-br from-card to-muted/40 px-5 py-4 shadow-sm">
+        <h1 className="text-xl font-bold">{regatta.name}</h1>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-muted-foreground">
+          <span>{dateRange(regatta.startDate, regatta.endDate)}</span>
           {regatta.country !== "GER" && (
-            <span className="ml-2 text-amber-700 font-medium">{regatta.country}</span>
+            <span className="font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
+              {regatta.country}
+            </span>
           )}
-        </p>
-        {regatta.sourceUrl && (
-          <a
-            href={regatta.sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-accent hover:underline mt-1"
-          >
-            Manage2Sail ↗
-          </a>
-        )}
+          {regatta.isRanglistenRegatta && (
+            <span className="font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5">
+              Ranglistenregatta
+            </span>
+          )}
+          {regatta.sourceUrl && (
+            <a
+              href={regatta.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-accent hover:underline"
+            >
+              Manage2Sail ↗
+            </a>
+          )}
+        </div>
       </div>
 
       {/* Metadata cards */}

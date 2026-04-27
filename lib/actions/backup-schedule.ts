@@ -47,13 +47,14 @@ export async function saveScheduleAction(
 
 // ── Manual backup now ─────────────────────────────────────────────────────────
 
-export async function triggerBackupNowAction(): Promise<
-  { ok: true; filename: string } | { ok: false; error: string }
-> {
+export async function triggerBackupNowAction(
+  comment?: string
+): Promise<{ ok: true; filename: string } | { ok: false; error: string }> {
   try {
     const session = await auth();
     if (!session) return { ok: false, error: "Nicht angemeldet." };
-    const filename = await writeBackupFile();
+    const trimmed = comment?.trim() || undefined;
+    const filename = await writeBackupFile(trimmed);
     revalidatePath("/admin/wartung");
     await logAudit({ userId: session.user?.id, action: A.BACKUP_CREATED, detail: filename });
     return { ok: true, filename };

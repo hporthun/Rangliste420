@@ -4,6 +4,45 @@ import { db } from "@/lib/db/client";
 import { RegattaForm } from "@/components/regatta-form";
 import { updateRegatta } from "@/lib/actions/regattas";
 import { DeleteRegattaButton } from "@/components/delete-regatta-button";
+import { PageTour } from "@/components/tour/page-tour";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import type { TourStep } from "@/components/tour/tour-context";
+
+const REGATTA_DETAIL_TOUR: TourStep[] = [
+  {
+    id: "regatta-form",
+    target: '[data-tour="regatta-form"]',
+    title: "Regatta-Metadaten",
+    content:
+      "Hier pflegst du alle fachlich relevanten Felder: " +
+      "Ranglistenfaktor f (beeinflusst direkt alle R_A-Werte), " +
+      "Anzahl der Wettfahrten (bestimmt den Multiplikator m), " +
+      "und ob die Regatta als Ranglistenregatta gilt.",
+    placement: "bottom",
+  },
+  {
+    id: "regatta-import",
+    target: '[data-tour="regatta-import"]',
+    title: "Ergebnisse importieren",
+    content:
+      "Startet den Import-Wizard für diese Regatta. " +
+      "Unterstützt Web-Copy-Paste aus Manage2Sail (empfohlen, enthält Crew) " +
+      "und PDF-Upload als Fallback (nur Steuermann, Crew wird nachgepflegt).",
+    placement: "bottom-end",
+  },
+  {
+    id: "regatta-ergebnisse",
+    target: '[data-tour="regatta-ergebnisse"]',
+    title: "Ergebnisliste",
+    content:
+      "Zeigt alle importierten Einträge mit Platzierung, Segelnummer, " +
+      "Steuermann/Crew und Einzel-Wettfahrtergebnissen. " +
+      "Die SG-Spalte (Startgebiet) markiert Boote, die ins Startgebiet kamen — " +
+      "diese erhalten R_A = 0, zählen aber in s.",
+    placement: "bottom",
+  },
+];
 
 type RacePoint = {
   race: number;
@@ -67,10 +106,15 @@ export default async function EditRegattaPage({ params }: Props) {
 
       <div className="flex items-start justify-between gap-4">
         <h1 className="text-xl font-semibold">Regatta bearbeiten</h1>
-        <DeleteRegattaButton id={id} entryCount={entries.length} />
+        <div className="flex items-center gap-2">
+          <PageTour steps={REGATTA_DETAIL_TOUR} />
+          <DeleteRegattaButton id={id} entryCount={entries.length} />
+        </div>
       </div>
 
-      <RegattaForm regatta={regatta} action={updateAction} />
+      <div data-tour="regatta-form">
+        <RegattaForm regatta={regatta} action={updateAction} />
+      </div>
 
       {/* Results */}
       <div className="space-y-3 pt-2">
@@ -85,7 +129,8 @@ export default async function EditRegattaPage({ params }: Props) {
           </h2>
           <Link
             href={`/admin/import?regattaId=${id}`}
-            className="text-xs text-blue-600 hover:underline"
+            data-tour="regatta-import"
+            className={cn(buttonVariants({ size: "sm" }))}
           >
             + Ergebnisse importieren
           </Link>
@@ -96,7 +141,7 @@ export default async function EditRegattaPage({ params }: Props) {
             Noch keine Ergebnisse importiert.
           </p>
         ) : (
-          <div className="rounded-md border overflow-x-auto">
+          <div className="rounded-md border overflow-x-auto" data-tour="regatta-ergebnisse">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-xs text-muted-foreground uppercase">
                 <tr>

@@ -1,5 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 import { TocNav } from "./toc-client";
+import { PrintButton } from "./print-button";
 
 const TOC = [
   { id: "uebersicht",        label: "Übersicht",                    level: 1 },
@@ -25,6 +26,25 @@ const TOC = [
   { id: "wartung-restore",   label: "Rücksicherung",                level: 2 },
   { id: "wartung-pruning",   label: "Datenreduktion",               level: 2 },
 ];
+
+// Pre-compute numbered TOC entries at module level (avoids mutation inside a component)
+function buildNumberedToc() {
+  let chapter = 0;
+  let section = 0;
+  return TOC.map((entry) => {
+    if (entry.level === 1) {
+      chapter += 1;
+      section = 0;
+      return { ...entry, num: `${chapter}.`, indent: false };
+    } else {
+      section += 1;
+      return { ...entry, num: `${chapter}.${section}`, indent: true };
+    }
+  });
+}
+const NUMBERED_TOC = buildNumberedToc();
+
+// ── Typography helpers ─────────────────────────────────────────────────────────
 
 function H1({ id, children }: { id: string; children: React.ReactNode }) {
   return (
@@ -68,19 +88,210 @@ function Code({ children }: { children: React.ReactNode }) {
     <code className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">{children}</code>
   );
 }
-function Formula({ children }: { children: React.ReactNode }) {
+/** Table of contents rendered only in print / PDF output */
+function PrintToc() {
   return (
-    <div className="rounded-md border bg-muted/50 px-4 py-3 font-mono text-sm text-center my-3">
-      {children}
+    <div className="hidden print:block mb-10 mt-4">
+      <h2 className="text-base font-bold mb-3 pb-1 border-b">Inhaltsverzeichnis</h2>
+      <ol className="space-y-1 text-sm">
+        {NUMBERED_TOC.map((entry) => (
+          <li
+            key={entry.id}
+            className={`flex items-baseline gap-2 ${entry.indent ? "pl-6" : ""}`}
+          >
+            <span
+              className={`tabular-nums shrink-0 ${
+                entry.indent ? "w-8 text-gray-500" : "w-6 font-semibold"
+              }`}
+            >
+              {entry.num}
+            </span>
+            <a
+              href={`#${entry.id}`}
+              className={entry.indent ? "text-gray-700" : "font-semibold"}
+            >
+              {entry.label}
+            </a>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }
+
+// ── Diagram components ─────────────────────────────────────────────────────────
+
+/** Horizontal flow diagram for the 4-step admin workflow */
+function WorkflowDiagram() {
+  const steps = [
+    { n: "1", label: "Regatten\nanlegen", icon: "📋" },
+    { n: "2", label: "Ergebnisse\nimportieren", icon: "📥" },
+    { n: "3", label: "Segler\nzuordnen", icon: "🔗" },
+    { n: "4", label: "Rangliste\nerstellen", icon: "🏆" },
+  ];
+  return (
+    <div className="my-4 rounded-lg border bg-muted/30 px-4 py-5">
+      <div className="flex items-center justify-between gap-1 sm:gap-2 flex-wrap sm:flex-nowrap">
+        {steps.map((s, i) => (
+          <div key={s.n} className="flex items-center gap-1 sm:gap-2 flex-1 min-w-0">
+            <div className="flex flex-col items-center text-center flex-1 min-w-0">
+              <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shrink-0">
+                {s.n}
+              </div>
+              <div className="mt-1.5 text-xs text-muted-foreground whitespace-pre-line leading-tight">
+                {s.label}
+              </div>
+            </div>
+            {i < steps.length - 1 && (
+              <div className="text-muted-foreground/40 font-bold text-lg shrink-0 hidden sm:block">→</div>
+            )}
+          </div>
+        ))}
+      </div>
+      <p className="text-xs text-muted-foreground text-center mt-3 pt-3 border-t border-border/50">
+        Typischer Arbeitsablauf — Schritte 2–3 werden pro Regatta wiederholt
+      </p>
+    </div>
+  );
+}
+
+/** Import wizard step indicator */
+function ImportWizardSteps() {
+  const steps = [
+    { n: "1", label: "Quelle", desc: "Copy-Paste, URL oder PDF" },
+    { n: "2", label: "Metadaten", desc: "Faktor, Wettfahrten prüfen" },
+    { n: "3", label: "Matching", desc: "Segler zuordnen / anlegen" },
+    { n: "4", label: "Vorschau & Speichern", desc: "Ergebnis bestätigen" },
+  ];
+  return (
+    <div className="my-4 rounded-lg border bg-muted/30 px-4 py-4">
+      <div className="flex flex-col sm:flex-row gap-3">
+        {steps.map((s, i) => (
+          <div key={s.n} className="flex sm:flex-col items-start sm:items-center sm:text-center flex-1 gap-3 sm:gap-1.5">
+            <div className="flex sm:flex-col items-center gap-2 sm:gap-1.5 flex-1">
+              <div className="flex items-center gap-1.5">
+                <span className="w-6 h-6 rounded-full bg-accent text-white flex items-center justify-center text-xs font-bold shrink-0">
+                  {s.n}
+                </span>
+                <span className="font-medium text-sm">{s.label}</span>
+              </div>
+              <p className="text-xs text-muted-foreground hidden sm:block">{s.desc}</p>
+            </div>
+            {i < steps.length - 1 && (
+              <div className="text-muted-foreground/30 hidden sm:block text-2xl leading-none self-start mt-2">›</div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Fuzzy-matching threshold visualization */
+function FuzzyThresholdBar() {
+  return (
+    <div className="my-4 rounded-lg border overflow-hidden">
+      <div className="flex">
+        <div className="flex-1 bg-green-50 border-r border-green-200 px-3 py-3 text-center">
+          <div className="text-xs font-bold text-green-700 mb-0.5">≥ 90 %</div>
+          <div className="text-xs text-green-600">Sehr wahrscheinlich</div>
+          <div className="text-[10px] text-green-500 mt-1">Sammelbestätigung möglich</div>
+        </div>
+        <div className="flex-1 bg-amber-50 border-r border-amber-200 px-3 py-3 text-center">
+          <div className="text-xs font-bold text-amber-700 mb-0.5">75 – 90 %</div>
+          <div className="text-xs text-amber-600">Möglich</div>
+          <div className="text-[10px] text-amber-500 mt-1">Manuelle Prüfung</div>
+        </div>
+        <div className="flex-1 bg-red-50 px-3 py-3 text-center">
+          <div className="text-xs font-bold text-red-700 mb-0.5">{"< 75 %"}</div>
+          <div className="text-xs text-red-600">Kein Vorschlag</div>
+          <div className="text-[10px] text-red-500 mt-1">Suche oder Neu anlegen</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Multiplier m visualization */
+function MultiplierTable() {
+  const rows = [
+    { races: "1 Wettfahrt", m: 1, bar: 1 },
+    { races: "2 Wettfahrten", m: 2, bar: 2 },
+    { races: "3 Wettfahrten", m: 3, bar: 3 },
+    { races: "4–5 Wettfahrten", m: 4, bar: 4 },
+    { races: "≥ 6 Wettfahrten + Mehrtages-Ausschreibung", m: 5, bar: 5 },
+  ];
+  return (
+    <div className="my-3 rounded-lg border overflow-hidden">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="bg-muted/50 text-xs text-muted-foreground uppercase">
+            <th className="px-3 py-2 text-left">Anzahl Wettfahrten</th>
+            <th className="px-3 py-2 text-right w-16">m</th>
+            <th className="px-3 py-2 text-left hidden sm:table-cell">Wertungen pro Regatta</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border/60 bg-card">
+          {rows.map((r) => (
+            <tr key={r.m} className={r.m === 5 ? "bg-blue-50/50" : ""}>
+              <td className="px-3 py-2 text-sm text-muted-foreground">{r.races}</td>
+              <td className="px-3 py-2 text-right font-mono font-bold tabular-nums">{r.m}</td>
+              <td className="px-3 py-2 hidden sm:table-cell">
+                <div className="flex gap-1">
+                  {Array.from({ length: r.bar }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-3 w-5 rounded-sm bg-accent/60"
+                    />
+                  ))}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/** R_A formula breakdown */
+function FormulaBreakdown() {
+  return (
+    <div className="my-4 rounded-lg border bg-muted/30 px-4 py-4">
+      <div className="font-mono text-base text-center mb-4 font-semibold">
+        R_A = f × 100 × ((s + 1 − x) / s)
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+        <div className="rounded-md bg-card border px-3 py-2">
+          <span className="font-mono font-bold text-accent">f</span>
+          <span className="text-muted-foreground ml-2">Ranglistenfaktor</span>
+          <div className="text-xs text-muted-foreground mt-0.5">0,80 – 2,60</div>
+        </div>
+        <div className="rounded-md bg-card border px-3 py-2">
+          <span className="font-mono font-bold text-accent">s</span>
+          <span className="text-muted-foreground ml-2">Gestartete Boote</span>
+          <div className="text-xs text-muted-foreground mt-0.5">inkl. DNS/BFD/OCS</div>
+        </div>
+        <div className="rounded-md bg-card border px-3 py-2">
+          <span className="font-mono font-bold text-accent">x</span>
+          <span className="text-muted-foreground ml-2">Gesamtplatz</span>
+          <div className="text-xs text-muted-foreground mt-0.5">1 = Sieg → R_A maximal</div>
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground text-center mt-3 pt-3 border-t border-border/50">
+        RO Anlage 1 §2 · DSV-Ranglistenordnung, gültig ab 01.01.2026
+      </p>
+    </div>
+  );
+}
+
+// ── Page ───────────────────────────────────────────────────────────────────────
 
 export default function HilfePage() {
   return (
     <div className="flex gap-10 items-start">
       {/* Sticky TOC */}
-      <aside className="hidden xl:block w-56 shrink-0 sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto">
+      <aside className="hidden xl:block w-56 shrink-0 sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto print:hidden">
         <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wide mb-2 px-2">
           Inhalt
         </p>
@@ -89,10 +300,16 @@ export default function HilfePage() {
 
       {/* Content */}
       <article className="min-w-0 max-w-3xl flex-1 pb-20">
-        <h1 className="text-2xl font-bold mb-1">Benutzerhandbuch</h1>
+        {/* Page title + print button */}
+        <div className="flex items-start justify-between gap-4 mb-1">
+          <h1 className="text-2xl font-bold">Benutzerhandbuch</h1>
+          <PrintButton />
+        </div>
         <p className="text-sm text-muted-foreground mb-8">
           420er-Ranglisten­verwaltung · DSV-Ranglistenordnung gültig ab 01.01.2026
         </p>
+
+        <PrintToc />
 
         {/* ── Übersicht ──────────────────────────────────────────────────────── */}
         <H1 id="uebersicht">Übersicht</H1>
@@ -100,6 +317,9 @@ export default function HilfePage() {
           Diese Anwendung verwaltet Regatten, Segler und Ergebnisse der 420er-Klasse und berechnet
           daraus die DSV-Rangliste. Die wichtigsten Arbeitsschritte sind:
         </P>
+
+        <WorkflowDiagram />
+
         <Ul>
           <Li><strong>Regatten anlegen</strong> – Stammdaten, Ranglistenfaktor, Quelle (Manage2Sail-URL)</Li>
           <Li><strong>Ergebnisse importieren</strong> – aus Manage2Sail per Web-Copy-Paste oder PDF-Upload</Li>
@@ -142,7 +362,7 @@ export default function HilfePage() {
         </P>
         <P>
           Beim Import kann der Admin direkt im Matching-Schritt wählen:
-          <em> „Als alternativen Namen speichern"</em> – der neue Schreibweise wird sofort
+          <em> „Als alternativen Namen speichern"</em> – die neue Schreibweise wird sofort
           dem gefundenen Segler hinzugefügt.
         </P>
 
@@ -183,8 +403,10 @@ export default function HilfePage() {
         <P>
           Den Import-Wizard erreichst du über den orangenen <strong>„Ergebnisse importieren"</strong>-Button
           in der Regatten-Liste oder über die Detailseite einer Regatta. Der Wizard führt dich
-          in vier Schritten durch den Import.
+          in vier Schritten durch den Import:
         </P>
+
+        <ImportWizardSteps />
 
         <H2 id="import-quelle">Importquellen</H2>
         <Ul>
@@ -209,17 +431,16 @@ export default function HilfePage() {
         <H2 id="import-matching">Fuzzy-Matching</H2>
         <P>
           Im Matching-Schritt vergleicht die App jeden Namen aus den Ergebnissen mit allen
-          bekannten Seglern:
+          bekannten Seglern. Die Übereinstimmung wird farblich dargestellt:
         </P>
-        <Ul>
-          <Li><strong>≥ 90 % Ähnlichkeit</strong> – grüner Vorschlag „sehr wahrscheinlich", wird zur Sammelbestätigung angeboten.</Li>
-          <Li><strong>75–90 %</strong> – gelber Vorschlag „möglich", Admin wählt manuell.</Li>
-          <Li><strong>{"< 75 %"}</strong> – kein Vorschlag; Admin kann manuell suchen oder einen neuen Segler anlegen.</Li>
-        </Ul>
+
+        <FuzzyThresholdBar />
+
         <P>
           Die Normalisierung umfasst: Kleinschreibung, Umlaut-Umschreibung (ä→ae, ö→oe, ü→ue,
           ß→ss), Bindestriche und Unterstriche → Leerzeichen sowie das Erkennen vertauschter
-          Vor-/Nachname-Reihenfolge.
+          Vor-/Nachname-Reihenfolge. Eine vorhandene Segelnummer gibt einen Bonus von +0,05 auf die
+          Ähnlichkeit.
         </P>
         <Warn>
           Segler werden <strong>nie automatisch</strong> zugeordnet oder angelegt – jede
@@ -267,27 +488,21 @@ export default function HilfePage() {
         </P>
 
         <H2 id="ranglisten-formel">DSV-Formel (RO Anlage 1 §2, gültig ab 01.01.2026)</H2>
-        <Formula>R_A = f × 100 × ((s + 1 − x) / s)</Formula>
-        <Ul>
-          <Li><strong>f</strong> – Ranglistenfaktor der Regatta (0,80–2,60)</Li>
-          <Li><strong>s</strong> – Gestartete Boote plus Boote, die ins Startgebiet gekommen sind (DNS/BFD/OCS)</Li>
-          <Li><strong>x</strong> – Gesamtplatz des Bootes</Li>
-        </Ul>
+
+        <FormulaBreakdown />
+
         <P>
           Die <strong>Ranglistenpunktzahl R</strong> ist das arithmetische Mittel der
           9 besten R_A-Werte aus allen Wertungen der Saison. Boote mit weniger als 9 Wertungen
           erscheinen nicht in der Rangliste.
         </P>
         <P>
-          Der <strong>Multiplikator m</strong> bestimmt, wie oft eine Regatta in die Werteliste eingeht:
+          Der <strong>Multiplikator m</strong> bestimmt, wie oft eine Regatta in die Werteliste eingeht.
+          Damit können mehrtägige Regatten stärker gewichtet werden:
         </P>
-        <Ul>
-          <Li>1 Wettfahrt → m = 1</Li>
-          <Li>2 Wettfahrten → m = 2</Li>
-          <Li>3 Wettfahrten → m = 3</Li>
-          <Li>4–5 Wettfahrten → m = 4</Li>
-          <Li>≥ 6 Wettfahrten mit Mehrtages-Ausschreibung → m = 5</Li>
-        </Ul>
+
+        <MultiplierTable />
+
         <Hint>
           Ein Boot mit 2 Wettfahrten bei einer Regatta (m = 2) geht zweimal mit demselben
           R_A-Wert in die Werteliste ein. Die Rangliste nimmt daraus die 9 besten.
