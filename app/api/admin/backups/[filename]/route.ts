@@ -22,8 +22,10 @@ export async function GET(
 
   const filepath = path.join(BACKUP_DIR, filename);
 
-  // Prevent path traversal
-  if (!filepath.startsWith(BACKUP_DIR)) {
+  // Prevent path traversal (normalize + sep avoids prefix-collision on Windows,
+  // e.g. C:\backup matching C:\backups)
+  const safeDir = path.normalize(BACKUP_DIR) + path.sep;
+  if (!path.normalize(filepath).startsWith(safeDir)) {
     return NextResponse.json({ error: "Ungültiger Pfad." }, { status: 400 });
   }
 
