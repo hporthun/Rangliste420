@@ -1,8 +1,8 @@
 import { db } from "@/lib/db/client";
-import { Download, Upload, Trash2, ScissorsLineDashed, Clock, ShieldCheck } from "lucide-react";
+import { Download, Upload, Trash2, ScissorsLineDashed, Clock, ShieldCheck, AlertTriangle } from "lucide-react";
 import { RestoreSection, DeleteAllSection, PruneSection, CleanupSection } from "./maintenance-client";
 import { ScheduleConfig, StoredBackupList } from "./backup-schedule-client";
-import { readSchedule } from "@/lib/backup/config";
+import { readSchedule, IS_SERVERLESS } from "@/lib/backup/config";
 import { listBackups } from "@/lib/backup/writer";
 import { AuditLogSection } from "./audit-log";
 import { PageTour } from "@/components/tour/page-tour";
@@ -119,6 +119,22 @@ export default async function WartungPage() {
         </div>
         <PageTour steps={WARTUNG_TOUR} />
       </div>
+
+      {/* Serverless / Vercel Phase-1 hint */}
+      {IS_SERVERLESS && (
+        <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <p className="font-medium">Serverless-Umgebung erkannt — Backups laufen im Phase-1-Modus.</p>
+            <ul className="list-disc pl-5 text-xs leading-relaxed">
+              <li>Der automatische Zeitplan ist temporär deaktiviert (kein Long-Running-Cron möglich).</li>
+              <li>Manuelle „Jetzt sichern"-Backups werden in <code>/tmp</code> abgelegt und sind nur kurzlebig — bitte sofort herunterladen.</li>
+              <li>Die einmalige Datensicherung („Backup herunterladen") funktioniert uneingeschränkt.</li>
+              <li>Phase 2 wird automatisierte Backups via Vercel Cron + Vercel Blob nachrüsten.</li>
+            </ul>
+          </div>
+        </div>
+      )}
 
       {/* Current counts */}
       <div

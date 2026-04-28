@@ -2,6 +2,17 @@ import * as cron from "node-cron";
 import { readSchedule, writeSchedule, type BackupSchedule } from "./config";
 import { writeBackupFile } from "./writer";
 
+/**
+ * On Vercel/serverless, every request runs in a fresh function invocation,
+ * so a long-running node-cron task cannot survive between requests.
+ * Phase 1: skip in-process scheduling — backups must be triggered manually
+ * via "Jetzt sichern" or (Phase 2) Vercel Cron Jobs.
+ */
+const IS_SERVERLESS =
+  process.env.VERCEL === "1" ||
+  process.env.NEXT_RUNTIME === "edge" ||
+  process.env.AWS_EXECUTION_ENV !== undefined;
+
 const DAY_NAMES = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 
 function buildAutoComment(schedule: BackupSchedule): string {
@@ -28,6 +39,16 @@ export function applySchedule(schedule: BackupSchedule) {
   if (currentTask) {
     currentTask.stop();
     currentTask = null;
+  }
+
+  if (IS_SERVERLESS) {
+    // Configuration is still persisted via writeSchedule() so a future
+    // Vercel-Cron-based scheduler (Phase 2) can read it.
+    console.log(
+      "[backup-scheduler] Serverless environment detected — in-process cron disabled. " +
+        "Phase 2 will move automated backups to Vercel Cron Jobs."
+    );
+    return;
   }
 
   if (!schedule.enabled) return;

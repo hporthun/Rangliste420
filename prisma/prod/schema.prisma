@@ -1,18 +1,26 @@
 // Produktions-Schema für Vercel + Neon PostgreSQL.
+// AUTO-GENERIERT aus prisma/schema.prisma — NICHT manuell editieren.
+// Re-generieren mit: npm run db:sync-prod
+//
 // Lokal wird prisma/schema.prisma (SQLite) verwendet.
-// Vercel-Build-Befehl: prisma generate --schema=prisma/schema.prod.prisma && next build
+// Vercel-Build:  prisma migrate deploy --schema=prisma/prod/schema.prisma
+//             && prisma generate     --schema=prisma/prod/schema.prisma
+//             && next build
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
+  // Pooled connection (PgBouncer) — used by the application at runtime.
+  // For Neon the pooled URL ends with `-pooler.<region>.neon.tech`.
   provider  = "postgresql"
   url       = env("DATABASE_URL")
+  // Direct (non-pooled) connection — required by Prisma Migrate.
+  // Falls back to DATABASE_URL when DATABASE_URL_UNPOOLED is unset.
   directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
-// ── Sailor ────────────────────────────────────────────────────────────────────
 model Sailor {
   id               String    @id @default(cuid())
   firstName        String
@@ -90,6 +98,8 @@ model TeamEntry {
 
   // Each helm appears at most once per regatta
   @@unique([regattaId, helmId])
+  @@index([helmId])
+  @@index([crewId])
 }
 
 // ── Result ────────────────────────────────────────────────────────────────────
@@ -112,6 +122,7 @@ model Result {
   updatedAt DateTime @updatedAt
 
   @@unique([regattaId, teamEntryId])
+  @@index([regattaId])
 }
 
 // ── Ranking ───────────────────────────────────────────────────────────────────
@@ -167,6 +178,8 @@ model ImportSession {
   regatta Regatta @relation(fields: [regattaId], references: [id])
 
   createdAt DateTime @default(now())
+
+  @@index([regattaId])
 }
 
 // ── User ──────────────────────────────────────────────────────────────────────
@@ -221,6 +234,8 @@ model WebAuthnCredential {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 // ── WebAuthnChallenge ─────────────────────────────────────────────────────────

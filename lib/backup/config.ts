@@ -4,11 +4,23 @@ import type { BackupSchedule } from "./types";
 
 export type { BackupSchedule };
 
+/** Detect a serverless platform where the filesystem is read-only outside /tmp. */
+export const IS_SERVERLESS =
+  process.env.VERCEL === "1" || process.env.AWS_EXECUTION_ENV !== undefined;
+
 // Directory where backup JSON files and the schedule config are stored.
 // Override with env var BACKUP_DIR (absolute or relative to cwd).
-export const BACKUP_DIR = path.resolve(
-  process.env.BACKUP_DIR ?? path.join(process.cwd(), "data", "backups")
-);
+//
+// Defaults:
+//   local        → ./data/backups
+//   serverless   → /tmp/420ranking-backups (writeable but ephemeral —
+//                   Phase 2 will move backup storage to Vercel Blob)
+function getDefaultBackupDir(): string {
+  if (process.env.BACKUP_DIR) return process.env.BACKUP_DIR;
+  if (IS_SERVERLESS) return "/tmp/420ranking-backups";
+  return path.join(process.cwd(), "data", "backups");
+}
+export const BACKUP_DIR = path.resolve(getDefaultBackupDir());
 
 export const SCHEDULE_FILE = path.join(BACKUP_DIR, "_schedule.json");
 
