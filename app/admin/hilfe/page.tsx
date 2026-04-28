@@ -536,6 +536,12 @@ export default function HilfePage() {
         <ImportWizardSteps />
 
         <Figure
+          src="/handbuch/tutorial-regatta-import.gif"
+          alt="Animierte Schritt-für-Schritt-Anleitung: Regatten-Liste → Regatta öffnen → Importieren-Button → Quelle wählen (Manage2Sail API, Web-Copy-Paste, PDF-Upload)"
+          caption="Tutorial — Einstieg in den Regatta-Import in fünf Schritten (animierte Bildfolge)"
+        />
+
+        <Figure
           src="/handbuch/04-import-wizard-quelle.jpg"
           alt="Import-Wizard Schritt 1 mit Schrittanzeige (Quelle, Regatta, Startgebiet, Zuordnung, Vorschau) und Tabs für Manage2Sail API, Web-Copy-Paste, PDF-Upload"
           caption="Abb. 4 — Import-Wizard, Schritt 1: Quelle und Importmethode wählen"
