@@ -64,7 +64,7 @@ export function PublicNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+            className={`px-2 sm:px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors ${
               active
                 ? "text-white bg-white/20 font-medium"
                 : "text-white/70 hover:text-white hover:bg-white/10"

@@ -6,7 +6,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <header className="maritime-header">
-        <div className="max-w-5xl mx-auto px-4 flex items-center gap-6 h-14">
+        <div className="max-w-5xl mx-auto px-3 sm:px-4 flex items-center gap-3 sm:gap-6 h-14">
           <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
             <Image
               src="/logo-420.png"

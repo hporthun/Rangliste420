@@ -42,7 +42,7 @@ export function MergeClient({ candidates, initialPrimaryId, initialSecondaryId }
   // Auto-fetch preview when both selected
   useEffect(() => {
     if (!primaryId || !secondaryId) {
-      setPreview(null);
+      setPreview(null); // eslint-disable-line react-hooks/set-state-in-effect
       setError(null);
       return;
     }

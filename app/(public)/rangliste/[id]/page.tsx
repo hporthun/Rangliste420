@@ -160,8 +160,8 @@ export default async function RanglistePage({ params }: Props) {
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border overflow-hidden shadow-sm">
-        <table className="w-full text-sm">
+      <div className="rounded-lg border overflow-x-auto shadow-sm">
+        <table className="w-full text-sm min-w-[320px]">
           <thead>
             <tr className="table-head-maritime text-xs text-muted-foreground uppercase">
               <th className="px-4 py-2.5 text-center w-12">Platz</th>

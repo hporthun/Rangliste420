@@ -263,31 +263,6 @@ function toDecimalStr(v: unknown): string {
   return String(v);
 }
 
-/**
- * Unix timestamp in milliseconds (INTEGER) for SQLite DateTime columns.
- *
- * Prisma's SQLite adapter stores DateTime values as INTEGER milliseconds
- * (e.g. 1645056000000) and binds Date parameters the same way. Storing
- * dates as TEXT (ISO strings) causes Prisma's parameterised filters like
- * `{ startDate: { gte, lte } }` to silently return 0 rows, because
- * SQLite's type affinity rules make TEXT always "greater than" INTEGER in
- * mixed-type comparisons.
- */
-function toIso(v: unknown): number {
-  if (!v) return Date.now();
-  const d = new Date(v as string);
-  return isNaN(d.getTime()) ? Date.now() : d.getTime();
-}
-
-/** Nullable ms timestamp for optional DateTime columns. */
-function toIsoOrNull(v: unknown): number | null {
-  if (!v) return null;
-  const d = new Date(v as string);
-  return isNaN(d.getTime()) ? null : d.getTime();
-}
-
-/** Boolean → SQLite INTEGER 0/1. */
-function toInt(v: unknown): number { return v ? 1 : 0; }
 
 /**
  * Date helpers for Prisma typed-queries. Prisma expects a JS Date object for

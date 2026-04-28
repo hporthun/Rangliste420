@@ -4,6 +4,7 @@
  * parser in the bundle. When you add a new entry to CHANGELOG.md, also
  * append it here.
  */
+/* eslint-disable react/no-unescaped-entities */
 import Link from "next/link";
 import { APP_VERSION } from "@/lib/version";
 
@@ -17,6 +18,35 @@ type Entry = {
 };
 
 const ENTRIES: Entry[] = [
+  {
+    version: "2026.04.1",
+    date: "2026-04-28",
+    title: "Responsive + CalVer",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            <strong>Versionierungsformat auf CalVer umgestellt</strong>: ab sofort
+            <code className="ml-1 mr-1 font-mono text-xs">JJJJ.MM.N</code>
+            (z.B. <code className="font-mono text-xs">2026.04.1</code>). Die
+            laufende Nummer zählt Releases innerhalb des Monats (Issue #14).
+          </>,
+        ],
+      },
+      {
+        kind: "neu",
+        items: [
+          <>
+            <strong>Responsive öffentliche Seiten</strong>: alle Tabellen sind auf
+            Mobilgeräten horizontal scrollbar, nicht benötigte Spalten werden auf
+            kleinen Bildschirmen ausgeblendet. Kompakterer Header-Abstand auf engen
+            Viewports (Issue #15).
+          </>,
+        ],
+      },
+    ],
+  },
   {
     version: "1.1.1",
     date: "2026-04-28",
@@ -239,16 +269,17 @@ export default function ChangelogPage() {
       </div>
 
       <p className="text-xs text-muted-foreground text-center pt-4">
-        Alle Versionen folgen{" "}
+        Ab 2026.04.1:{" "}
         <a
-          href="https://semver.org/lang/de/"
+          href="https://calver.org/"
           target="_blank"
           rel="noopener noreferrer"
           className="underline hover:text-foreground"
         >
-          Semantic Versioning
-        </a>
-        . Quelltext und vollständige Commit-Historie:{" "}
+          Calendar Versioning
+        </a>{" "}
+        (JJJJ.MM.N). Ältere Versionen folgen SemVer.{" "}
+        Quelltext und vollständige Commit-Historie:{" "}
         <a
           href="https://git.pt-systemhaus.de/HPorthun/Rangliste420"
           target="_blank"

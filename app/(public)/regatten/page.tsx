@@ -59,7 +59,7 @@ export default async function RegatttenPage({ searchParams }: Props) {
 
       {/* Year tabs */}
       {years.length > 1 && (
-        <div className="flex gap-1 rounded-lg bg-muted p-1 w-fit">
+        <div className="flex gap-1 rounded-lg bg-muted p-1 w-fit max-w-full overflow-x-auto">
           {years.map((y) => (
             <Link
               key={y}
@@ -77,15 +77,15 @@ export default async function RegatttenPage({ searchParams }: Props) {
       )}
 
       {/* Table */}
-      <div className="rounded-lg border overflow-hidden shadow-sm">
-        <table className="w-full text-sm">
+      <div className="rounded-lg border overflow-x-auto shadow-sm">
+        <table className="w-full text-sm min-w-[480px]">
           <thead>
             <tr className="table-head-maritime text-xs text-muted-foreground uppercase">
               <th className="px-4 py-2.5 text-left">Regatta</th>
               <th className="px-4 py-2.5 text-left">Datum</th>
               <th className="px-4 py-2.5 text-left hidden sm:table-cell">Land</th>
-              <th className="px-4 py-2.5 text-right">Boote</th>
-              <th className="px-4 py-2.5 text-right">WF</th>
+              <th className="px-4 py-2.5 text-right hidden md:table-cell">Boote</th>
+              <th className="px-4 py-2.5 text-right hidden sm:table-cell">WF</th>
               <th className="px-4 py-2.5 text-right">f</th>
               <th className="px-4 py-2.5 w-8"></th>
             </tr>
@@ -109,7 +109,7 @@ export default async function RegatttenPage({ searchParams }: Props) {
                     )}
                   </Link>
                 </td>
-                <td className="px-4 py-2.5 text-sm text-muted-foreground tabular-nums">
+                <td className="px-4 py-2.5 text-sm text-muted-foreground tabular-nums whitespace-nowrap">
                   {dateRange(r.startDate, r.endDate)}
                 </td>
                 <td className="px-4 py-2.5 hidden sm:table-cell">
@@ -121,10 +121,10 @@ export default async function RegatttenPage({ searchParams }: Props) {
                     </span>
                   )}
                 </td>
-                <td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+                <td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground hidden md:table-cell">
                   {r._count.teamEntries}
                 </td>
-                <td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+                <td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground hidden sm:table-cell">
                   {r.completedRaces > 0 ? r.completedRaces : <span className="text-border">—</span>}
                 </td>
                 <td className="px-4 py-2.5 text-right font-mono font-medium">

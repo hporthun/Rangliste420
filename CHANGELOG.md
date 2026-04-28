@@ -3,7 +3,28 @@
 Alle nennenswerten Änderungen an der 420er-Ranglistenverwaltung.
 
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
-Versionierung folgt [Semantic Versioning](https://semver.org/lang/de/).
+Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.MM.N**
+(Jahr.Monat.laufende Nummer im Monat) ab Version 2026.04.1.
+
+---
+
+## [2026.04.1] — 2026-04-28
+
+**Responsive öffentliche Seiten + CalVer-Versionierung (Issues #14, #15).**
+
+### Geändert
+
+- **Versionierungsformat** auf CalVer umgestellt: `JJJJ.MM.N` (z.B. `2026.04.1`).
+  Gespeichert ohne führende Null im Monat (`2026.4.1`) um npm-Kompatibilität
+  zu wahren; die Anzeige paddet den Monat automatisch.
+
+### Neu
+
+- **Responsive öffentliche Seiten**: alle Tabellen auf kleinen Bildschirmen
+  horizontal scrollbar, überflüssige Spalten auf Mobilgeräten ausgeblendet
+  (Land in Regatten-Tabelle war bereits ausgeblendet — jetzt konsistent).
+- Kompakterer Header auf kleinen Bildschirmen (weniger Gap zwischen Logo
+  und Navigation).
 
 ---
 

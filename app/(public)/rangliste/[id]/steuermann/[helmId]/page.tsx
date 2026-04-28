@@ -73,7 +73,7 @@ export default async function PublicSteuermanDetailPage({ params }: Props) {
       </div>
 
       {/* R summary card */}
-      <div className="sea-card px-5 py-4 flex items-center justify-between gap-4">
+      <div className="sea-card px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
           <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
             Ranglistenpunktzahl R
@@ -83,7 +83,7 @@ export default async function PublicSteuermanDetailPage({ params }: Props) {
             Mittel der 9 besten R_A-Werte
           </p>
         </div>
-        <div className="text-right text-xs text-muted-foreground">
+        <div className="text-left sm:text-right text-xs text-muted-foreground">
           <p>{d.top9.length} einfließende Wertungen</p>
           {d.nonContributing.length > 0 && (
             <p>{d.nonContributing.length} weitere (nicht einfließend)</p>
@@ -203,8 +203,8 @@ export default async function PublicSteuermanDetailPage({ params }: Props) {
       {d.crewHistory.length > 0 && (
         <div className="space-y-2">
           <h2 className="text-base font-semibold">Crew-Historie</h2>
-          <div className="rounded-lg border overflow-hidden shadow-sm">
-            <table className="w-full text-sm">
+          <div className="rounded-lg border overflow-x-auto shadow-sm">
+            <table className="w-full text-sm min-w-[360px]">
               <thead>
                 <tr className="table-head-maritime text-xs text-muted-foreground uppercase">
                   <th className="px-3 py-2.5 text-left">Regatta</th>
