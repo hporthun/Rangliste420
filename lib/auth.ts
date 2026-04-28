@@ -6,6 +6,7 @@ import { z } from "zod";
 import { verifyTotpCode } from "@/lib/totp";
 import { logAudit, getIp, A } from "@/lib/security/audit";
 import { resetRateLimit } from "@/lib/security/rate-limit";
+import { buildOAuthProviders } from "@/lib/auth-providers";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -31,6 +32,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
 
   providers: [
+    // OAuth providers (Google / Microsoft / Apple / Meta) — only the ones
+    // whose env vars are set actually become active. See lib/auth-providers.
+    // Sign-in only succeeds if the provider-supplied email matches an
+    // existing User row (security: no auto-provisioning of new admins).
+    ...buildOAuthProviders(),
+
     Credentials({
       async authorize(credentials, request) {
         const parsed = loginSchema.safeParse(credentials);
@@ -149,13 +156,71 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
 
   callbacks: {
-    jwt({ token, user }) {
-      if (user) {
+    /**
+     * Gatekeeper for OAuth (Google / Microsoft / Apple / Meta).
+     *
+     * The Credentials provider already does its own authorisation inside
+     * `authorize()`, so we let it through unchanged. For OAuth, NextAuth
+     * would normally accept any successful provider response; we want to
+     * additionally require that the OAuth-supplied email matches an
+     * existing User row — otherwise anyone with a Gmail account could log
+     * in to the admin panel.
+     */
+    async signIn({ user, account }) {
+      // Credentials path: authorize() has already done its checks.
+      if (!account || account.provider === "credentials") return true;
+
+      const email = user.email?.toLowerCase().trim();
+      if (!email) {
+        await logAudit({
+          action: A.LOGIN_OAUTH_REJECTED,
+          detail: `${account.provider}: provider returned no email`,
+        });
+        return false;
+      }
+
+      const existing = await db.user.findUnique({ where: { email } });
+      if (!existing) {
+        await logAudit({
+          action: A.LOGIN_OAUTH_REJECTED,
+          detail: `${account.provider}: ${email} (no matching admin)`,
+        });
+        return false;
+      }
+
+      // Audit the successful OAuth match — the JWT callback will run next
+      // and link the session to the existing user.
+      await logAudit({
+        userId: existing.id,
+        action: A.LOGIN_OAUTH,
+        detail: `${account.provider}: ${email}`,
+      });
+      return true;
+    },
+
+    async jwt({ token, user, account }) {
+      if (!user) return token; // not first sign-in — token already populated
+
+      // Credentials path returns our DB user shape directly.
+      if (!account || account.provider === "credentials") {
         token.role = (user as { role: string }).role;
         token.username = (user as { name?: string }).name ?? "";
+        return token;
+      }
+
+      // OAuth path: link the JWT to the existing DB user (matched by email
+      // in signIn above).
+      const email = user.email?.toLowerCase().trim();
+      if (!email) return token;
+      const dbUser = await db.user.findUnique({ where: { email } });
+      if (dbUser) {
+        token.sub = dbUser.id;
+        token.role = dbUser.role;
+        token.username = dbUser.username ?? dbUser.email ?? "";
       }
       return token;
     },
+
     session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub ?? "";

@@ -8,6 +8,31 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.10] — 2026-04-28
+
+**Auto-420er + OAuth-Anmeldung (Issues #24, #25).**
+
+### Neu
+
+- **OAuth-Anmeldung über Google, Microsoft, Apple und Meta** (Issue #25):
+  Auf der Login-Seite erscheinen Buttons für jeden Provider, dessen
+  Client-ID + Secret als Env-Variablen gesetzt sind. Sicherheit: der Login
+  klappt nur, wenn die vom Provider gelieferte E-Mail einer existierenden
+  Admin-E-Mail entspricht — kein Self-Sign-up. Audit-Log unterscheidet
+  `LOGIN_OAUTH` (erfolgreich) und `LOGIN_OAUTH_REJECTED` (E-Mail unbekannt).
+  Konfiguration in `.env.example` dokumentiert.
+
+### Geändert
+
+- **M2S-Klassenauswahl** (Issue #24): Wenn unter mehreren Klassen einer
+  Veranstaltung exakt eine den String „420" enthält („420", „420er",
+  „420 er" usw.), wird sie jetzt automatisch ausgewählt und die
+  Ergebnisse werden direkt geladen. Bei mehreren 420-Klassen oder
+  keiner 420-Klasse zeigt das Dropdown einen ⚓-Hinweis bei
+  passenden Einträgen.
+
+---
+
 ## [2026.04.9] — 2026-04-28
 
 **Passkeys auf Vercel + Postgres-COPY-Stammdaten-Import (Issues #22, #23).**

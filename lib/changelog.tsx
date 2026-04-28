@@ -77,6 +77,37 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.10",
+    date: "2026-04-28",
+    title: "Auto-420 + OAuth-Login",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            <strong>Anmeldung via Google, Microsoft, Apple, Meta</strong>{" "}
+            (Issue #25): Auf der Login-Seite erscheinen Buttons für jeden Provider,
+            dessen Credentials als Env-Variablen gesetzt sind. Login funktioniert
+            ausschließlich, wenn die vom Provider gelieferte E-Mail einer
+            existierenden Admin-E-Mail entspricht — kein Self-Sign-up. Audit-Log
+            unterscheidet erfolgreichen und abgelehnten OAuth-Login.
+          </>,
+        ],
+      },
+      {
+        kind: "geändert",
+        items: [
+          <>
+            <strong>M2S-Klassenauswahl</strong> (Issue #24): Wenn genau eine
+            Klasse den String „420" enthält („420", „420er", „420 er" …), wird
+            sie automatisch ausgewählt und die Ergebnisse werden direkt geladen.
+            Im Dropdown erscheint ein ⚓-Marker neben passenden Klassen.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.9",
     date: "2026-04-28",
     title: "Passkeys + Stammdaten-Import",

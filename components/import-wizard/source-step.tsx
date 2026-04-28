@@ -142,8 +142,35 @@ export function SourceStep({ onComplete, initialM2sUrl }: Props) {
     if (!classRes.ok) { setError(classRes.error); return; }
     setResolvedEventId(classRes.resolvedEventId);
     setAvailableClasses(classRes.classes);
+
+    // Auto-select strategy:
+    //   1) Single class total → take it.
+    //   2) Exactly one class whose name contains "420" (case-insensitive,
+    //      with optional whitespace/separators) → take it AND immediately
+    //      fetch results.  Issue #24: events frequently mix multiple classes,
+    //      but the 420er class is always uniquely identifiable by name.
+    let autoClassId: string | null = null;
     if (classRes.classes.length === 1) {
-      setSelectedClassId(classRes.classes[0].id);
+      autoClassId = classRes.classes[0].id;
+      setSelectedClassId(autoClassId);
+    } else {
+      const fourTwenty = classRes.classes.filter((c) => /420/.test(c.name));
+      if (fourTwenty.length === 1) {
+        autoClassId = fourTwenty[0].id;
+        setSelectedClassId(autoClassId);
+      }
+    }
+
+    // If auto-selection landed on a single 420 class (not a single-class
+    // event), continue straight to results so the user doesn't have to
+    // click again.
+    if (autoClassId && classRes.classes.length > 1) {
+      const fetchUrl = `https://www.manage2sail.com/de-DE/event/${classRes.resolvedEventId}#!/results?classId=${autoClassId}`;
+      setLoading(true);
+      const res = await fetchM2SResultsAction(fetchUrl);
+      setLoading(false);
+      if (!res.ok) { setError(res.error); return; }
+      onComplete(res.data);
     }
   }
 
@@ -237,9 +264,15 @@ export function SourceStep({ onComplete, initialM2sUrl }: Props) {
                 {availableClasses.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
+                    {/420/.test(c.name) ? " ⚓" : ""}
                   </option>
                 ))}
               </select>
+              {selectedClassId && /420/.test(availableClasses.find((c) => c.id === selectedClassId)?.name ?? "") && (
+                <p className="mt-1 text-xs text-blue-700">
+                  420er-Klasse automatisch vorausgewählt.
+                </p>
+              )}
             </div>
           )}
 
