@@ -29,21 +29,30 @@ export async function register() {
             this.m41 = e; this.m42 = f;
           }
         }
-        // Return a new identity-like polyfill for all matrix operations.
+        // Return a new identity-like instance for all matrix operations.
         // These are only invoked during canvas rendering, not text extraction.
         private _new() { return new DOMMatrixPolyfill(); }
-        multiply    ()           { return this._new(); }
-        inverse     ()           { return this._new(); }
-        invertSelf  ()           { return this; }
-        multiplySelf()           { return this; }
-        preMultiplySelf()        { return this; }
-        translate   ()           { return this._new(); }
-        scale       ()           { return this._new(); }
-        rotate      ()           { return this._new(); }
-        skewX       ()           { return this._new(); }
-        skewY       ()           { return this._new(); }
-        flipX       ()           { return this._new(); }
-        flipY       ()           { return this._new(); }
+        multiply        ()    { return this._new(); }
+        inverse         ()    { return this._new(); }
+        invertSelf      ()    { return this; }
+        multiplySelf    ()    { return this; }
+        preMultiplySelf ()    { return this; }
+        translate       ()    { return this._new(); }
+        translateSelf   ()    { return this; }
+        scale           ()    { return this._new(); }
+        scaleSelf       ()    { return this; }
+        scale3d         ()    { return this._new(); }
+        scale3dSelf     ()    { return this; }
+        rotate          ()    { return this._new(); }
+        rotateSelf      ()    { return this; }
+        rotateFromVector()    { return this._new(); }
+        rotateAxisAngle ()    { return this._new(); }
+        skewX           ()    { return this._new(); }
+        skewXSelf       ()    { return this; }
+        skewY           ()    { return this._new(); }
+        skewYSelf       ()    { return this; }
+        flipX           ()    { return this._new(); }
+        flipY           ()    { return this._new(); }
         transformPoint(p?: { x?: number; y?: number }) {
           return { x: p?.x ?? 0, y: p?.y ?? 0, z: 0, w: 1 };
         }

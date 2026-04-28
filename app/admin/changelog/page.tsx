@@ -19,6 +19,37 @@ type Entry = {
 
 const ENTRIES: Entry[] = [
   {
+    version: "2026.04.3",
+    date: "2026-04-28",
+    title: "Bugfix PDF-Worker Vercel",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            <strong>Worker-Datei im Vercel-Bundle</strong>: pdfjs-dist importiert
+            <code className="ml-1 mr-1 font-mono text-xs">pdf.worker.mjs</code>
+            mit einem Webpack-Ignore-Hinweis, weshalb Vercels Datei-Tracer sie
+            nicht ins Deployment aufnimmt. Beim ersten PDF-Import schlug die App
+            mit <em>Cannot find module pdf.worker.mjs</em> fehl. Fix:
+            <code className="ml-1 font-mono text-xs">outputFileTracingIncludes</code>
+            {" "}in{" "}
+            <code className="font-mono text-xs">next.config.ts</code>
+            {" "}erzwingt die Aufnahme; zus. setzt
+            <code className="ml-1 font-mono text-xs">pdf-utils.ts</code>
+            {" "}den absoluten Worker-Pfad explizit.
+          </>,
+          <>
+            <strong>DOMMatrix-Polyfill erweitert</strong>:{" "}
+            <code className="font-mono text-xs">scaleSelf</code>,{" "}
+            <code className="font-mono text-xs">translateSelf</code>{" "}
+            und weitere Methoden ergänzt.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.2",
     date: "2026-04-28",
     title: "Bugfix PDF-Import",

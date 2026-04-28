@@ -8,6 +8,25 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.3] — 2026-04-28
+
+**Bugfix: pdf.worker.mjs fehlt im Vercel-Bundle (Folge-Fix zu Issue #16).**
+
+### Korrigiert
+
+- **Worker-Datei im Vercel-Deployment**: pdfjs-dist importiert `pdf.worker.mjs`
+  mit `/* webpackIgnore: true */`, weshalb weder webpack noch Vercels
+  nft-File-Tracer die Datei ins Bundle aufnehmen. Beim ersten PDF-Import im
+  Serverless-Context fehlschlug mit „Cannot find module pdf.worker.mjs".
+  Fix: `outputFileTracingIncludes` in `next.config.ts` zwingt Vercel, die
+  Worker-Datei explizit ins Bundle aufzunehmen. Zusätzlich setzt `pdf-utils.ts`
+  `GlobalWorkerOptions.workerSrc` auf den absoluten, aufgelösten Pfad statt des
+  relativen Strings `"./pdf.worker.mjs"`.
+- **DOMMatrix-Polyfill ergänzt**: `scaleSelf`, `translateSelf` und weitere
+  Methoden hinzugefügt, die `pdf.worker.mjs` ggf. aufruft.
+
+---
+
 ## [2026.04.2] — 2026-04-28
 
 **Bugfix: pdfjs-dist lädt nicht in Node.js (Issue #16).**

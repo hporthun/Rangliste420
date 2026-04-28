@@ -41,6 +41,15 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "50mb",
     },
+
+    // pdfjs-dist imports pdf.worker.mjs dynamically with `/* webpackIgnore */`,
+    // so webpack and Vercel's nft file tracer both skip it. We include it
+    // explicitly so the file exists on the serverless function's file system.
+    outputFileTracingIncludes: {
+      "/**": [
+        "./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
+      ],
+    },
   },
 
   async headers() {
