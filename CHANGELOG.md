@@ -8,6 +8,25 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.5] — 2026-04-28
+
+**Bugfix: pdfjs-Worker via globalThis.pdfjsWorker vorinstallieren.**
+
+### Korrigiert
+
+- **Dynamischen `import(workerSrc)` umgehen**: Next.js Turbopack schreibt
+  `import.meta.url` externer Pakete auf eine synthetische
+  `[project]/…`-URL um. pdfjs-dists `_setupFakeWorkerGlobal` versucht
+  daraufhin `import("[project]/…/pdf.worker.mjs")` und scheitert mit
+  „Cannot find package '[project]'". Lösung: pdfjs-dist bietet einen
+  Bypass — wenn `globalThis.pdfjsWorker?.WorkerMessageHandler` gesetzt
+  ist, überspringt der Loader den dynamischen Import. `pdf-utils.ts`
+  importiert jetzt `pdf.worker.mjs` einmalig statisch und legt
+  `WorkerMessageHandler` global ab. Verifiziert: getDocument
+  funktioniert sogar mit absichtlich kaputtem workerSrc.
+
+---
+
 ## [2026.04.4] — 2026-04-28
 
 **Bugfix: [project]-Pfad-Fehler beim lokalen PDF-Import (Folge-Fix).**

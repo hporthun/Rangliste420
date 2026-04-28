@@ -19,6 +19,33 @@ type Entry = {
 
 const ENTRIES: Entry[] = [
   {
+    version: "2026.04.5",
+    date: "2026-04-28",
+    title: "Bugfix PDF-Worker (final)",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            <strong>pdfjs-Worker per globalThis.pdfjsWorker vorinstallieren</strong>:
+            Next.js Turbopack ersetzt{" "}
+            <code className="font-mono text-xs">import.meta.url</code> externer
+            Pakete durch eine synthetische{" "}
+            <code className="font-mono text-xs">[project]/…</code>-URL, weshalb
+            der pdfjs-dist-interne dynamische Import des Workers fehlschlug. Fix:
+            pdfjs-dist überspringt den Import, wenn{" "}
+            <code className="font-mono text-xs">globalThis.pdfjsWorker?.WorkerMessageHandler</code>{" "}
+            schon gesetzt ist —{" "}
+            <code className="font-mono text-xs">pdf-utils.ts</code> lädt den
+            Worker jetzt einmalig statisch und legt den Handler global ab.
+            Verifiziert: PDF-Import funktioniert sogar mit absichtlich kaputtem
+            <code className="ml-1 font-mono text-xs">workerSrc</code>.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.4",
     date: "2026-04-28",
     title: 'Bugfix [project]-Pfad',

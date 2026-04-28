@@ -39,15 +39,48 @@ export function groupByRow(items: RawItem[], tolerance = 4): RawItem[][] {
   return rows;
 }
 
+/**
+ * Pre-load the pdfjs worker into `globalThis.pdfjsWorker` so that
+ * `_setupFakeWorkerGlobal` (in pdfjs-dist) skips its problematic dynamic
+ * `import(workerSrc)` call.
+ *
+ * Why this is necessary:
+ *
+ *   - pdfjs-dist v5 in Node.js sets `workerSrc = "./pdf.worker.mjs"` and then
+ *     does `await import(workerSrc)` lazily. Next.js Turbopack rewrites the
+ *     `import.meta.url` of external packages to a synthetic `[project]/…`
+ *     URL, so the relative resolution produces a non-existent package name
+ *     → "Cannot find package '[project]'".
+ *   - On Vercel the same dynamic import was failing earlier because nft did
+ *     not include `pdf.worker.mjs` in the deployment bundle.
+ *
+ * pdfjs-dist already provides an opt-out path for both cases: if
+ * `globalThis.pdfjsWorker?.WorkerMessageHandler` is set when the loader
+ * runs, the dynamic import is skipped and the cached handler is used.
+ *
+ * We resolve the static import of `pdf.worker.mjs` here. Statically
+ * importing it makes webpack/turbopack/nft trace the dependency, so the
+ * file is included in the bundle automatically (this also makes the
+ * `outputFileTracingIncludes` entry in `next.config.ts` redundant, but
+ * harmless to keep as belt-and-braces).
+ */
+let workerInitialized = false;
+async function ensureWorker(): Promise<void> {
+  if (workerInitialized) return;
+  type WorkerHolder = { pdfjsWorker?: { WorkerMessageHandler: unknown } };
+  const g = globalThis as unknown as WorkerHolder;
+  if (!g.pdfjsWorker) {
+    const worker = await import("pdfjs-dist/legacy/build/pdf.worker.mjs");
+    g.pdfjsWorker = { WorkerMessageHandler: worker.WorkerMessageHandler };
+  }
+  workerInitialized = true;
+}
+
 /** Extract text items from every page. Returns one item list per page. */
 export async function extractPageItems(
   buffer: ArrayBuffer | Uint8Array
 ): Promise<RawItem[][]> {
-  // Note: no workerSrc override here.
-  // pdfjs-dist v5 sets workerSrc = "./pdf.worker.mjs" (relative to pdf.mjs)
-  // when it detects Node.js. That relative import works correctly because
-  // next.config.ts uses outputFileTracingIncludes to force pdf.worker.mjs
-  // into the Vercel deployment bundle alongside pdf.mjs.
+  await ensureWorker();
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
 
   const data = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
