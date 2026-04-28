@@ -7,6 +7,24 @@ Versionierung folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [1.0.1] — 2026-04-28
+
+**Bugfix im Import-Wizard (Gitea-Issue #5).**
+
+### Korrigiert
+
+- **Alternative Treffer im Matching-Schritt sichtbar**: bei einem
+  „mittleren" Match (75–90 % Ähnlichkeit) zeigt der Wizard jetzt
+  alle ähnlichen Segler nebeneinander. Bisher wurde nur der beste
+  Vorschlag dargestellt; weitere Kandidaten waren nur über das
+  „Ändern"-Dropdown erreichbar.
+- **Such-Feld statt langes Dropdown**: der „Ändern"-Modus nutzt
+  jetzt eine Typeahead-Suche, die in Vor- und Nachname sowie
+  Segelnummer filtert (egal in welcher Reihenfolge der Name
+  eingegeben wird).
+
+---
+
 ## [1.0.0] — 2026-04-28
 
 **Erste Produktionsversion auf Vercel + Neon.**

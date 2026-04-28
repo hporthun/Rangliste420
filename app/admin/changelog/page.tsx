@@ -18,6 +18,27 @@ type Entry = {
 
 const ENTRIES: Entry[] = [
   {
+    version: "1.0.1",
+    date: "2026-04-28",
+    title: "Bugfix Import-Matching",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            <strong>Alternative Treffer im Matching</strong>: bei einem mittleren
+            Match (75–90 %) zeigt der Wizard jetzt alle ähnlichen Segler nebeneinander
+            statt nur den ersten Vorschlag (Gitea-Issue #5).
+          </>,
+          <>
+            <strong>Such-Feld statt Dropdown</strong> im „Ändern"-Modus —
+            Typeahead-Suche in Vor- und Nachname sowie Segelnummer.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "1.0.0",
     date: "2026-04-28",
     title: "Erste Produktionsversion auf Vercel + Neon",

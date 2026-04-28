@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import type { ParsedRegatta } from "@/lib/import/manage2sail-paste";
 import type { EntryMatchSuggestion, EntryDecision, SailorSummary } from "@/lib/import/types";
 import type { MatchResult } from "@/lib/import/matching";
+import { normalizeName } from "@/lib/import/normalize";
 
 type PersonDecisionUI =
   | { mode: "accepted"; sailorId: string; sailorName: string }
@@ -39,6 +40,86 @@ function sailorDisplayName(s: SailorSummary) {
   return `${s.lastName}, ${s.firstName}${s.sailingLicenseId ? ` (${s.sailingLicenseId})` : ""}`;
 }
 
+// ── SailorPicker ──────────────────────────────────────────────────────────────
+// Searchable typeahead replacement for the previous plain <select>. Filters
+// the (502+) sailor list by normalised name in either order, plus sail number.
+// Issue #5: with so many entries a flat <select> made it impractical to find
+// the correct sailor when the suggested partial match was wrong.
+
+type SailorPickerProps = {
+  allSailors: SailorSummary[];
+  onPick: (sailor: SailorSummary) => void;
+  onCreate: () => void;
+};
+
+function SailorPicker({ allSailors, onPick, onCreate }: SailorPickerProps) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+
+  const filtered = useMemo(() => {
+    const q = normalizeName(query);
+    if (!q) return allSailors.slice(0, 40);
+    return allSailors
+      .filter((s) => {
+        const ab = normalizeName(`${s.firstName} ${s.lastName}`);
+        const ba = normalizeName(`${s.lastName} ${s.firstName}`);
+        if (ab.includes(q) || ba.includes(q)) return true;
+        if (s.sailingLicenseId && normalizeName(s.sailingLicenseId).includes(q)) return true;
+        return false;
+      })
+      .slice(0, 40);
+  }, [query, allSailors]);
+
+  return (
+    <div className="relative">
+      <div className="flex items-center gap-2 flex-wrap">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          placeholder="Name oder Segelnummer …"
+          className="text-xs border rounded px-2 py-1 w-56"
+          autoFocus
+        />
+        <button
+          type="button"
+          onClick={onCreate}
+          className="text-xs text-blue-600 hover:underline"
+        >
+          Neu anlegen
+        </button>
+      </div>
+      {open && filtered.length > 0 && (
+        <ul className="absolute left-0 top-full mt-1 z-20 max-h-64 overflow-y-auto w-72 rounded-md border bg-card shadow-md text-xs">
+          {filtered.map((s) => (
+            <li key={s.id}>
+              <button
+                type="button"
+                onMouseDown={(e) => { e.preventDefault(); onPick(s); }}
+                className="w-full text-left px-2.5 py-1.5 hover:bg-muted transition-colors"
+              >
+                {sailorDisplayName(s)}
+              </button>
+            </li>
+          ))}
+          {filtered.length === 40 && (
+            <li className="px-2.5 py-1 text-[10px] text-muted-foreground italic">
+              … (weitere Treffer durch genaueren Suchbegriff einschränken)
+            </li>
+          )}
+        </ul>
+      )}
+      {open && query && filtered.length === 0 && (
+        <div className="absolute left-0 top-full mt-1 z-20 w-72 rounded-md border bg-card shadow-md text-xs px-2.5 py-2 text-muted-foreground">
+          Keine Treffer.
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── PersonWidget ──────────────────────────────────────────────────────────────
 
 type PersonWidgetProps = {
@@ -65,76 +146,85 @@ function PersonWidget({ decision, allSailors, onChange }: PersonWidgetProps) {
   }
 
   if (decision.mode === "suggesting") {
-    const { top } = decision;
-    const name = `${top.candidate.firstName} ${top.candidate.lastName}`;
+    const { top, rest } = decision;
+    const topName = `${top.candidate.firstName} ${top.candidate.lastName}`;
     return (
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
-          ⚠ {name} ({Math.round(top.score * 100)}%)
-        </span>
-        <button
-          onClick={() =>
-            onChange({ mode: "accepted", sailorId: top.candidate.id, sailorName: name })
-          }
-          className="text-xs text-blue-600 hover:underline"
-        >
-          Akzeptieren
-        </button>
-        <button
-          onClick={() => onChange({ mode: "picking" })}
-          className="text-xs text-muted-foreground hover:text-foreground underline"
-        >
-          Ändern
-        </button>
-        <button
-          onClick={() =>
-            onChange({
-              mode: "creating",
-              firstName: top.candidate.firstName,
-              lastName: top.candidate.lastName,
-            })
-          }
-          className="text-xs text-muted-foreground hover:text-foreground underline"
-        >
-          Neu anlegen
-        </button>
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
+            ⚠ {topName} ({Math.round(top.score * 100)}%)
+          </span>
+          <button
+            onClick={() =>
+              onChange({ mode: "accepted", sailorId: top.candidate.id, sailorName: topName })
+            }
+            className="text-xs text-blue-600 hover:underline"
+          >
+            Akzeptieren
+          </button>
+          <button
+            onClick={() => onChange({ mode: "picking" })}
+            className="text-xs text-muted-foreground hover:text-foreground underline"
+          >
+            Ändern
+          </button>
+          <button
+            onClick={() =>
+              onChange({
+                mode: "creating",
+                firstName: top.candidate.firstName,
+                lastName: top.candidate.lastName,
+              })
+            }
+            className="text-xs text-muted-foreground hover:text-foreground underline"
+          >
+            Neu anlegen
+          </button>
+        </div>
+        {/* Show alternative medium matches — Issue #5 fix */}
+        {rest.length > 0 && (
+          <div className="flex items-center gap-1.5 flex-wrap pl-1">
+            <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+              auch ähnlich:
+            </span>
+            {rest.map((alt) => {
+              const altName = `${alt.candidate.firstName} ${alt.candidate.lastName}`;
+              return (
+                <button
+                  key={alt.candidate.id}
+                  onClick={() =>
+                    onChange({
+                      mode: "accepted",
+                      sailorId: alt.candidate.id,
+                      sailorName: altName,
+                    })
+                  }
+                  className="px-1.5 py-0.5 rounded text-[11px] border border-amber-200 bg-amber-50/70 text-amber-800 hover:bg-amber-100 transition-colors"
+                  title={`Akzeptieren: ${altName}`}
+                >
+                  {altName} ({Math.round(alt.score * 100)}%)
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
     );
   }
 
   if (decision.mode === "picking") {
     return (
-      <div className="flex items-center gap-2 flex-wrap">
-        <select
-          className="text-xs border rounded px-2 py-1 max-w-xs"
-          defaultValue=""
-          onChange={(e) => {
-            const id = e.target.value;
-            if (!id) return;
-            const sailor = allSailors.find((s) => s.id === id);
-            if (sailor) {
-              onChange({
-                mode: "accepted",
-                sailorId: id,
-                sailorName: `${sailor.firstName} ${sailor.lastName}`,
-              });
-            }
-          }}
-        >
-          <option value="">— Segler wählen —</option>
-          {allSailors.map((s) => (
-            <option key={s.id} value={s.id}>
-              {sailorDisplayName(s)}
-            </option>
-          ))}
-        </select>
-        <button
-          onClick={() => onChange({ mode: "creating", firstName: "", lastName: "" })}
-          className="text-xs text-blue-600 hover:underline"
-        >
-          Neu anlegen
-        </button>
-      </div>
+      <SailorPicker
+        allSailors={allSailors}
+        onPick={(sailor) =>
+          onChange({
+            mode: "accepted",
+            sailorId: sailor.id,
+            sailorName: `${sailor.firstName} ${sailor.lastName}`,
+          })
+        }
+        onCreate={() => onChange({ mode: "creating", firstName: "", lastName: "" })}
+      />
     );
   }
 
