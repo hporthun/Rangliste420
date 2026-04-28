@@ -18,6 +18,25 @@ type Entry = {
 
 const ENTRIES: Entry[] = [
   {
+    version: "1.1.1",
+    date: "2026-04-28",
+    title: "Bugfix Import „Neu anlegen"",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            Beim Klick auf <em>„Neu anlegen"</em> aus dem Vorschlag heraus wurde der
+            Name des <strong>vorgeschlagenen</strong> Seglers ins Formular übernommen
+            statt der gerade aus den Importdaten geparste Name. Aus dem „Ändern → Neu
+            anlegen"-Pfad waren die Felder sogar leer. Jetzt wird in allen drei Pfaden
+            konsistent der geparste Helm- bzw. Crew-Name vorgeschlagen (Issue #12).
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "1.1.0",
     date: "2026-04-28",
     title: "Segler-Merge",

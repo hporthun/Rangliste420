@@ -7,6 +7,21 @@ Versionierung folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [1.1.1] — 2026-04-28
+
+**Bugfix beim „Neu anlegen" im Import-Matching (Gitea-Issue #12).**
+
+### Korrigiert
+
+- Beim Klick auf <em>„Neu anlegen"</em> aus dem Vorschlag heraus wurde
+  der Name des **vorgeschlagenen** Seglers ins Formular übernommen
+  statt der gerade aus den Importdaten geparste Name. Aus dem
+  „Ändern → Neu anlegen"-Pfad waren die Felder sogar leer. Jetzt wird
+  in allen drei Pfaden konsistent der geparste Helm- bzw. Crew-Name
+  vorgeschlagen.
+
+---
+
 ## [1.1.0] — 2026-04-28
 
 **Segler-Merge (Gitea-Issue #7).**

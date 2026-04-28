@@ -125,10 +125,19 @@ function SailorPicker({ allSailors, onPick, onCreate }: SailorPickerProps) {
 type PersonWidgetProps = {
   decision: PersonDecisionUI;
   allSailors: SailorSummary[];
+  /** Parsed name from the import — used as default for "Neu anlegen". Issue #12 */
+  parsedFirstName: string;
+  parsedLastName: string;
   onChange: (next: PersonDecisionUI) => void;
 };
 
-function PersonWidget({ decision, allSailors, onChange }: PersonWidgetProps) {
+function PersonWidget({
+  decision,
+  allSailors,
+  parsedFirstName,
+  parsedLastName,
+  onChange,
+}: PersonWidgetProps) {
   if (decision.mode === "accepted") {
     return (
       <div className="flex items-center gap-2">
@@ -172,8 +181,8 @@ function PersonWidget({ decision, allSailors, onChange }: PersonWidgetProps) {
             onClick={() =>
               onChange({
                 mode: "creating",
-                firstName: top.candidate.firstName,
-                lastName: top.candidate.lastName,
+                firstName: parsedFirstName,
+                lastName: parsedLastName,
               })
             }
             className="text-xs text-muted-foreground hover:text-foreground underline"
@@ -223,7 +232,13 @@ function PersonWidget({ decision, allSailors, onChange }: PersonWidgetProps) {
             sailorName: `${sailor.firstName} ${sailor.lastName}`,
           })
         }
-        onCreate={() => onChange({ mode: "creating", firstName: "", lastName: "" })}
+        onCreate={() =>
+          onChange({
+            mode: "creating",
+            firstName: parsedFirstName,
+            lastName: parsedLastName,
+          })
+        }
       />
     );
   }
@@ -445,6 +460,8 @@ export function MatchingStep({
                     <PersonWidget
                       decision={row.helmDecision}
                       allSailors={allSailors}
+                      parsedFirstName={entry.helmFirstName}
+                      parsedLastName={entry.helmLastName}
                       onChange={(next) => updateHelm(i, next)}
                     />
                   </td>
@@ -454,10 +471,12 @@ export function MatchingStep({
                       : "—"}
                   </td>
                   <td className="px-3 py-2.5">
-                    {row.crewDecision !== null ? (
+                    {row.crewDecision !== null && sug.crew ? (
                       <PersonWidget
                         decision={row.crewDecision}
                         allSailors={allSailors}
+                        parsedFirstName={sug.crew.query.firstName}
+                        parsedLastName={sug.crew.query.lastName}
                         onChange={(next) => updateCrew(i, next)}
                       />
                     ) : (
