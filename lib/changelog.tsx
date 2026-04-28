@@ -77,6 +77,30 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.7",
+    date: "2026-04-28",
+    title: "Bugfix Vercel-Build",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            <strong>Vercel-Build scheiterte am pdfjs-Worker-Typ</strong>:
+            pdfjs-dist liefert kein{" "}
+            <code className="font-mono text-xs">.d.ts</code> für den Worker mit,
+            weshalb der dynamische Import im strikten TypeScript-Modus auf
+            Vercel mit <em>Could not find a declaration file</em> abbrach. Neues
+            Stub-File{" "}
+            <code className="font-mono text-xs">types/pdfjs-dist.d.ts</code>{" "}
+            deklariert das Modul mit{" "}
+            <code className="font-mono text-xs">WorkerMessageHandler: unknown</code>{" "}
+            (Issue #20).
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.6",
     date: "2026-04-28",
     title: "Changelog-Popup + Mobile-Fixes",

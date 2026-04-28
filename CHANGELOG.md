@@ -8,6 +8,23 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.7] — 2026-04-28
+
+**Bugfix: Vercel-Build TypeScript-Fehler bei pdfjs-Worker (Issue #20).**
+
+### Korrigiert
+
+- **Type-Declaration für `pdfjs-dist/legacy/build/pdf.worker.mjs`**: pdfjs-dist
+  liefert kein `.d.ts` für den Worker mit. Der dynamische Import in
+  `lib/import/pdf-utils.ts` lief lokal durch (skipLibCheck), schlug aber im
+  Vercel-Build mit „Could not find a declaration file for module
+  'pdfjs-dist/legacy/build/pdf.worker.mjs'" fehl. Neues Stub-File
+  `types/pdfjs-dist.d.ts` deklariert das Modul mit `WorkerMessageHandler:
+  unknown` (mehr brauchen wir nicht — wir reichen den Wert nur an
+  `globalThis.pdfjsWorker` weiter).
+
+---
+
 ## [2026.04.6] — 2026-04-28
 
 **Changelog-Popup nach Login + Mobile-Fixes (Issues #17, #18, #19).**
