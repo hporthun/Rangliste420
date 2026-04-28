@@ -1,15 +1,11 @@
 "use server";
 
-import fs from "fs";
-import path from "path";
-
 import { db } from "@/lib/db/client";
 import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
 import { logAudit, A } from "@/lib/security/audit";
-import { BACKUP_DIR } from "@/lib/backup/config";
-import { writeBackupFile } from "@/lib/backup/writer";
+import { writeBackupFile, getBackupBytes } from "@/lib/backup/writer";
 
 // ── Restore scope ─────────────────────────────────────────────────────────────
 /** Which tables to wipe and restore from the backup file. */
@@ -626,24 +622,17 @@ export async function restoreStoredBackupAction(
     const session = await auth();
     if (!session) return { ok: false, error: "Nicht angemeldet." };
 
-    // Security: only allow our own backup filenames (same regex as deleteBackupFile)
+    // Security: only allow our own backup filenames
     if (!filename.match(/^420ranking-backup-[\d\-T]+\.json$/)) {
       return { ok: false, error: "Ungültiger Dateiname." };
     }
-    const filepath = path.join(BACKUP_DIR, filename);
-    // Prevent path traversal (path.normalize + sep avoids prefix-collision on Windows,
-    // e.g. C:\backup matching C:\backups)
-    const safeDir = path.normalize(BACKUP_DIR) + path.sep;
-    if (!path.normalize(filepath).startsWith(safeDir)) {
-      return { ok: false, error: "Ungültiger Dateiname." };
-    }
 
-    let rawText: string;
-    try {
-      rawText = fs.readFileSync(filepath, "utf-8");
-    } catch {
+    // Storage-agnostic read (FS or Vercel Blob, depending on env)
+    const bytes = await getBackupBytes(filename);
+    if (!bytes) {
       return { ok: false, error: "Datei nicht gefunden." };
     }
+    const rawText = bytes.toString("utf-8");
 
     return await _performRestore(rawText, password ?? null, session.user?.id, scope);
   } catch (e) {

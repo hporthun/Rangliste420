@@ -239,6 +239,23 @@ model WebAuthnChallenge {
   createdAt DateTime @default(now())
 }
 
+// ── BackupSchedule ────────────────────────────────────────────────────────────
+// Singleton: at most one row (id = 1). Persists the user-configured backup
+// schedule across restarts. On Vercel/serverless this is the only place the
+// schedule survives — the previous file-based config (data/backups/_schedule.json)
+// did not survive between function invocations.
+model BackupSchedule {
+  id                 Int      @id @default(1)
+  enabled            Boolean  @default(false)
+  hour               Int      @default(2)
+  minute             Int      @default(0)
+  // JSON-serialized number array, e.g. "[1]" = Mondays only, "[]" = every day
+  daysOfWeek         String   @default("[1]")
+  maxKeep            Int      @default(30)
+  encryptionPassword String   @default("")
+  updatedAt          DateTime @updatedAt
+}
+
 // ── AuditLog ──────────────────────────────────────────────────────────────────
 // Immutable record of security-relevant events.
 model AuditLog {

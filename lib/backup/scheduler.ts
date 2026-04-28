@@ -5,8 +5,8 @@ import { writeBackupFile } from "./writer";
 /**
  * On Vercel/serverless, every request runs in a fresh function invocation,
  * so a long-running node-cron task cannot survive between requests.
- * Phase 1: skip in-process scheduling — backups must be triggered manually
- * via "Jetzt sichern" or (Phase 2) Vercel Cron Jobs.
+ * In serverless, automated backups are triggered by Vercel Cron Jobs hitting
+ * /api/cron/backup — see app/api/cron/backup/route.ts.
  */
 const IS_SERVERLESS =
   process.env.VERCEL === "1" ||
@@ -42,11 +42,9 @@ export function applySchedule(schedule: BackupSchedule) {
   }
 
   if (IS_SERVERLESS) {
-    // Configuration is still persisted via writeSchedule() so a future
-    // Vercel-Cron-based scheduler (Phase 2) can read it.
+    // Configuration lives in the database and is read on each Vercel-Cron tick.
     console.log(
-      "[backup-scheduler] Serverless environment detected — in-process cron disabled. " +
-        "Phase 2 will move automated backups to Vercel Cron Jobs."
+      "[backup-scheduler] Serverless environment — automated backups handled by Vercel Cron via /api/cron/backup."
     );
     return;
   }
@@ -73,13 +71,21 @@ export function applySchedule(schedule: BackupSchedule) {
 }
 
 /** Called once at server start by instrumentation.ts */
-export function initBackupScheduler() {
-  const schedule = readSchedule();
+export async function initBackupScheduler() {
+  const schedule = await readSchedule();
   applySchedule(schedule);
 }
 
-/** Save new schedule to disk and immediately apply it. */
-export function updateAndApplySchedule(schedule: BackupSchedule) {
-  writeSchedule(schedule);
+/** Persist the schedule and immediately apply it (in-process node-cron only). */
+export async function updateAndApplySchedule(schedule: BackupSchedule) {
+  await writeSchedule(schedule);
   applySchedule(schedule);
+}
+
+/**
+ * Compute the auto-generated backup comment. Exported for the Vercel-Cron
+ * route so it can label automated backups with the user's schedule info.
+ */
+export function autoCommentFor(schedule: BackupSchedule): string {
+  return buildAutoComment(schedule);
 }

@@ -1,11 +1,13 @@
-# Deploy — Vercel + Neon (Phase 1)
+# Deploy — Vercel + Neon + Vercel Blob
 
 Dieses Dokument beschreibt das Deployment der 420er-Ranglistenverwaltung
-auf **Vercel** mit **Neon** als PostgreSQL-Datenbank.
+auf **Vercel** mit **Neon** (PostgreSQL) und **Vercel Blob** (Backup-Storage).
 
-> **Status Phase 1**: Anwendung läuft vollständig, alle Lese- und Schreib-
-> operationen funktionieren. Automatische Backups sind temporär deaktiviert
-> — sie werden in Phase 2 über Vercel Cron Jobs + Vercel Blob nachgerüstet.
+> **Status Phase 2**: Alle Funktionen sind aktiv. Automatische Backups laufen
+> via Vercel Cron einmal täglich, Backup-Dateien werden in Vercel Blob
+> persistiert. Die Wochentag-Auswahl im Backup-Zeitplan wird respektiert;
+> die Uhrzeit-Auswahl ist auf dem Hobby-Plan rein informativ (Vercel Cron
+> erlaubt mind. 24-h-Intervall, der konkrete Trigger ist 01:00 UTC ≈ 02:00 MEZ).
 
 ---
 
@@ -142,21 +144,54 @@ Dann auf der Production-Seite: `/admin/wartung → Rücksicherung →
 JSON-Datei hochladen`. Innerhalb des bereits angemeldeten Admin-Sessions
 können alle Daten so übertragen werden.
 
-## 7. Bekannte Phase-1-Einschränkungen
+## 7. Vercel Blob für Backup-Storage aktivieren
 
-- **Automatische Backups**: deaktiviert. Der Hinweis-Banner auf der
-  Wartungsseite informiert den Admin.
-- **Manuelle „Jetzt sichern"**: schreibt nach `/tmp` — bitte sofort
-  herunterladen, danach Datei verloren.
-- **Einmalige Datensicherung („Backup herunterladen")**: funktioniert
-  uneingeschränkt (Stream direkt zum Browser, kein Disk-IO).
-- **Rücksicherung**: funktioniert (Upload geht in den Memory-Stream
-  und direkt in die DB).
+Damit „Jetzt sichern" und der automatische Cron-Backup persistent landen,
+muss ein Blob-Store verbunden sein.
 
-Phase 2 wird:
-1. Den Backup-Scheduler durch eine Vercel-Cron-Route ersetzen.
-2. Backup-Storage auf Vercel Blob umstellen (1 GB gratis).
-3. Konfigurierbare Schedules über die DB persistieren statt im FS.
+1. Im Vercel-Dashboard → Projekt → **Storage** → **Connect Database**
+2. **Blob** wählen → Store-Name z. B. `rangliste420-backups` → **Connect**
+3. Vercel setzt automatisch `BLOB_READ_WRITE_TOKEN` in den Production-
+   Environment-Variablen — kein manuelles Eintragen nötig.
+4. Nach dem nächsten Deploy ist der Hinweis-Banner auf der Wartungsseite
+   weg, „Storage: Vercel Blob" erscheint stattdessen.
+
+**Free Tier**: 1 GB Speicher + 1 GB Bandbreite/Monat — reicht für mehrere
+Jahre an JSON-Backups.
+
+## 8. Vercel Cron für automatische Backups
+
+Der Cron-Eintrag ist bereits in `vercel.json` definiert:
+
+```json
+{ "crons": [{ "path": "/api/cron/backup", "schedule": "0 1 * * *" }] }
+```
+
+Vercel zeigt im Dashboard unter **Settings → Cron Jobs** alle aktiven
+Cron-Definitionen. `CRON_SECRET` wird automatisch von Vercel generiert
+und an die Function übergeben.
+
+**Verhalten der Route** (`app/api/cron/backup/route.ts`):
+- Liest den User-Schedule aus der DB (`BackupSchedule`-Tabelle)
+- Wenn `enabled: false` → kein Backup, gibt `ranBackup: false` zurück
+- Wenn heute kein Wochentag aus `daysOfWeek` ist → kein Backup
+- Sonst: ruft `writeBackupFile()` mit Auto-Kommentar auf, schreibt Audit-Eintrag
+
+**Manueller Test der Cron-Route** (z. B. nach dem ersten Deploy):
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" \
+     https://<deine-vercel-url>/api/cron/backup
+```
+Response: JSON mit `{ ok, ranBackup, reason?|filename }`.
+
+## 9. Bekannte Limits
+
+- **Vercel Hobby Cron**: maximal 1×/Tag pro Cron-Eintrag. Daher ist nur die
+  Wochentag-Auswahl im Schedule-UI wirksam. Auf Pro-Plan kann das Cron-
+  Schedule auf z. B. `*/15 * * * *` umgestellt werden.
+- **Backup-Größe**: Function-Memory auf Hobby ist 1 GB, Execution-Time
+  60 s. Aktueller Datenbestand (~700 Einträge) erzeugt ein paar MB JSON
+  — unkritisch.
 
 ---
 

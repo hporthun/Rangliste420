@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { BACKUP_DIR } from "@/lib/backup/config";
-import fs from "fs";
-import path from "path";
+import { getBackupBytes } from "@/lib/backup/writer";
 
 export async function GET(
   _req: NextRequest,
@@ -20,22 +18,12 @@ export async function GET(
     return NextResponse.json({ error: "Ungültiger Dateiname." }, { status: 400 });
   }
 
-  const filepath = path.join(BACKUP_DIR, filename);
-
-  // Prevent path traversal (normalize + sep avoids prefix-collision on Windows,
-  // e.g. C:\backup matching C:\backups)
-  const safeDir = path.normalize(BACKUP_DIR) + path.sep;
-  if (!path.normalize(filepath).startsWith(safeDir)) {
-    return NextResponse.json({ error: "Ungültiger Pfad." }, { status: 400 });
-  }
-
-  if (!fs.existsSync(filepath)) {
+  const bytes = await getBackupBytes(filename);
+  if (!bytes) {
     return NextResponse.json({ error: "Datei nicht gefunden." }, { status: 404 });
   }
 
-  const content = fs.readFileSync(filepath);
-
-  return new NextResponse(content, {
+  return new NextResponse(new Uint8Array(bytes), {
     headers: {
       "Content-Type": "application/json",
       "Content-Disposition": `attachment; filename="${filename}"`,

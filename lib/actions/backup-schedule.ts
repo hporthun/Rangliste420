@@ -13,7 +13,7 @@ export async function getScheduleAction(): Promise<
 > {
   const session = await auth();
   if (!session) return { ok: false, error: "Nicht angemeldet." };
-  return { ok: true, schedule: readSchedule() };
+  return { ok: true, schedule: await readSchedule() };
 }
 
 // ── Save schedule ─────────────────────────────────────────────────────────────
@@ -71,7 +71,7 @@ export async function deleteStoredBackupAction(
   try {
     const session = await auth();
     if (!session) return { ok: false, error: "Nicht angemeldet." };
-    const ok = deleteBackupFile(filename);
+    const ok = await deleteBackupFile(filename);
     if (!ok) return { ok: false, error: "Datei nicht gefunden oder ungültiger Name." };
     revalidatePath("/admin/wartung");
     await logAudit({ userId: session.user?.id, action: A.BACKUP_DELETED, detail: filename });
@@ -86,5 +86,5 @@ export async function deleteStoredBackupAction(
 export async function getStoredBackupsAction() {
   const session = await auth();
   if (!session) return [];
-  return listBackups();
+  return await listBackups();
 }

@@ -1,6 +1,27 @@
+/**
+ * Backup writer with two storage backends:
+ *
+ *  1. **Vercel Blob** (when BLOB_READ_WRITE_TOKEN is present, e.g. on Vercel
+ *     with Blob enabled). Files persist across deploys and cold starts.
+ *
+ *  2. **Filesystem** (default for local dev). Files live under BACKUP_DIR
+ *     (./data/backups by default).
+ *
+ *  The two backends share the same public API (writeBackupFile, listBackups,
+ *  deleteBackupFile, getBackupBytes) — callers do not need to know which
+ *  backend is active. Selection happens once at module load via the
+ *  HAS_BLOB_STORAGE flag.
+ */
+
 import fs from "fs";
 import path from "path";
-import { BACKUP_DIR, ensureBackupDir, readSchedule } from "./config";
+import { put, list, del, head } from "@vercel/blob";
+import {
+  BACKUP_DIR,
+  HAS_BLOB_STORAGE,
+  ensureBackupDir,
+  readSchedule,
+} from "./config";
 import { encryptBackup, isEncryptedJson } from "./crypto";
 import { db } from "@/lib/db/client";
 
@@ -13,14 +34,21 @@ export type StoredBackup = {
   isEncrypted: boolean;
   /** Optional note set when the backup was created */
   comment?: string;
+  /** Direct download URL (Vercel Blob) — undefined for FS-backed backups */
+  url?: string;
 };
 
-/** Write a full backup to disk, prune old files, return the filename. */
-export async function writeBackupFile(comment?: string): Promise<string> {
-  ensureBackupDir();
+const FILENAME_RE = /^420ranking-backup-[\d\-T]+\.json$/;
+/** Top-level prefix used for both blob keys and on-disk filenames. */
+const BLOB_PREFIX = "backups/";
 
-  const schedule = readSchedule();
+function metaName(filename: string) {
+  return filename.replace(/\.json$/, ".meta.json");
+}
 
+// ── Snapshot & filename helpers ────────────────────────────────────────────────
+
+async function buildSnapshot() {
   const [sailors, regattas, rankings, teamEntries, results, rankingRegattas, importSessions] =
     await Promise.all([
       db.sailor.findMany({ orderBy: { id: "asc" } }),
@@ -32,7 +60,7 @@ export async function writeBackupFile(comment?: string): Promise<string> {
       db.importSession.findMany({ orderBy: { id: "asc" } }),
     ]);
 
-  const backup = {
+  return {
     version: 1,
     exportedAt: new Date().toISOString(),
     counts: {
@@ -46,53 +74,89 @@ export async function writeBackupFile(comment?: string): Promise<string> {
     },
     data: { sailors, regattas, rankings, teamEntries, results, rankingRegattas, importSessions },
   };
+}
 
-  const plainJson = JSON.stringify(backup, null, 2);
-  const content =
-    schedule.encryptionPassword
-      ? encryptBackup(plainJson, schedule.encryptionPassword)
-      : plainJson;
+function timestampedFilename(): string {
+  const stamp = new Date().toISOString().replace(/:/g, "-").replace(/\..+/, "");
+  return `420ranking-backup-${stamp}.json`;
+}
 
-  const timestamp = new Date()
-    .toISOString()
-    .replace(/:/g, "-")
-    .replace(/\..+/, "");
-  const filename = `420ranking-backup-${timestamp}.json`;
-  const filepath = path.join(BACKUP_DIR, filename);
+// ── Public API ────────────────────────────────────────────────────────────────
 
-  fs.writeFileSync(filepath, content, "utf-8");
+/** Write a full backup, prune old ones, return the filename. */
+export async function writeBackupFile(comment?: string): Promise<string> {
+  const schedule = await readSchedule();
+  const snapshot = await buildSnapshot();
+  const plainJson = JSON.stringify(snapshot, null, 2);
+  const content = schedule.encryptionPassword
+    ? encryptBackup(plainJson, schedule.encryptionPassword)
+    : plainJson;
+  const filename = timestampedFilename();
 
-  // Write sidecar meta file (comment, etc.) — readable without decrypting the backup
-  if (comment?.trim()) {
-    const metaPath = path.join(BACKUP_DIR, filename.replace(/\.json$/, ".meta.json"));
-    fs.writeFileSync(metaPath, JSON.stringify({ comment: comment.trim() }, null, 2), "utf-8");
+  if (HAS_BLOB_STORAGE) {
+    await blobWrite(filename, content, comment);
+  } else {
+    await fsWrite(filename, content, comment);
   }
 
-  // Prune oldest backups according to saved schedule setting
-  pruneOldBackups(schedule.maxKeep);
-
+  await pruneOldBackups(schedule.maxKeep);
   return filename;
 }
 
 /** List stored backups, newest first. */
-export function listBackups(): StoredBackup[] {
+export async function listBackups(): Promise<StoredBackup[]> {
+  return HAS_BLOB_STORAGE ? blobList() : fsList();
+}
+
+/** Delete a backup by filename. Returns true on success. */
+export async function deleteBackupFile(filename: string): Promise<boolean> {
+  if (!FILENAME_RE.test(filename)) return false;
+  return HAS_BLOB_STORAGE ? blobDelete(filename) : fsDelete(filename);
+}
+
+/**
+ * Retrieve raw backup bytes for a given filename — used by the download API
+ * route. Returns null if the file doesn't exist.
+ */
+export async function getBackupBytes(
+  filename: string
+): Promise<Buffer | null> {
+  if (!FILENAME_RE.test(filename)) return null;
+  return HAS_BLOB_STORAGE ? blobRead(filename) : fsRead(filename);
+}
+
+// ── Filesystem backend ────────────────────────────────────────────────────────
+
+async function fsWrite(filename: string, content: string, comment?: string) {
+  ensureBackupDir();
+  const filepath = path.join(BACKUP_DIR, filename);
+  fs.writeFileSync(filepath, content, "utf-8");
+  if (comment?.trim()) {
+    fs.writeFileSync(
+      path.join(BACKUP_DIR, metaName(filename)),
+      JSON.stringify({ comment: comment.trim() }, null, 2),
+      "utf-8"
+    );
+  }
+}
+
+function fsList(): StoredBackup[] {
   try {
     ensureBackupDir();
     return fs
       .readdirSync(BACKUP_DIR)
-      .filter((f) => f.startsWith("420ranking-backup-") && f.endsWith(".json"))
+      .filter((f) => FILENAME_RE.test(f))
       .map((filename) => {
         const filepath = path.join(BACKUP_DIR, filename);
         const stat = fs.statSync(filepath);
-        // Peek at the first 30 chars to detect encryption without parsing the whole file
         const head = fs.readFileSync(filepath, { encoding: "utf-8", flag: "r" }).slice(0, 30);
-        // Read optional sidecar meta file for comment
         let comment: string | undefined;
         try {
-          const metaPath = path.join(BACKUP_DIR, filename.replace(/\.json$/, ".meta.json"));
-          const meta = JSON.parse(fs.readFileSync(metaPath, "utf-8")) as { comment?: string };
+          const meta = JSON.parse(
+            fs.readFileSync(path.join(BACKUP_DIR, metaName(filename)), "utf-8")
+          ) as { comment?: string };
           comment = meta.comment?.trim() || undefined;
-        } catch { /* no meta file — fine */ }
+        } catch { /* no meta file */ }
         return {
           filename,
           createdAt: stat.mtime.toISOString(),
@@ -107,29 +171,147 @@ export function listBackups(): StoredBackup[] {
   }
 }
 
-/** Delete a backup file by filename (validates it's in BACKUP_DIR). */
-export function deleteBackupFile(filename: string): boolean {
-  // Security: only allow our own backup filenames
-  if (!filename.match(/^420ranking-backup-[\d\-T]+\.json$/)) return false;
+function fsDelete(filename: string): boolean {
   const filepath = path.join(BACKUP_DIR, filename);
-  if (!filepath.startsWith(BACKUP_DIR)) return false;
+  // Defence-in-depth: ensure path stays inside BACKUP_DIR
+  const safeDir = path.normalize(BACKUP_DIR) + path.sep;
+  if (!path.normalize(filepath).startsWith(safeDir)) return false;
   try {
     fs.unlinkSync(filepath);
-    // Remove sidecar meta file if present
-    try {
-      fs.unlinkSync(path.join(BACKUP_DIR, filename.replace(/\.json$/, ".meta.json")));
-    } catch { /* no meta file — ignore */ }
+    try { fs.unlinkSync(path.join(BACKUP_DIR, metaName(filename))); } catch { /* ignore */ }
     return true;
   } catch {
     return false;
   }
 }
 
-function pruneOldBackups(maxKeep: number) {
-  const backups = listBackups();
+function fsRead(filename: string): Buffer | null {
+  const filepath = path.join(BACKUP_DIR, filename);
+  const safeDir = path.normalize(BACKUP_DIR) + path.sep;
+  if (!path.normalize(filepath).startsWith(safeDir)) return null;
+  try {
+    return fs.readFileSync(filepath);
+  } catch {
+    return null;
+  }
+}
+
+// ── Vercel Blob backend ───────────────────────────────────────────────────────
+
+async function blobWrite(filename: string, content: string, comment?: string) {
+  // addRandomSuffix:false keeps the filename predictable so list/get work
+  await put(BLOB_PREFIX + filename, content, {
+    access: "public",
+    contentType: "application/json",
+    addRandomSuffix: false,
+    allowOverwrite: true,
+  });
+  if (comment?.trim()) {
+    await put(
+      BLOB_PREFIX + metaName(filename),
+      JSON.stringify({ comment: comment.trim() }, null, 2),
+      {
+        access: "public",
+        contentType: "application/json",
+        addRandomSuffix: false,
+        allowOverwrite: true,
+      }
+    );
+  }
+}
+
+async function blobList(): Promise<StoredBackup[]> {
+  try {
+    const result = await list({ prefix: BLOB_PREFIX });
+    // result.blobs has { url, pathname, size, uploadedAt, ... }
+    const backups = result.blobs.filter((b) =>
+      FILENAME_RE.test(b.pathname.replace(BLOB_PREFIX, ""))
+    );
+    const metas = new Map<string, string>();
+    for (const m of result.blobs.filter((b) =>
+      b.pathname.endsWith(".meta.json") && !FILENAME_RE.test(b.pathname.replace(BLOB_PREFIX, ""))
+    )) {
+      // Fetch comment text — small files, parallelism not critical
+      try {
+        const r = await fetch(m.url);
+        if (r.ok) {
+          const meta = (await r.json()) as { comment?: string };
+          if (meta.comment?.trim()) {
+            const baseFilename = m.pathname
+              .replace(BLOB_PREFIX, "")
+              .replace(/\.meta\.json$/, ".json");
+            metas.set(baseFilename, meta.comment.trim());
+          }
+        }
+      } catch { /* ignore individual meta failures */ }
+    }
+    const out: StoredBackup[] = [];
+    for (const b of backups) {
+      const filename = b.pathname.replace(BLOB_PREFIX, "");
+      // Detect encryption: fetch first 30 bytes via HTTP Range
+      let isEncrypted = false;
+      try {
+        const r = await fetch(b.url, { headers: { Range: "bytes=0-29" } });
+        if (r.ok) {
+          const text = await r.text();
+          isEncrypted = isEncryptedJson(text);
+        }
+      } catch { /* default false */ }
+      out.push({
+        filename,
+        createdAt: b.uploadedAt.toString(),
+        size: b.size,
+        isEncrypted,
+        comment: metas.get(filename),
+        url: b.url,
+      });
+    }
+    return out.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  } catch (e) {
+    console.warn("[backup-writer] blobList failed:", e);
+    return [];
+  }
+}
+
+async function blobDelete(filename: string): Promise<boolean> {
+  try {
+    // We need the URL — list to find it
+    const result = await list({ prefix: BLOB_PREFIX + filename });
+    const target = result.blobs.find((b) => b.pathname === BLOB_PREFIX + filename);
+    if (!target) return false;
+    await del(target.url);
+    // Try to delete sidecar meta — best-effort
+    const metaResult = await list({ prefix: BLOB_PREFIX + metaName(filename) });
+    const metaBlob = metaResult.blobs.find(
+      (b) => b.pathname === BLOB_PREFIX + metaName(filename)
+    );
+    if (metaBlob) await del(metaBlob.url);
+    return true;
+  } catch (e) {
+    console.warn("[backup-writer] blobDelete failed:", e);
+    return false;
+  }
+}
+
+async function blobRead(filename: string): Promise<Buffer | null> {
+  try {
+    const meta = await head(BLOB_PREFIX + filename);
+    const r = await fetch(meta.url);
+    if (!r.ok) return null;
+    const ab = await r.arrayBuffer();
+    return Buffer.from(ab);
+  } catch {
+    return null;
+  }
+}
+
+// ── Pruning ───────────────────────────────────────────────────────────────────
+
+async function pruneOldBackups(maxKeep: number) {
+  const backups = await listBackups();
   if (backups.length > maxKeep) {
     for (const old of backups.slice(maxKeep)) {
-      deleteBackupFile(old.filename);
+      await deleteBackupFile(old.filename);
     }
   }
 }
