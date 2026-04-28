@@ -19,6 +19,31 @@ type Entry = {
 
 const ENTRIES: Entry[] = [
   {
+    version: "2026.04.4",
+    date: "2026-04-28",
+    title: 'Bugfix [project]-Pfad',
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            <strong>workerSrc-Override entfernt</strong>: Der{" "}
+            <code className="font-mono text-xs">createRequire(import.meta.url)</code>
+            -Ansatz aus 2026.04.3 erzeugte im Next.js-Dev-Server einen Pfad mit dem
+            synthetischen{" "}
+            <code className="font-mono text-xs">[project]/…</code>-Präfix, den
+            Node.js als Paketnamen interpretierte und nicht auflösen konnte.
+            Da <code className="font-mono text-xs">outputFileTracingIncludes</code>{" "}
+            bereits sicherstellt, dass{" "}
+            <code className="font-mono text-xs">pdf.worker.mjs</code> im
+            Vercel-Bundle vorhanden ist, reicht pdfjs-dists Standard-Relativpfad
+            aus — der Override ist nicht nötig.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.3",
     date: "2026-04-28",
     title: "Bugfix PDF-Worker Vercel",

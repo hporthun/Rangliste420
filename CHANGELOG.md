@@ -8,6 +8,22 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.4] — 2026-04-28
+
+**Bugfix: [project]-Pfad-Fehler beim lokalen PDF-Import (Folge-Fix).**
+
+### Korrigiert
+
+- **Entfernung des `workerSrc`-Overrides**: Der in 2026.04.3 hinzugefügte
+  `createRequire(import.meta.url)`-Ansatz schlug in Next.js fehl, weil
+  `import.meta.url` im Dev-Server ein synthetisches `[project]/…`-Präfix
+  enthält. pdfjs-dist interpretierte das als Paketname und konnte es nicht
+  auflösen. Da `outputFileTracingIncludes` bereits sicherstellt, dass
+  `pdf.worker.mjs` im Bundle vorhanden ist, reicht pdfjs-dists Standard-Pfad
+  `"./pdf.worker.mjs"` aus — kein Override nötig.
+
+---
+
 ## [2026.04.3] — 2026-04-28
 
 **Bugfix: pdf.worker.mjs fehlt im Vercel-Bundle (Folge-Fix zu Issue #16).**

@@ -43,28 +43,12 @@ export function groupByRow(items: RawItem[], tolerance = 4): RawItem[][] {
 export async function extractPageItems(
   buffer: ArrayBuffer | Uint8Array
 ): Promise<RawItem[][]> {
+  // Note: no workerSrc override here.
+  // pdfjs-dist v5 sets workerSrc = "./pdf.worker.mjs" (relative to pdf.mjs)
+  // when it detects Node.js. That relative import works correctly because
+  // next.config.ts uses outputFileTracingIncludes to force pdf.worker.mjs
+  // into the Vercel deployment bundle alongside pdf.mjs.
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-
-  // pdfjs-dist v5 in Node.js sets workerSrc to the relative string
-  // "./pdf.worker.mjs".  When running on Vercel serverless, Node.js resolves
-  // this relative to the module file inside /var/task/node_modules/…, and the
-  // file must be present there (see outputFileTracingIncludes in next.config.ts).
-  // As an extra guard we replace the relative string with the absolute resolved
-  // path so there is no ambiguity about which file is imported.
-  if (
-    !pdfjs.GlobalWorkerOptions.workerSrc ||
-    pdfjs.GlobalWorkerOptions.workerSrc === "./pdf.worker.mjs"
-  ) {
-    try {
-      const { createRequire } = await import("module");
-      const req = createRequire(import.meta.url);
-      pdfjs.GlobalWorkerOptions.workerSrc = req.resolve(
-        "pdfjs-dist/legacy/build/pdf.worker.mjs"
-      );
-    } catch {
-      // Resolution failed; keep the default and let pdfjs-dist handle it
-    }
-  }
 
   const data = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
   const doc = await pdfjs
