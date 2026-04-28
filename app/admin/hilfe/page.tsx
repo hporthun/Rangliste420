@@ -48,7 +48,7 @@ const NUMBERED_TOC = buildNumberedToc();
 
 function H1({ id, children }: { id: string; children: React.ReactNode }) {
   return (
-    <h2 id={id} className="text-xl font-bold mt-10 mb-3 pb-2 border-b scroll-mt-20">
+    <h2 id={id} className="chapter text-xl font-bold mt-10 mb-3 pb-2 border-b scroll-mt-20">
       {children}
     </h2>
   );
@@ -71,14 +71,14 @@ function Li({ children }: { children: React.ReactNode }) {
 }
 function Hint({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 mb-3">
+    <div className="print-hint rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 mb-3">
       {children}
     </div>
   );
 }
 function Warn({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 mb-3">
+    <div className="print-warn rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 mb-3">
       {children}
     </div>
   );
@@ -88,10 +88,52 @@ function Code({ children }: { children: React.ReactNode }) {
     <code className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">{children}</code>
   );
 }
+
+/**
+ * Figure with caption — used for screenshots in the manual.
+ * If `src` is omitted, a placeholder is rendered (useful while screenshots
+ * are still being prepared). The placeholder is also visible in the printed
+ * PDF, so missing images are easy to spot.
+ */
+function Figure({
+  src,
+  alt,
+  caption,
+  width,
+}: {
+  src?: string;
+  alt: string;
+  caption: string;
+  width?: number;
+}) {
+  return (
+    <figure className="my-4 keep-together">
+      {src ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt={alt}
+          width={width}
+          className="rounded-md border bg-card max-w-full mx-auto block"
+        />
+      ) : (
+        <div className="rounded-md border-2 border-dashed border-muted-foreground/30 bg-muted/20 px-4 py-10 text-center">
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground/60 mb-1">
+            Screenshot folgt
+          </p>
+          <p className="text-xs text-muted-foreground italic">{alt}</p>
+        </div>
+      )}
+      <figcaption className="text-xs text-muted-foreground text-center mt-1.5 italic">
+        {caption}
+      </figcaption>
+    </figure>
+  );
+}
 /** Table of contents rendered only in print / PDF output */
 function PrintToc() {
   return (
-    <div className="hidden print:block mb-10 mt-4">
+    <div className="print-toc hidden print:block mb-10 mt-4">
       <h2 className="text-base font-bold mb-3 pb-1 border-b">Inhaltsverzeichnis</h2>
       <ol className="space-y-1 text-sm">
         {NUMBERED_TOC.map((entry) => (
@@ -115,6 +157,31 @@ function PrintToc() {
           </li>
         ))}
       </ol>
+    </div>
+  );
+}
+
+/** Cover page — only visible in print/PDF output */
+function PrintCover() {
+  const today = new Date().toLocaleDateString("de-DE", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+  return (
+    <div className="print-cover hidden">
+      <div className="text-5xl mb-6">⛵</div>
+      <p className="text-xs uppercase tracking-widest text-gray-500 mb-2">
+        420er-Klasse
+      </p>
+      <h1 className="text-3xl font-bold mb-1">Benutzerhandbuch</h1>
+      <p className="text-base text-gray-600 mb-16">Ranglisten­verwaltung</p>
+      <div className="border-t border-gray-300 pt-4 w-48 mt-8">
+        <p className="text-sm text-gray-600">Stand: {today}</p>
+        <p className="text-xs text-gray-500 mt-1">
+          DSV-Ranglistenordnung gültig ab 01.01.2026
+        </p>
+      </div>
     </div>
   );
 }
@@ -300,12 +367,15 @@ export default function HilfePage() {
 
       {/* Content */}
       <article className="min-w-0 max-w-3xl flex-1 pb-20">
-        {/* Page title + print button */}
-        <div className="flex items-start justify-between gap-4 mb-1">
+        {/* Print-only cover page (page 1 of the PDF) */}
+        <PrintCover />
+
+        {/* Page title + print button (screen only — cover replaces it in print) */}
+        <div className="print:hidden flex items-start justify-between gap-4 mb-1">
           <h1 className="text-2xl font-bold">Benutzerhandbuch</h1>
           <PrintButton />
         </div>
-        <p className="text-sm text-muted-foreground mb-8">
+        <p className="print:hidden text-sm text-muted-foreground mb-8">
           420er-Ranglisten­verwaltung · DSV-Ranglistenordnung gültig ab 01.01.2026
         </p>
 
@@ -319,6 +389,11 @@ export default function HilfePage() {
         </P>
 
         <WorkflowDiagram />
+
+        <Figure
+          alt="Admin-Dashboard mit Navigation, Kacheln für Segler, Regatten, Ranglisten und Wartung"
+          caption="Abb. 1 — Admin-Dashboard mit den wichtigsten Bereichen"
+        />
 
         <Ul>
           <Li><strong>Regatten anlegen</strong> – Stammdaten, Ranglistenfaktor, Quelle (Manage2Sail-URL)</Li>
@@ -342,6 +417,11 @@ export default function HilfePage() {
           Segler ohne Geburtsjahr oder Geschlecht erscheinen in gefilterten Ranglisten
           (Altersklassen, Gender) nicht, sind aber in der Open-Kategorie vollständig enthalten.
         </P>
+
+        <Figure
+          alt="Segler-Liste mit Suchfeld, Filter-Buttons und Tabelle mit Spalten Name, Verein, Geburtsjahr, Geschlecht"
+          caption="Abb. 2 — Segler-Liste mit Suche und Filtermöglichkeiten"
+        />
 
         <H2 id="segler-stammdaten">Stammdaten & Felder</H2>
         <Ul>
@@ -386,6 +466,11 @@ export default function HilfePage() {
           <Li><strong>Manage2Sail-URL</strong> – URL der Klassen-Ergebnisseite (<Code>manage2sail.com/…#!/results?classId=…</Code>). Wird für den M2S-Abgleich und den Import­direktlink benötigt.</Li>
         </Ul>
 
+        <Figure
+          alt="Regatten-Liste mit M2S-Abgleich-Button, abweichende Wettfahrtenanzahl markiert"
+          caption="Abb. 3 — Regatten-Liste; M2S-Abgleich zeigt Abweichungen direkt in der Tabelle"
+        />
+
         <H2 id="regatten-m2s">M2S-Abgleich</H2>
         <P>
           Der Button <strong>„M2S abgleichen"</strong> in der Regatten-Liste ruft für das
@@ -407,6 +492,11 @@ export default function HilfePage() {
         </P>
 
         <ImportWizardSteps />
+
+        <Figure
+          alt="Import-Wizard Schritt 1: Auswahl der Quelle (Copy-Paste, URL oder PDF) mit Eingabefeld"
+          caption="Abb. 4 — Import-Wizard, Schritt 1: Quelle wählen"
+        />
 
         <H2 id="import-quelle">Importquellen</H2>
         <Ul>
@@ -435,6 +525,11 @@ export default function HilfePage() {
         </P>
 
         <FuzzyThresholdBar />
+
+        <Figure
+          alt="Matching-Schritt: Liste importierter Namen mit grünen, gelben und roten Vorschlägen, Buttons Zuordnen / Neu anlegen"
+          caption="Abb. 5 — Import-Wizard, Schritt 3: Matching mit Ähnlichkeitsbewertung"
+        />
 
         <P>
           Die Normalisierung umfasst: Kleinschreibung, Umlaut-Umschreibung (ä→ae, ö→oe, ü→ue,
@@ -490,6 +585,11 @@ export default function HilfePage() {
         <H2 id="ranglisten-formel">DSV-Formel (RO Anlage 1 §2, gültig ab 01.01.2026)</H2>
 
         <FormulaBreakdown />
+
+        <Figure
+          alt="Ranglisten-Vorschau mit berechneter Tabelle: Platz, Steuermann, R, Anzahl Wertungen, Detail-Link"
+          caption="Abb. 6 — Berechnete Jahresrangliste (Vorschau, vor dem Speichern)"
+        />
 
         <P>
           Die <strong>Ranglistenpunktzahl R</strong> ist das arithmetische Mittel der
@@ -547,16 +647,43 @@ export default function HilfePage() {
           Verschlüsselte Backups sind auch ohne Serverzugang nur mit dem Passwort lesbar.
         </Warn>
 
+        <Figure
+          alt="Wartungsseite: Backup-Zeitplan mit Wochentag-Schaltern, Verschlüsselung und Liste gespeicherter Backups"
+          caption="Abb. 7 — Wartung: Backup-Zeitplan und gespeicherte Backups"
+        />
+
         <H2 id="wartung-restore">Rücksicherung</H2>
         <P>
-          Lade eine zuvor gespeicherte JSON-Backup-Datei hoch. Ist die Datei verschlüsselt,
-          erscheint automatisch ein Passwort-Feld. Alle vorhandenen Daten werden vor der
-          Rücksicherung gelöscht und durch die Backup-Daten ersetzt. Admin-Accounts bleiben
-          dabei immer erhalten.
+          Lade eine zuvor gespeicherte JSON-Backup-Datei hoch oder wähle eine direkt aus der
+          Liste der serverseitigen Backups. Ist die Datei verschlüsselt, erscheint automatisch
+          ein Passwort-Feld. Admin-Accounts bleiben bei jeder Rücksicherung erhalten.
         </P>
+        <Hint>
+          <strong>Sicherheits-Backup vor jeder Rücksicherung:</strong> Bevor die Daten ersetzt
+          werden, erstellt die App automatisch ein Backup des aktuellen Stands. Es erscheint
+          in der Backup-Liste mit dem Kommentar <em>„Backup vor Rücksicherung"</em>. Sollte die
+          Rücksicherung das falsche Ergebnis liefern, kannst du diesen Stand sofort wieder
+          herstellen.
+        </Hint>
+        <P>
+          <strong>Umfang der Rücksicherung</strong> – im Bestätigungsdialog wählbar:
+        </P>
+        <Ul>
+          <Li>
+            <strong>Alles</strong> – ersetzt sämtliche Daten (Segler, Regatten, Ergebnisse, Ranglisten).
+          </Li>
+          <Li>
+            <strong>Nur Segler</strong> – ersetzt nur die Sailor-Tabelle. Regatten und Ergebnisse
+            bleiben unberührt. Nützlich, wenn versehentlich Stammdaten überschrieben wurden.
+          </Li>
+          <Li>
+            <strong>Nur Regatten &amp; Ergebnisse</strong> – ersetzt Regatta, TeamEntry, Result
+            und zugehörige Verknüpfungen; Segler und Ranglisten bleiben unberührt.
+          </Li>
+        </Ul>
         <Warn>
-          Die Rücksicherung löscht zunächst alle Daten und schreibt dann den Backup-Stand ein.
-          Stelle sicher, dass du die richtige Datei ausgewählt hast.
+          Bei teilweiser Rücksicherung können IDs zwischen Tabellen abweichen. Stelle sicher,
+          dass das Backup zum aktuellen Datenstand passt (z.&thinsp;B. ein Backup desselben Tages).
         </Warn>
 
         <H2 id="wartung-pruning">Datenreduktion</H2>
@@ -567,7 +694,10 @@ export default function HilfePage() {
         </P>
         <P>
           Die Option <strong>„Vor dem Löschen Backup durchführen"</strong> ist standardmäßig aktiv
-          und erstellt unmittelbar vor der Löschung ein serverseitiges Backup.
+          und erstellt unmittelbar vor der Löschung ein serverseitiges Backup mit dem Kommentar
+          <em> „Backup vor Datenreduktion (Regatten vor JJJJ)"</em>. Beim Schritt
+          <strong>„Alle Daten löschen"</strong> wird analog ein Backup mit dem Kommentar
+          <em> „Backup vor Datenlöschung"</em> angelegt.
         </P>
       </article>
     </div>

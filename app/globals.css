@@ -143,6 +143,14 @@
 
 @media print {
   /* ── Print / PDF styles (used by Benutzerhandbuch "Drucken" button) ── */
+
+  /* A4 page setup */
+  @page {
+    size: A4;
+    margin: 2cm 1.8cm 2cm 1.8cm;
+  }
+
+  /* Hide all UI chrome */
   .maritime-header,
   .print\:hidden,
   aside,
@@ -151,26 +159,108 @@
     display: none !important;
   }
 
+  /* Reset body / parent layout for clean PDF output */
   body {
     background: white !important;
     color: black !important;
-    font-size: 11pt;
+    font-size: 10.5pt;
+    line-height: 1.45;
   }
 
   article {
     max-width: 100% !important;
     padding: 0 !important;
+    margin: 0 !important;
   }
 
-  h2, h3 {
+  /* Remove the flex gap so the article fills the printable width */
+  body > * {
+    gap: 0 !important;
+  }
+
+  /* ── Page-break behaviour ─────────────────────────────────────────── */
+  /* Each top-level chapter (rendered as <h2 class="chapter">) starts on
+     a new page, except the very first one (placed right after the TOC). */
+  article h2.chapter:not(:first-of-type) {
+    break-before: page;
+    page-break-before: always; /* legacy alias for older engines */
+  }
+
+  /* Keep headings together with the following content */
+  h1, h2, h3, h4 {
     break-after: avoid;
+    page-break-after: avoid;
   }
 
+  /* Avoid orphans/widows in body text */
+  p, ul, ol, table {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Keep figures, code blocks, info boxes intact across pages */
+  figure,
+  pre,
+  table,
+  .keep-together,
+  .print-hint,
+  .print-warn {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* ── Inline link URLs (only for absolute http(s) links) ───────────── */
+  article a[href^="http"]:after {
+    content: " (" attr(href) ")";
+    font-size: 8.5pt;
+    color: #555;
+    word-break: break-all;
+  }
+  /* Hide URLs for in-page anchors used by the TOC (they would be noisy) */
+  article a[href^="#"]:after {
+    content: "";
+  }
+
+  /* Cards with light border + neutralized background */
   .sea-card,
   [class*="rounded-lg border"] {
     border: 1px solid #ccc !important;
     box-shadow: none !important;
+    background: white !important;
   }
+
+  /* Hint/Warn boxes — keep colour cue, lighter on paper */
+  .print-hint {
+    background: #f4f9ff !important;
+    border: 1px solid #b8d4f0 !important;
+    color: #1a3a5c !important;
+  }
+  .print-warn {
+    background: #fff8eb !important;
+    border: 1px solid #f0c878 !important;
+    color: #5a3a08 !important;
+  }
+
+  /* Cover page — fills the first printed page */
+  .print-cover {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 24cm;
+    text-align: center;
+    break-after: page;
+    page-break-after: always;
+  }
+
+  /* TOC page break: TOC ends, chapter 1 starts on a fresh page */
+  .print-toc {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  /* Hide screen-only diagram colour fills that don't print well */
+  /* (kept light because the diagrams are CSS-rendered) */
 }
 
 @layer components {
