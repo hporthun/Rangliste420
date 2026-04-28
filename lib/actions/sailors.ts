@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { parseStammdaten } from "@/lib/import/parse-stammdaten";
 import { findMatches } from "@/lib/import/matching";
 import { toTitleCase } from "@/lib/import/normalize";
+import { logAudit, A } from "@/lib/security/audit";
 
 function parseInput(data: FormData | Record<string, unknown>) {
   const raw =
@@ -87,6 +88,204 @@ export async function deleteSailor(id: string) {
   await db.sailor.delete({ where: { id } });
   revalidatePath("/admin/segler");
   return { ok: true as const };
+}
+
+// ── Merge two sailors ─────────────────────────────────────────────────────────
+//
+// Use case: import or manual entry created two records for the same person
+// (e.g. "Hajo Porthun" and "Hans-Joachim Porthun"). Merging:
+//   - reassigns all TeamEntries (helmId + crewId) from secondary to primary
+//   - moves secondary's name + alternativeNames into primary's alternativeNames
+//   - copies optional fields where primary's are null and secondary has a value
+//   - deletes the secondary sailor record
+// Issue #7
+
+export type MergePreview = {
+  primary: { id: string; firstName: string; lastName: string };
+  secondary: { id: string; firstName: string; lastName: string };
+  helmEntriesCount: number;
+  crewEntriesCount: number;
+  /** Regatta IDs/names where both sailors are helms — would violate
+   *  TeamEntry's @@unique([regattaId, helmId]) constraint. Merge is blocked
+   *  until the conflict is resolved manually. */
+  conflictingRegattas: { id: string; name: string }[];
+  /** Fields that will be copied from secondary → primary. */
+  fieldsToFill: { field: string; value: string }[];
+  /** Names that will be added to primary's alternativeNames. */
+  newAlternativeNames: string[];
+};
+
+async function buildMergePreview(
+  primaryId: string,
+  secondaryId: string
+): Promise<{ ok: true; preview: MergePreview } | { ok: false; error: string }> {
+  if (primaryId === secondaryId) {
+    return { ok: false, error: "Beide Segler sind identisch." };
+  }
+  const [primary, secondary] = await Promise.all([
+    db.sailor.findUnique({ where: { id: primaryId } }),
+    db.sailor.findUnique({ where: { id: secondaryId } }),
+  ]);
+  if (!primary || !secondary) {
+    return { ok: false, error: "Ein Segler wurde nicht gefunden." };
+  }
+
+  const [helmEntries, crewEntries] = await Promise.all([
+    db.teamEntry.findMany({
+      where: { helmId: secondaryId },
+      include: { regatta: { select: { id: true, name: true } } },
+    }),
+    db.teamEntry.count({ where: { crewId: secondaryId } }),
+  ]);
+
+  // Check for same-regatta helm conflicts
+  const primaryHelmRegattas = new Set(
+    (await db.teamEntry.findMany({
+      where: { helmId: primaryId },
+      select: { regattaId: true },
+    })).map((e) => e.regattaId)
+  );
+  const conflictingRegattas = helmEntries
+    .filter((e) => primaryHelmRegattas.has(e.regattaId))
+    .map((e) => ({ id: e.regatta.id, name: e.regatta.name }));
+
+  // Compute alternativeNames to add
+  const existingAlts: string[] = JSON.parse(primary.alternativeNames || "[]");
+  const secondaryAlts: string[] = JSON.parse(secondary.alternativeNames || "[]");
+  const secondaryFullName = `${secondary.firstName} ${secondary.lastName}`;
+  const candidates = [secondaryFullName, ...secondaryAlts];
+  const newAlternativeNames = candidates.filter(
+    (n) => !existingAlts.includes(n) && n !== `${primary.firstName} ${primary.lastName}`
+  );
+
+  // Compute fields to copy (only if primary's is null and secondary has a value)
+  const fieldsToFill: { field: string; value: string }[] = [];
+  if (primary.birthYear == null && secondary.birthYear != null) {
+    fieldsToFill.push({ field: "Geburtsjahr", value: String(secondary.birthYear) });
+  }
+  if (!primary.gender && secondary.gender) {
+    fieldsToFill.push({ field: "Geschlecht", value: secondary.gender });
+  }
+  if (!primary.club && secondary.club) {
+    fieldsToFill.push({ field: "Verein", value: secondary.club });
+  }
+  if (!primary.sailingLicenseId && secondary.sailingLicenseId) {
+    fieldsToFill.push({ field: "Segelnummer", value: secondary.sailingLicenseId });
+  }
+
+  return {
+    ok: true,
+    preview: {
+      primary: {
+        id: primary.id,
+        firstName: primary.firstName,
+        lastName: primary.lastName,
+      },
+      secondary: {
+        id: secondary.id,
+        firstName: secondary.firstName,
+        lastName: secondary.lastName,
+      },
+      helmEntriesCount: helmEntries.length,
+      crewEntriesCount: crewEntries,
+      conflictingRegattas,
+      fieldsToFill,
+      newAlternativeNames,
+    },
+  };
+}
+
+export async function previewMergeSailorsAction(
+  primaryId: string,
+  secondaryId: string
+): Promise<{ ok: true; preview: MergePreview } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
+  return buildMergePreview(primaryId, secondaryId);
+}
+
+export async function mergeSailorsAction(
+  primaryId: string,
+  secondaryId: string
+): Promise<{ ok: true; preview: MergePreview } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
+
+  const previewResult = await buildMergePreview(primaryId, secondaryId);
+  if (!previewResult.ok) return previewResult;
+  const preview = previewResult.preview;
+
+  if (preview.conflictingRegattas.length > 0) {
+    return {
+      ok: false,
+      error:
+        "Beide Segler sind als Steuermann in derselben Regatta eingetragen: " +
+        preview.conflictingRegattas.map((r) => r.name).join(", ") +
+        ". Bitte einen der beiden Einträge zuerst manuell bereinigen.",
+    };
+  }
+
+  try {
+    await db.$transaction(async (tx) => {
+      // Reassign TeamEntries from secondary → primary
+      await tx.teamEntry.updateMany({
+        where: { helmId: secondaryId },
+        data: { helmId: primaryId },
+      });
+      await tx.teamEntry.updateMany({
+        where: { crewId: secondaryId },
+        data: { crewId: primaryId },
+      });
+
+      // Build the new primary record
+      const updateData: {
+        alternativeNames?: string;
+        birthYear?: number;
+        gender?: string;
+        club?: string;
+        sailingLicenseId?: string;
+      } = {};
+
+      const existingAlts: string[] = JSON.parse(
+        (await tx.sailor.findUnique({ where: { id: primaryId } }))?.alternativeNames || "[]"
+      );
+      const merged = [...existingAlts, ...preview.newAlternativeNames];
+      updateData.alternativeNames = JSON.stringify(merged);
+
+      // Fill optional fields where primary was null
+      const sec = await tx.sailor.findUnique({ where: { id: secondaryId } });
+      if (sec) {
+        const prim = await tx.sailor.findUnique({ where: { id: primaryId } });
+        if (prim) {
+          if (prim.birthYear == null && sec.birthYear != null) updateData.birthYear = sec.birthYear;
+          if (!prim.gender && sec.gender) updateData.gender = sec.gender;
+          if (!prim.club && sec.club) updateData.club = sec.club;
+          if (!prim.sailingLicenseId && sec.sailingLicenseId) updateData.sailingLicenseId = sec.sailingLicenseId;
+        }
+      }
+
+      await tx.sailor.update({ where: { id: primaryId }, data: updateData });
+
+      // Finally remove the secondary sailor
+      await tx.sailor.delete({ where: { id: secondaryId } });
+    });
+
+    await logAudit({
+      userId: session.user?.id,
+      action: A.SAILOR_MERGED,
+      detail:
+        `${preview.secondary.firstName} ${preview.secondary.lastName} (${secondaryId}) → ` +
+        `${preview.primary.firstName} ${preview.primary.lastName} (${primaryId}) · ` +
+        `helm:${preview.helmEntriesCount}, crew:${preview.crewEntriesCount}, ` +
+        `altNames:+${preview.newAlternativeNames.length}, fields:+${preview.fieldsToFill.length}`,
+    });
+
+    revalidatePath("/admin/segler");
+    revalidatePath(`/admin/segler/${primaryId}`);
+    return { ok: true, preview };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
 }
 
 // ── Stammdaten bulk import ─────────────────────────────────────────────────────

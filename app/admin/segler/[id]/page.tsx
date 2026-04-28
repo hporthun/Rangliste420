@@ -49,9 +49,18 @@ export default async function EditSeglerPage({ params }: Props) {
         <span>{sailor.lastName}, {sailor.firstName}</span>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <h1 className="text-xl font-semibold">Segler bearbeiten</h1>
-        <DeleteSailorButton id={id} disabled={hasEntries} />
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/admin/segler/merge?secondary=${id}`}
+            className="text-xs text-muted-foreground hover:text-foreground border rounded px-2.5 py-1 transition-colors"
+            title="Diesen Segler mit einem anderen zusammenführen"
+          >
+            Mit anderem zusammenführen…
+          </Link>
+          <DeleteSailorButton id={id} disabled={hasEntries} />
+        </div>
       </div>
 
       <SailorForm sailor={sailor} action={updateAction} />

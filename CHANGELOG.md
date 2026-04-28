@@ -7,6 +7,28 @@ Versionierung folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [1.1.0] — 2026-04-28
+
+**Segler-Merge (Gitea-Issue #7).**
+
+### Neu
+
+- **Zwei Segler zusammenführen**: über `/admin/segler/merge` (oder
+  „Mit anderem zusammenführen…" auf der Segler-Detailseite) lassen sich
+  Duplikate auflösen. Alle Regatta-Einträge wandern auf den primären
+  Datensatz, der sekundäre wird gelöscht. Vorschoter-Beziehungen
+  (Crew-IDs) werden ebenfalls migriert.
+- **Vorschau vor dem Merge**: zeigt Anzahl betroffener Steuermann- und
+  Crew-Einträge, neue alternative Namen und ergänzte Stammdaten an.
+- **Konflikt-Erkennung**: Wenn beide Segler in derselben Regatta als
+  Steuermann eingetragen sind (würde @@unique([regattaId, helmId])
+  verletzen), blockiert die App den Merge mit einer aussagekräftigen
+  Fehlermeldung und listet die betroffenen Regatten.
+- **Audit-Log**: jeder Merge wird mit Quelle, Ziel und Übertragungs-
+  zahlen im Sicherheitsprotokoll vermerkt.
+
+---
+
 ## [1.0.1] — 2026-04-28
 
 **Bugfix im Import-Wizard (Gitea-Issue #5).**

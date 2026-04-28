@@ -32,6 +32,7 @@ export const A = {
   BACKUP_CREATED:  "BACKUP_CREATED",
   BACKUP_RESTORED: "BACKUP_RESTORED",
   BACKUP_DELETED:  "BACKUP_DELETED",
+  SAILOR_MERGED:   "SAILOR_MERGED",
 } as const;
 
 export type AuditAction = (typeof A)[keyof typeof A];

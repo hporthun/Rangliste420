@@ -18,6 +18,35 @@ type Entry = {
 
 const ENTRIES: Entry[] = [
   {
+    version: "1.1.0",
+    date: "2026-04-28",
+    title: "Segler-Merge",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            <strong>Zwei Segler zusammenführen</strong>: über die neue Seite
+            <code className="ml-1 mr-1 font-mono text-xs">/admin/segler/merge</code>
+            oder den Button „Mit anderem zusammenführen…" auf der Segler-Detailseite
+            lassen sich Duplikate auflösen. Alle Regatta-Einträge (Steuermann + Crew)
+            wandern auf den primären Datensatz, der sekundäre wird gelöscht (Issue #7).
+          </>,
+          <>
+            <strong>Vorschau vor dem Merge</strong> mit Anzahl betroffener Einträge,
+            neuen alternativen Namen und ergänzten Stammdaten.
+          </>,
+          <>
+            <strong>Konflikt-Erkennung</strong>: blockiert den Merge, wenn beide
+            Segler in derselben Regatta als Steuermann eingetragen sind, und listet
+            die betroffenen Regatten zur manuellen Bereinigung.
+          </>,
+          <>Jeder Merge wird im Sicherheitsprotokoll vermerkt.</>,
+        ],
+      },
+    ],
+  },
+  {
     version: "1.0.1",
     date: "2026-04-28",
     title: "Bugfix Import-Matching",
