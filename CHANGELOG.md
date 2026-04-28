@@ -8,6 +8,22 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.2] — 2026-04-28
+
+**Bugfix: pdfjs-dist lädt nicht in Node.js (Issue #16).**
+
+### Korrigiert
+
+- **DOMMatrix-Polyfill für serverseitige PDF-Verarbeitung**: pdfjs-dist v5
+  referenziert `DOMMatrix` bei der Modul-Initialisierung (Top-Level-Konstante),
+  die in Node.js nicht vorhanden ist. Die App stürzte beim ersten PDF-Import mit
+  `ReferenceError: DOMMatrix is not defined` ab. Fix: minimaler DOMMatrix-Stub
+  wird in `instrumentation.ts` beim Server-Start installiert, bevor pdfjs-dist
+  geladen wird. Text-Extraktion funktioniert vollständig; Canvas-Rendering-Pfade
+  (nicht benötigt) bleiben Stub.
+
+---
+
 ## [2026.04.1] — 2026-04-28
 
 **Responsive öffentliche Seiten + CalVer-Versionierung (Issues #14, #15).**

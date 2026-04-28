@@ -19,6 +19,28 @@ type Entry = {
 
 const ENTRIES: Entry[] = [
   {
+    version: "2026.04.2",
+    date: "2026-04-28",
+    title: "Bugfix PDF-Import",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            <strong>pdfjs-dist lädt jetzt in Node.js</strong>: Die Bibliothek
+            referenziert <code className="font-mono text-xs">DOMMatrix</code> als
+            Top-Level-Konstante beim Modul-Start — in Node.js nicht vorhanden,
+            was zum Absturz{" "}
+            <em>ReferenceError: DOMMatrix is not defined</em> beim ersten
+            PDF-Upload führte. Ein minimaler Stub wird jetzt in{" "}
+            <code className="font-mono text-xs">instrumentation.ts</code> beim
+            Server-Start installiert (Issue #16).
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.1",
     date: "2026-04-28",
     title: "Responsive + CalVer",
