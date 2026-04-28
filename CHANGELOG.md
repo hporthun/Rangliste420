@@ -8,6 +8,30 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.6] — 2026-04-28
+
+**Changelog-Popup nach Login + Mobile-Fixes (Issues #17, #18, #19).**
+
+### Neu
+
+- **Changelog-Popup nach Login**: zeigt nach dem Anmelden die seit dem
+  letzten „als gelesen markieren" hinzugekommenen Änderungen. Pro
+  Benutzer wird die zuletzt bestätigte Version in der Datenbank gespeichert
+  (neues Feld `User.lastReadChangelogVersion`). Solange nicht bestätigt
+  erscheint das Popup bei jedem Login. Inhalte stammen aus
+  `lib/changelog.tsx`, das jetzt einzige Quelle der Wahrheit für
+  Änderungseinträge ist (Issue #17).
+
+### Korrigiert
+
+- **Schreibfehler „Ranglistenregattaen"** auf der Public-Startseite
+  korrigiert — jetzt korrekt „Ranglistenregatten" (Issue #18).
+- **Public-Startseite mobil**: Statistik-Karten stapeln auf schmalen
+  Bildschirmen statt zu überlaufen, kompakteres Hero, kleineres Logo
+  und Fluid-Padding (Issue #19).
+
+---
+
 ## [2026.04.5] — 2026-04-28
 
 **Bugfix: pdfjs-Worker via globalThis.pdfjsWorker vorinstallieren.**

@@ -37,18 +37,21 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   serverExternalPackages: ["pdfjs-dist"],
 
+  // pdfjs-dist imports pdf.worker.mjs dynamically with `/* webpackIgnore */`,
+  // so webpack and Vercel's nft file tracer both skip it. We include it
+  // explicitly so the file exists on the serverless function's file system.
+  // (Belt-and-braces: pdf-utils.ts also pre-loads the worker into
+  // globalThis.pdfjsWorker which makes the dynamic import unnecessary, but
+  // keeping the file in the bundle is harmless.)
+  outputFileTracingIncludes: {
+    "/**": [
+      "./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
+    ],
+  },
+
   experimental: {
     serverActions: {
       bodySizeLimit: "50mb",
-    },
-
-    // pdfjs-dist imports pdf.worker.mjs dynamically with `/* webpackIgnore */`,
-    // so webpack and Vercel's nft file tracer both skip it. We include it
-    // explicitly so the file exists on the serverless function's file system.
-    outputFileTracingIncludes: {
-      "/**": [
-        "./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
-      ],
     },
   },
 

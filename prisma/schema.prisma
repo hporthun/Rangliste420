@@ -194,6 +194,12 @@ model User {
   resetToken       String?   @unique
   resetTokenExpiry DateTime?
 
+  // ── Changelog read marker ─────────────────────────────────────────────────
+  // Latest changelog version the user has acknowledged. null = never seen any
+  // popup (new user); the popup only fires when there are entries with a
+  // version > this value.
+  lastReadChangelogVersion String?
+
   webAuthnCredentials WebAuthnCredential[]
 
   createdAt DateTime @default(now())

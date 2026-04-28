@@ -32,7 +32,7 @@ export default async function Home() {
 
       {/* ── Maritime header ──────────────────────────────────────────────── */}
       <header className="maritime-header">
-        <div className="max-w-5xl mx-auto px-4 flex items-center gap-6 h-14">
+        <div className="max-w-5xl mx-auto px-3 sm:px-4 flex items-center gap-3 sm:gap-6 h-14">
           <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
             <Image
               src="/logo-420.png"
@@ -55,26 +55,26 @@ export default async function Home() {
 
         {/* ── Hero ─────────────────────────────────────────────────────────── */}
         <div
-          className="py-16 px-4"
+          className="py-10 sm:py-16 px-3 sm:px-4"
           style={{
             background:
               "linear-gradient(160deg, oklch(0.175 0.095 248) 0%, oklch(0.245 0.088 238) 55%, oklch(0.30 0.08 228) 100%)",
           }}
         >
-          <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center gap-8">
+          <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
             <Image
               src="/logo-420.png"
               alt="420er Klasse"
               width={1000}
               height={665}
-              className="h-28 w-auto rounded-xl ring-2 ring-white/20 shadow-2xl shrink-0"
+              className="h-20 sm:h-28 w-auto rounded-xl ring-2 ring-white/20 shadow-2xl shrink-0"
               priority
             />
-            <div className="text-center sm:text-left">
-              <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight leading-tight">
+            <div className="text-center sm:text-left min-w-0">
+              <h1 className="text-2xl sm:text-4xl font-bold text-white tracking-tight leading-tight break-words">
                 420er&thinsp;Klassen-<wbr />Rangliste
               </h1>
-              <p className="text-white/70 mt-2 text-base max-w-md">
+              <p className="text-white/70 mt-2 text-sm sm:text-base max-w-md">
                 Offizielle DSV-Jahresrangliste, Aktuelle Rangliste und
                 IDJM-Qualifikation für die deutsche 420er-Klasse.
               </p>
@@ -99,36 +99,37 @@ export default async function Home() {
           </div>
         </div>
 
-        <div className="max-w-5xl mx-auto px-4 py-10 space-y-10">
+        <div className="max-w-5xl mx-auto px-3 sm:px-4 py-8 sm:py-10 space-y-8 sm:space-y-10">
 
           {/* ── Stats ──────────────────────────────────────────────────────── */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <Link
               href="/rangliste"
-              className="group rounded-xl border bg-card px-6 py-5 hover:shadow-md transition-shadow flex items-center gap-4"
+              className="group rounded-xl border bg-card px-4 sm:px-6 py-4 sm:py-5 hover:shadow-md transition-shadow flex items-center gap-3 sm:gap-4"
             >
-              <div className="rounded-lg bg-blue-50 p-2.5">
+              <div className="rounded-lg bg-blue-50 p-2.5 shrink-0">
                 <BarChart3 className="h-5 w-5 text-blue-600" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-2xl font-bold tabular-nums">{rankingCount}</p>
-                <p className="text-sm text-muted-foreground">
-                  veröffentlichte{" "}
-                  Rangliste{rankingCount !== 1 ? "n" : ""}
+                <p className="text-sm text-muted-foreground break-words">
+                  {rankingCount === 1
+                    ? "veröffentlichte Rangliste"
+                    : "veröffentlichte Ranglisten"}
                 </p>
               </div>
             </Link>
             <Link
               href="/regatten"
-              className="group rounded-xl border bg-card px-6 py-5 hover:shadow-md transition-shadow flex items-center gap-4"
+              className="group rounded-xl border bg-card px-4 sm:px-6 py-4 sm:py-5 hover:shadow-md transition-shadow flex items-center gap-3 sm:gap-4"
             >
-              <div className="rounded-lg bg-emerald-50 p-2.5">
+              <div className="rounded-lg bg-emerald-50 p-2.5 shrink-0">
                 <Trophy className="h-5 w-5 text-emerald-600" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-2xl font-bold tabular-nums">{regattaCount}</p>
-                <p className="text-sm text-muted-foreground">
-                  Ranglistenregatta{regattaCount !== 1 ? "en" : ""}
+                <p className="text-sm text-muted-foreground break-words">
+                  {regattaCount === 1 ? "Ranglistenregatta" : "Ranglistenregatten"}
                 </p>
               </div>
             </Link>

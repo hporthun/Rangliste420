@@ -7,7 +7,10 @@ import { AdminUserMenu } from "@/components/admin/user-menu";
 import { TourProvider } from "@/components/tour/tour-context";
 import { TourGuide } from "@/components/tour/tour-guide";
 import { TourButton } from "@/components/tour/tour-button";
+import { ChangelogPopup } from "@/components/admin/changelog-popup";
 import { APP_VERSION } from "@/lib/version";
+import { db } from "@/lib/db/client";
+import { unreadEntries } from "@/lib/changelog";
 
 export default async function AdminLayout({
   children,
@@ -16,6 +19,17 @@ export default async function AdminLayout({
 }) {
   const session = await auth();
   if (!session) redirect("/auth/login");
+
+  // Compute unread changelog entries for the popup. Only the latest version
+  // is read from the user record; the comparison happens in lib/changelog.tsx.
+  const userId = session.user?.id;
+  const user = userId
+    ? await db.user.findUnique({
+        where: { id: userId },
+        select: { lastReadChangelogVersion: true },
+      })
+    : null;
+  const unread = unreadEntries(user?.lastReadChangelogVersion ?? null);
 
   async function signOutAction() {
     "use server";
@@ -79,6 +93,9 @@ export default async function AdminLayout({
 
       {/* Tour overlay renders on top of everything */}
       <TourGuide />
+
+      {/* Changelog popup (renders only if user has unread entries) */}
+      <ChangelogPopup entries={unread} />
     </TourProvider>
   );
 }
