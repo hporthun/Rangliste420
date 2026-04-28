@@ -20,6 +20,17 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "420er Rangliste",
   description: "DSV-Ranglistensystem für die 420er-Klasse",
+  // PWA / iOS home-screen tuning — uses the actual logo as app icon.
+  appleWebApp: {
+    capable: true,
+    title: "420er Rangliste",
+    statusBarStyle: "black-translucent",
+  },
+};
+
+export const viewport: import("next").Viewport = {
+  // Maritime blue — matches header gradient and manifest theme_color.
+  themeColor: "#1B3C8E",
 };
 
 /**

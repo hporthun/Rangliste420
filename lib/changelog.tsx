@@ -77,6 +77,40 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.12",
+    date: "2026-04-29",
+    title: "Reset-Mail + PWA-Logo",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            <strong>Passwort-Reset per E-Mail funktioniert jetzt</strong>{" "}
+            (Issue #29): Vorher wurde der Reset-Link direkt im Browser
+            angezeigt — Sicherheitslücke, da jeder Links für fremde Accounts
+            erzeugen konnte. Jetzt geht der Link ausschließlich per E-Mail
+            an die im Account hinterlegte Adresse. SMTP-Konfiguration über{" "}
+            <code className="font-mono text-xs">SMTP_HOST</code>,{" "}
+            <code className="font-mono text-xs">SMTP_USER</code>,{" "}
+            <code className="font-mono text-xs">SMTP_PASS</code>,{" "}
+            <code className="font-mono text-xs">MAIL_FROM</code>.
+          </>,
+        ],
+      },
+      {
+        kind: "neu",
+        items: [
+          <>
+            <strong>Web-App-Logo</strong> (Issue #30): das tatsächliche
+            420er-Klassenlogo erscheint jetzt als Icon, wenn die App über
+            „Zum Home-Bildschirm hinzufügen" auf iOS oder Android installiert
+            wird. Manifest mit maritime-blauem Theme.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.11",
     date: "2026-04-28",
     title: "Ranglisten bearbeitbar + IDJM speicherbar",

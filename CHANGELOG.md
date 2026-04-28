@@ -8,6 +8,32 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.12] — 2026-04-29
+
+**Passwort-Reset per E-Mail + PWA-Logo (Issues #29, #30).**
+
+### Korrigiert
+
+- **Passwort-Reset per E-Mail funktioniert jetzt** (Issue #29):
+  vorher wurde der Reset-Link direkt im Browser angezeigt — gravierende
+  Sicherheitslücke, da jeder Reset-Links für fremde Accounts erzeugen
+  konnte. Jetzt wird der Link ausschließlich per E-Mail an die im
+  Account hinterlegte Adresse versendet. Konfiguration über SMTP-
+  Env-Vars (`SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`); ohne
+  Konfiguration warnt das UI klar und der Link wird nur in den
+  Server-Logs ausgegeben (Dev-Modus).
+
+### Neu
+
+- **PWA-Manifest mit 420er-Logo** (Issue #30): neues
+  `app/manifest.ts` referenziert das tatsächliche Klassenlogo als
+  Web-App-Icon. „Zum Home-Bildschirm hinzufügen" auf iOS/Android
+  installiert die App jetzt mit dem 420er-Logo und maritime-blauem
+  Theme. Zusätzlich `app/apple-icon.png` (Kopie des Logos),
+  `appleWebApp`-Metadata und `themeColor`-Viewport in `layout.tsx`.
+
+---
+
 ## [2026.04.11] — 2026-04-28
 
 **Ranglisten editierbar + Saison-Dropdown + IDJM speicherbar (Issues #26, #27, #28).**

@@ -5,9 +5,12 @@ import { db } from "@/lib/db/client";
 import bcrypt from "bcryptjs";
 import QRCode from "qrcode";
 import crypto from "crypto";
+import { headers } from "next/headers";
 import { z } from "zod";
 import { generateTotpSecret, verifyTotpCode, totpKeyUri } from "@/lib/totp";
 import { logAudit, A } from "@/lib/security/audit";
+import { sendMail, isMailConfigured } from "@/lib/mail/send";
+import { passwordResetMail } from "@/lib/mail/templates";
 
 type Result<T = void> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -159,20 +162,56 @@ export async function disableTotpAction(code: string): Promise<Result> {
 // ── Password reset token ───────────────────────────────────────────────────────
 
 /**
- * Generates a password reset token for the given identifier (username or email).
- * Returns the token (to be embedded in the reset URL).
- * This is intentionally unauthenticated — used from the /auth/forgot page.
+ * Initiates a password reset.
+ *
+ * Generates a one-shot token, stores it on the user, and sends a
+ * password-reset email containing the reset URL. Returns generic
+ * `{ ok: true }` regardless of whether the account exists, to avoid
+ * username/email enumeration via the response.
+ *
+ * Issue #29: Vorher wurde der Reset-Link direkt an den Browser
+ * zurückgegeben und im UI angezeigt — ein gravierendes Sicherheits-
+ * problem, weil dadurch jeder Reset-Links für fremde Accounts
+ * generieren konnte. Jetzt geht der Link nur per E-Mail an die
+ * tatsächliche Adresse des Accounts.
  */
 export async function generateResetTokenAction(
   identifier: string
-): Promise<Result<{ token: string }>> {
+): Promise<Result<{ mailSent: boolean; transportConfigured: boolean }>> {
+  // Resolve origin from request headers — works on localhost, Vercel
+  // previews and the production domain without separate env-var setup.
+  const h = await headers();
+  const host = h.get("host") ?? "localhost:3000";
+  const proto =
+    h.get("x-forwarded-proto") ??
+    (host.startsWith("localhost") ? "http" : "https");
+  const origin = `${proto}://${host}`;
+
   const user = await db.user.findFirst({
     where: { OR: [{ username: identifier }, { email: identifier }] },
   });
 
+  // Whether the SMTP transport is configured at all — exposed to the UI
+  // as a separate flag so the user gets a clear hint while the existence
+  // of the account itself stays hidden.
+  const transportConfigured = isMailConfigured();
+
+  // Account doesn't exist → return success without doing anything.
+  // (No token created, no email sent.)
   if (!user) {
-    // Always return ok to avoid enumeration
-    return { ok: true, data: { token: "" } };
+    return { ok: true, data: { mailSent: false, transportConfigured } };
+  }
+
+  // Account exists but has no email on file → we can't deliver the link.
+  // Audit-log this and return ok — the caller can't tell from the response
+  // whether the user has no email or doesn't exist.
+  if (!user.email) {
+    await logAudit({
+      userId: user.id,
+      action: A.RESET_TOKEN,
+      detail: "Reset angefordert, aber User hat keine E-Mail-Adresse hinterlegt",
+    });
+    return { ok: true, data: { mailSent: false, transportConfigured } };
   }
 
   const token = crypto.randomBytes(32).toString("base64url");
@@ -184,7 +223,26 @@ export async function generateResetTokenAction(
     },
   });
 
-  return { ok: true, data: { token } };
+  await logAudit({
+    userId: user.id,
+    action: A.RESET_TOKEN,
+    detail: `Reset-Link an ${user.email} versendet`,
+  });
+
+  const resetUrl = `${origin}/auth/reset/${token}`;
+  const mail = passwordResetMail({
+    to: user.email,
+    resetUrl,
+    recipientName: user.username ?? undefined,
+    expiresMinutes: 60,
+  });
+
+  const result = await sendMail(mail);
+
+  return {
+    ok: true,
+    data: { mailSent: result.ok, transportConfigured },
+  };
 }
 
 export async function resetPasswordAction(token: string, newPassword: string): Promise<Result> {

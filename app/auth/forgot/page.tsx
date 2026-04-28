@@ -3,15 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Copy, Check } from "lucide-react";
+import { ArrowLeft, MailCheck, AlertTriangle } from "lucide-react";
 import { generateResetTokenAction } from "@/lib/actions/account";
 
 export default function ForgotPasswordPage() {
   const [identifier, setIdentifier] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resetUrl, setResetUrl] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [transportConfigured, setTransportConfigured] = useState(true);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -21,18 +20,9 @@ export default function ForgotPasswordPage() {
 
     setLoading(false);
     setSubmitted(true);
-
-    if (result.ok && result.data.token) {
-      const url = `${window.location.origin}/auth/reset/${result.data.token}`;
-      setResetUrl(url);
+    if (result.ok) {
+      setTransportConfigured(result.data.transportConfigured);
     }
-  }
-
-  async function handleCopy() {
-    if (!resetUrl) return;
-    await navigator.clipboard.writeText(resetUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   }
 
   return (
@@ -76,7 +66,9 @@ export default function ForgotPasswordPage() {
               </div>
 
               <p className="text-xs text-muted-foreground">
-                Falls der Account existiert, wird ein Reset-Link generiert und direkt angezeigt (kein E-Mail-Versand).
+                Falls ein Account mit dieser E-Mail oder diesem Benutzernamen
+                existiert, wird ein Link zum Zurücksetzen des Passworts an die
+                hinterlegte E-Mail-Adresse versendet.
               </p>
 
               <button
@@ -84,44 +76,50 @@ export default function ForgotPasswordPage() {
                 disabled={loading}
                 className="w-full py-2.5 px-4 text-sm font-medium text-white rounded-md bg-primary hover:opacity-90 disabled:opacity-50 transition-opacity shadow-sm"
               >
-                {loading ? "Prüfe…" : "Reset-Link generieren"}
+                {loading ? "Wird versendet…" : "Reset-Link versenden"}
               </button>
             </form>
-          ) : resetUrl ? (
-            <div className="space-y-4">
-              <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 px-4 py-3">
-                <p className="text-sm font-medium text-emerald-800 dark:text-emerald-200 mb-1">
-                  Reset-Link erstellt
-                </p>
-                <p className="text-xs text-emerald-700 dark:text-emerald-300">
-                  Gültig für 1 Stunde. Der Link kann nur einmal verwendet werden.
-                </p>
-              </div>
-
-              <div className="rounded-md border bg-muted/50 p-3 break-all text-xs font-mono text-muted-foreground">
-                {resetUrl}
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleCopy}
-                  className="flex-1 flex items-center justify-center gap-2 py-2 text-sm rounded-md border hover:bg-muted transition-colors"
-                >
-                  {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
-                  {copied ? "Kopiert!" : "Kopieren"}
-                </button>
-                <Link
-                  href={resetUrl}
-                  className="flex-1 flex items-center justify-center py-2 text-sm font-medium text-white rounded-md bg-primary hover:opacity-90 transition-opacity text-center"
-                >
-                  Link öffnen
-                </Link>
-              </div>
-            </div>
           ) : (
-            <div className="rounded-lg bg-muted/50 border px-4 py-4 text-sm text-muted-foreground text-center">
-              Falls ein Account mit diesem Namen oder dieser E-Mail existiert, wurde ein Reset-Link erstellt. Bitte erneut versuchen oder den Administrator kontaktieren.
+            <div className="space-y-4">
+              <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 px-4 py-3 flex items-start gap-3">
+                <MailCheck className="h-4 w-4 text-emerald-700 dark:text-emerald-300 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-emerald-800 dark:text-emerald-200">
+                    Anfrage angenommen
+                  </p>
+                  <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-1">
+                    Falls ein Account mit dieser Eingabe existiert und eine
+                    E-Mail hinterlegt ist, wurde ein Link zum Zurücksetzen
+                    versendet. Der Link ist 60 Minuten gültig und kann nur einmal
+                    verwendet werden.
+                  </p>
+                </div>
+              </div>
+
+              {!transportConfigured && (
+                <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 px-4 py-3 flex items-start gap-3">
+                  <AlertTriangle className="h-4 w-4 text-amber-700 dark:text-amber-300 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-medium text-amber-800 dark:text-amber-200">
+                      E-Mail-Versand nicht konfiguriert
+                    </p>
+                    <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                      Auf dem Server ist kein SMTP-Transport eingerichtet —
+                      es wurde keine Mail tatsächlich versendet. Bitte
+                      Administrator kontaktieren oder die Server-Logs prüfen
+                      (der Reset-Link wird dort als Fallback geloggt).
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => { setSubmitted(false); setIdentifier(""); }}
+                className="w-full py-2 text-sm rounded-md border hover:bg-muted transition-colors"
+              >
+                Erneut versuchen
+              </button>
             </div>
           )}
 
