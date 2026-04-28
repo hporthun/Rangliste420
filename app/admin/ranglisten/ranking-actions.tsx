@@ -2,11 +2,20 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, Trash2, Check, X, Loader2 } from "lucide-react";
+import { Pencil, Trash2, Check, X, Loader2, Settings2 } from "lucide-react";
 import { deleteRankingAction, renameRankingAction } from "@/lib/actions/rankings";
 import Link from "next/link";
 
-export function RankingActions({ id, name }: { id: string; name: string }) {
+/**
+ * Whether this ranking type can be re-edited via the vorschau form.
+ * JWM/JEM-Quali use a different flow (jwm-jem page); we hide the edit
+ * button for those rather than send the user to the wrong place.
+ */
+function isEditableType(type: string | undefined): boolean {
+  return type === "JAHRESRANGLISTE" || type === "IDJM";
+}
+
+export function RankingActions({ id, name, type }: { id: string; name: string; type?: string }) {
   const router = useRouter();
   const [mode, setMode] = useState<"idle" | "rename" | "confirm-delete">("idle");
   const [draft, setDraft] = useState(name);
@@ -126,6 +135,15 @@ export function RankingActions({ id, name }: { id: string; name: string }) {
       </td>
       <td className="px-2 py-2 text-right whitespace-nowrap">
         <div className="flex items-center justify-end gap-1">
+          {isEditableType(type) && (
+            <Link
+              href={`/admin/ranglisten/vorschau?editId=${id}`}
+              title="Berechnung bearbeiten"
+              className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+            >
+              <Settings2 className="h-3.5 w-3.5" />
+            </Link>
+          )}
           <button
             type="button"
             onClick={() => setMode("rename")}

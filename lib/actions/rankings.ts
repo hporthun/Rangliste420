@@ -329,20 +329,33 @@ export async function computeHelmDetailAction(
   }
 }
 
-// ── Save Jahresrangliste ───────────────────────────────────────────────────────
+// ── Save / update ranking ─────────────────────────────────────────────────────
 
-export async function saveJahresranklisteAction(
+/** Which compute-types may be persisted as a Ranking row. */
+const SAVEABLE_TYPES = new Set<RankingType>(["JAHRESRANGLISTE", "IDJM"]);
+
+export async function saveRanklisteAction(
   name: string,
   params: ComputeParams,
   regattaIds: string[]
 ): Promise<{ ok: true; data: { id: string } } | { ok: false; error: string }> {
   const session = await auth();
   if (!session) return { ok: false, error: "Nicht angemeldet." };
+  if (!SAVEABLE_TYPES.has(params.type)) {
+    return {
+      ok: false,
+      error:
+        "Diese Ranglisten-Art (Aktuelle Rangliste) wird immer live berechnet und kann nicht gespeichert werden.",
+    };
+  }
   try {
     const ranking = await db.ranking.create({
       data: {
         name,
-        type: "JAHRESRANGLISTE",
+        // Issue #28: IDJM-Quali kann jetzt ebenfalls gespeichert werden.
+        // Stored type matches the compute type; "AKTUELLE" never reaches
+        // here (gated above).
+        type: params.type,
         seasonStart: new Date(params.seasonStart),
         seasonEnd: new Date(params.referenceDate),
         ageCategory: params.ageCategory,
@@ -359,6 +372,99 @@ export async function saveJahresranklisteAction(
   } catch (e) {
     return { ok: false, error: String(e) };
   }
+}
+
+/**
+ * Update a saved ranking's parameters and refresh its associated regattas.
+ * Used by the "Rangliste bearbeiten" flow (Issue #26): user adjusts type,
+ * dates or categories on the vorschau page, the new regatta set is
+ * recomputed, and the existing Ranking row is mutated in place.
+ */
+export async function updateRanklisteAction(
+  id: string,
+  name: string,
+  params: ComputeParams,
+  regattaIds: string[]
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
+  if (!SAVEABLE_TYPES.has(params.type)) {
+    return {
+      ok: false,
+      error: "Aktuelle Rangliste kann nicht persistiert werden.",
+    };
+  }
+  try {
+    await db.$transaction([
+      // Replace the regatta set in one shot
+      db.rankingRegatta.deleteMany({ where: { rankingId: id } }),
+      db.ranking.update({
+        where: { id },
+        data: {
+          name,
+          type: params.type,
+          seasonStart: new Date(params.seasonStart),
+          seasonEnd: new Date(params.referenceDate),
+          ageCategory: params.ageCategory,
+          genderCategory: params.genderCategory,
+          scoringRule: JSON.stringify({ scoringType: "dsv_standard", ...params }),
+          rankingRegattas: {
+            create: regattaIds.map((rid) => ({ regattaId: rid })),
+          },
+        },
+      }),
+    ]);
+    revalidatePath("/admin/ranglisten");
+    revalidatePath(`/rangliste/${id}`);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+
+/** Backwards-compat alias for {@link saveRanklisteAction}. Old form code
+ * still imports this name; remove once the form is fully migrated. */
+export const saveJahresranklisteAction = saveRanklisteAction;
+
+/**
+ * Load a saved ranking together with the ComputeParams that produced it.
+ * Used to pre-fill the vorschau form when the user clicks "Bearbeiten".
+ */
+export async function getRankingForEditAction(
+  id: string
+): Promise<
+  | { ok: true; data: { id: string; name: string; params: ComputeParams } }
+  | { ok: false; error: string }
+> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
+  const r = await db.ranking.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      type: true,
+      seasonStart: true,
+      seasonEnd: true,
+      ageCategory: true,
+      genderCategory: true,
+    },
+  });
+  if (!r) return { ok: false, error: "Rangliste nicht gefunden." };
+  return {
+    ok: true,
+    data: {
+      id: r.id,
+      name: r.name,
+      params: {
+        type: r.type as RankingType,
+        seasonStart: r.seasonStart.toISOString().slice(0, 10),
+        referenceDate: r.seasonEnd.toISOString().slice(0, 10),
+        ageCategory: r.ageCategory as AgeCategory,
+        genderCategory: r.genderCategory as GenderCategory,
+      },
+    },
+  };
 }
 
 export async function deleteRankingAction(

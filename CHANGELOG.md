@@ -8,6 +8,32 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.11] — 2026-04-28
+
+**Ranglisten editierbar + Saison-Dropdown + IDJM speicherbar (Issues #26, #27, #28).**
+
+### Neu
+
+- **Saison-Auswahl** in der Ranglisten-Vorschau (Issue #27): explizites
+  Jahr-Dropdown, das Von/Bis automatisch auf die Standardgrenzen setzt
+  (01.01. – 30.11. für Jahresrangliste/IDJM, 01.01. – heute für Aktuelle
+  Rangliste). Datumsfelder bleiben als optionale Override-Felder
+  bestehen für Sonderfälle.
+- **Rangliste bearbeiten** (Issue #26): jede gespeicherte Rangliste
+  bekommt in der Tabelle ein neues ⚙-Icon. Klick → Vorschau lädt mit
+  den Originalparametern; Änderungen können direkt in den bestehenden
+  Datensatz übernommen werden (`updateRanklisteAction` ersetzt das
+  Regatten-Set in einer Transaktion). Veröffentlichungs-Status bleibt
+  erhalten.
+- **IDJM-Quali speicherbar** (Issue #28):
+  `saveJahresranklisteAction` heißt jetzt `saveRanklisteAction` (Alias
+  bleibt) und unterstützt `type: "JAHRESRANGLISTE"` *oder*
+  `type: "IDJM"`. Aktuelle Rangliste wird weiterhin nicht persistiert.
+  Schema-Kommentar, Type-Labels (admin + public) und Badge-Farben
+  ergänzt.
+
+---
+
 ## [2026.04.10] — 2026-04-28
 
 **Auto-420er + OAuth-Anmeldung (Issues #24, #25).**

@@ -2,25 +2,37 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { saveJahresranklisteAction, type ComputeParams } from "@/lib/actions/rankings";
+import {
+  saveRanklisteAction,
+  updateRanklisteAction,
+  type ComputeParams,
+} from "@/lib/actions/rankings";
 
 type Props = {
   defaultName: string;
   params: ComputeParams;
   regattaIds: string[];
+  /** When set, the form updates this ranking instead of creating a new one. */
+  editId: string | null;
 };
 
-export function SaveRanklisteForm({ defaultName, params, regattaIds }: Props) {
+export function SaveRanklisteForm({ defaultName, params, regattaIds, editId }: Props) {
   const router = useRouter();
   const [name, setName] = useState(defaultName);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const isEdit = !!editId;
+  const typeLabel =
+    params.type === "IDJM" ? "IDJM-Quali" : "Jahresrangliste";
+
   async function handleSave() {
     if (!name.trim()) return;
     setSaving(true);
     setError(null);
-    const result = await saveJahresranklisteAction(name.trim(), params, regattaIds);
+    const result = isEdit
+      ? await updateRanklisteAction(editId!, name.trim(), params, regattaIds)
+      : await saveRanklisteAction(name.trim(), params, regattaIds);
     if (result.ok) {
       router.push(`/admin/ranglisten`);
     } else {
@@ -32,13 +44,15 @@ export function SaveRanklisteForm({ defaultName, params, regattaIds }: Props) {
   return (
     <div className="rounded-md border p-4 space-y-4 bg-gray-50">
       <div className="space-y-1">
-        <label className="text-xs font-medium text-muted-foreground uppercase">Name der Rangliste</label>
+        <label className="text-xs font-medium text-muted-foreground uppercase">
+          Name der Rangliste
+        </label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="input text-sm w-full"
-          placeholder="z.B. Jahresrangliste 2025 Open/Open"
+          placeholder={`z.B. ${typeLabel} 2025 Open/Open`}
         />
       </div>
       {error && (
@@ -50,7 +64,11 @@ export function SaveRanklisteForm({ defaultName, params, regattaIds }: Props) {
           disabled={saving || !name.trim()}
           className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
         >
-          {saving ? "Wird gespeichert…" : "Jahresrangliste speichern"}
+          {saving
+            ? "Wird gespeichert…"
+            : isEdit
+            ? "Änderungen speichern"
+            : `${typeLabel} speichern`}
         </button>
         <button
           type="button"
@@ -61,7 +79,9 @@ export function SaveRanklisteForm({ defaultName, params, regattaIds }: Props) {
         </button>
       </div>
       <p className="text-xs text-muted-foreground">
-        Die Rangliste wird als Entwurf gespeichert und kann anschließend veröffentlicht werden.
+        {isEdit
+          ? "Die Aktualisierung ersetzt die zugeordneten Regatten und Parameter. Der Veröffentlichungs-Status bleibt erhalten."
+          : "Die Rangliste wird als Entwurf gespeichert und kann anschließend veröffentlicht werden."}
       </p>
     </div>
   );

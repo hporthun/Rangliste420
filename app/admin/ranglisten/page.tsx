@@ -46,8 +46,9 @@ const RANGLISTEN_TOUR: TourStep[] = [
 
 const TYPE_LABELS: Record<string, string> = {
   JAHRESRANGLISTE: "Jahresrangliste",
-  JWM_QUALI: "JWM-Quali",
-  JEM_QUALI: "JEM-Quali",
+  IDJM:            "IDJM-Quali",
+  JWM_QUALI:       "JWM-Quali",
+  JEM_QUALI:       "JEM-Quali",
 };
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -129,7 +130,7 @@ export default async function RanglistenPage() {
                   <td className="px-4 py-2">
                     <PublishToggle id={r.id} isPublic={r.isPublic} />
                   </td>
-                  <RankingActions id={r.id} name={r.name} />
+                  <RankingActions id={r.id} name={r.name} type={r.type} />
                 </tr>
               ))}
             </tbody>

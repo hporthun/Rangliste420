@@ -77,6 +77,36 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.11",
+    date: "2026-04-28",
+    title: "Ranglisten bearbeitbar + IDJM speicherbar",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            <strong>Saison-Dropdown</strong> in der Ranglisten-Vorschau
+            (Issue #27): Wählst du eine Saison, werden Von/Bis automatisch
+            gesetzt (01.01.–30.11. für Jahresrangliste & IDJM, 01.01.–heute
+            für Aktuelle Rangliste). Datumsfelder bleiben für Sonderfälle
+            override-bar.
+          </>,
+          <>
+            <strong>Rangliste bearbeiten</strong> (Issue #26): Tabellen-Icon ⚙
+            neben Umbenennen/Löschen. Klick öffnet die Vorschau mit den
+            Originalparametern — Änderungen werden in den bestehenden
+            Datensatz übernommen, der Veröffentlichungs-Status bleibt.
+          </>,
+          <>
+            <strong>IDJM-Quali speicherbar</strong> (Issue #28): IDJM-Quali
+            wird wie die Jahresrangliste persistiert und veröffentlicht.
+            Aktuelle Rangliste bleibt live-only.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.10",
     date: "2026-04-28",
     title: "Auto-420 + OAuth-Login",

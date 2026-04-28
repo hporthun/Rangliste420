@@ -3,12 +3,14 @@ import Link from "next/link";
 
 const typeLabel: Record<string, string> = {
   JAHRESRANGLISTE: "Jahresrangliste",
-  JWM_QUALI: "JWM-Quali",
-  JEM_QUALI: "JEM-Quali",
+  IDJM:            "IDJM-Quali",
+  JWM_QUALI:       "JWM-Quali",
+  JEM_QUALI:       "JEM-Quali",
 };
 
 const typeBadgeClass: Record<string, string> = {
   JAHRESRANGLISTE: "bg-blue-50 text-blue-700 border-blue-200",
+  IDJM:            "bg-amber-50 text-amber-800 border-amber-200",
   JWM_QUALI:       "bg-purple-50 text-purple-700 border-purple-200",
   JEM_QUALI:       "bg-purple-50 text-purple-700 border-purple-200",
 };

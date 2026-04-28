@@ -1,4 +1,4 @@
-import { computeRankingAction, type ComputeParams, type RankingType } from "@/lib/actions/rankings";
+import { computeRankingAction, getRankingForEditAction, type ComputeParams, type RankingType } from "@/lib/actions/rankings";
 import Link from "next/link";
 import { PageTour } from "@/components/tour/page-tour";
 import type { TourStep } from "@/components/tour/tour-context";
@@ -11,10 +11,10 @@ const VORSCHAU_TOUR: TourStep[] = [
     target: '[data-tour="vorschau-form"]',
     title: "Parameter einstellen",
     content:
-      "Wähle Typ, Zeitraum, Altersklasse und Gender-Kategorie. " +
-      "Die Jahresrangliste läuft typischerweise vom 01.01. bis 30.11. des Saison-Jahres. " +
-      "Die Aktuelle Rangliste verwendet immer das heutige Datum als Stichtag. " +
-      "Klicke 'Rangliste berechnen', um die Vorschau zu laden.",
+      "Wähle Typ, Saison, Altersklasse und Gender-Kategorie. " +
+      "Die Saison-Auswahl füllt automatisch sinnvolle Von/Bis-Datumsbereiche " +
+      "(01.01. bis 30.11. für die Jahresrangliste, bis heute für Aktuelle Rangliste). " +
+      "Beide Datumsfelder lassen sich für Sonderfälle weiterhin manuell überschreiben.",
     placement: "bottom",
   },
   {
@@ -32,8 +32,8 @@ const VORSCHAU_TOUR: TourStep[] = [
     target: '[data-tour="vorschau-speichern"]',
     title: "Rangliste speichern",
     content:
-      "Nur Jahresranglisten können gespeichert und anschließend veröffentlicht werden. " +
-      "Aktuelle Rangliste und IDJM-Quali werden immer on-demand berechnet und nicht gespeichert.",
+      "Jahresrangliste und IDJM-Quali können gespeichert und anschließend veröffentlicht werden. " +
+      "Aktuelle Rangliste wird immer live berechnet und nicht persistiert.",
     placement: "bottom-end",
   },
 ];
@@ -42,36 +42,84 @@ const AGE_CATEGORIES = ["OPEN", "U19", "U17", "U16", "U15"] as const;
 const GENDER_CATEGORIES = ["OPEN", "MEN", "MIX", "GIRLS"] as const;
 const RANKING_TYPES: RankingType[] = ["JAHRESRANGLISTE", "AKTUELLE", "IDJM"];
 
+const TYPE_LABELS: Record<RankingType, string> = {
+  JAHRESRANGLISTE: "Jahresrangliste",
+  AKTUELLE:        "Aktuelle Rangliste",
+  IDJM:            "IDJM-Quali",
+};
+
+/**
+ * Compute sensible default Von/Bis dates for a given type and season year.
+ *
+ * - Jahresrangliste:    01.01. – 30.11. of the season year.
+ * - Aktuelle Rangliste: 01.01. – heute (current year) or 01.01. – 31.12. (past).
+ * - IDJM-Quali:         01.01. – 30.11. of the season year (matches DSV cycle).
+ */
+function defaultRange(type: RankingType, year: number): { from: string; ref: string } {
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const from = `${year}-01-01`;
+  if (type === "AKTUELLE") {
+    const ref = year === currentYear
+      ? today.toISOString().slice(0, 10)
+      : `${year}-12-31`;
+    return { from, ref };
+  }
+  // JAHRESRANGLISTE + IDJM both use Nov 30 cutoff
+  return { from, ref: `${year}-11-30` };
+}
+
 type Props = {
   searchParams: Promise<{
     type?: string;
+    season?: string;
     from?: string;
     ref?: string;
     age?: string;
     gender?: string;
+    /** Issue #26: when present, the form edits an existing ranking instead of creating a new one. */
+    editId?: string;
   }>;
 };
 
 export default async function VorschauPage({ searchParams }: Props) {
   const sp = await searchParams;
-  const type = (sp.type as RankingType) ?? "JAHRESRANGLISTE";
+
+  // ── Edit mode (Issue #26) ───────────────────────────────────────────────────
+  // If editId is given without explicit overrides, hydrate the form from the
+  // saved Ranking. The user can then change fields and re-save.
+  let editing: { id: string; name: string; params: ComputeParams } | null = null;
+  if (sp.editId) {
+    const res = await getRankingForEditAction(sp.editId);
+    if (res.ok) editing = res.data;
+  }
+
+  // Resolve effective parameters in this priority:
+  //   1. URL search params (user changed something)
+  //   2. Saved ranking (when editing)
+  //   3. Sensible defaults (current year)
   const currentYear = new Date().getFullYear();
-  const age = (sp.age ?? "OPEN") as ComputeParams["ageCategory"];
-  const gender = (sp.gender ?? "OPEN") as ComputeParams["genderCategory"];
+  const type = (sp.type as RankingType) ?? editing?.params.type ?? "JAHRESRANGLISTE";
 
-  // Default end date: Nov 30 for Jahresrangliste, today for others
-  const defaultRef =
-    type === "JAHRESRANGLISTE"
-      ? `${currentYear}-11-30`
-      : new Date().toISOString().slice(0, 10);
-  const ref = sp.ref ?? defaultRef;
+  // Saison: explicit ?season=YYYY → fall back to ref's year → fall back to editing's seasonEnd → current year
+  const explicitSeason = sp.season ? parseInt(sp.season, 10) : null;
+  const seasonFromRef = sp.ref ? new Date(sp.ref).getFullYear() : null;
+  const seasonFromEditing = editing
+    ? new Date(editing.params.referenceDate).getFullYear()
+    : null;
+  const season =
+    explicitSeason ??
+    seasonFromRef ??
+    seasonFromEditing ??
+    currentYear;
 
-  // Default start date: Jan 1 of the end-date's year
-  const endYear = new Date(ref).getFullYear();
-  const defaultFrom = `${endYear}-01-01`;
-  const from = sp.from ?? defaultFrom;
+  const defaults = defaultRange(type, season);
+  const from   = sp.from ?? editing?.params.seasonStart ?? defaults.from;
+  const ref    = sp.ref  ?? editing?.params.referenceDate ?? defaults.ref;
+  const age    = (sp.age    ?? editing?.params.ageCategory    ?? "OPEN") as ComputeParams["ageCategory"];
+  const gender = (sp.gender ?? editing?.params.genderCategory ?? "OPEN") as ComputeParams["genderCategory"];
 
-  const hasParams = !!sp.type || !!sp.from || !!sp.ref;
+  const hasParams = !!sp.type || !!sp.season || !!sp.from || !!sp.ref || !!editing;
   const params: ComputeParams = {
     type,
     seasonStart: from,
@@ -81,46 +129,70 @@ export default async function VorschauPage({ searchParams }: Props) {
   };
 
   const result = hasParams ? await computeRankingAction(params) : null;
+  const canSave = type === "JAHRESRANGLISTE" || type === "IDJM";
+
+  // Year list for the Saison dropdown — last 6 years and next 1
+  const seasonYears = Array.from({ length: 7 }, (_, i) => currentYear + 1 - i);
+  if (!seasonYears.includes(season)) seasonYears.push(season);
+  seasonYears.sort((a, b) => b - a);
+
+  // For the "save / update" link we forward all current search params
+  const saveQs = new URLSearchParams({
+    type,
+    season: String(season),
+    from,
+    ref,
+    age,
+    gender,
+    ...(editing ? { editId: editing.id } : {}),
+  }).toString();
 
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold">Rangliste berechnen</h1>
+          <h1 className="text-xl font-semibold">
+            {editing ? "Rangliste bearbeiten" : "Rangliste berechnen"}
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Wähle den Zeitraum und die Parameter. Jahresranglisten können gespeichert und
-            veröffentlicht werden.
+            {editing
+              ? `„${editing.name}" — ändere Parameter und speichere die Aktualisierung.`
+              : "Wähle Typ und Saison. Jahresrangliste und IDJM-Quali können gespeichert und veröffentlicht werden."}
           </p>
         </div>
         <PageTour steps={VORSCHAU_TOUR} />
       </div>
 
       {/* Parameter form — GET-based for server-side rendering */}
-      <form method="GET" className="rounded-md border p-4 space-y-4 bg-gray-50" data-tour="vorschau-form">
+      <form
+        method="GET"
+        className="rounded-md border p-4 space-y-4 bg-gray-50"
+        data-tour="vorschau-form"
+      >
+        {/* Preserve editId across submits */}
+        {editing && (
+          <input type="hidden" name="editId" value={editing.id} />
+        )}
+
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground uppercase">Typ</label>
             <select name="type" defaultValue={type} className="input text-sm">
               {RANKING_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t === "JAHRESRANGLISTE"
-                    ? "Jahresrangliste"
-                    : t === "AKTUELLE"
-                    ? "Aktuelle Rangliste"
-                    : "IDJM-Quali"}
-                </option>
+                <option key={t} value={t}>{TYPE_LABELS[t]}</option>
               ))}
             </select>
           </div>
 
+          {/* Issue #27: explicit Saison-Dropdown — auto-fills von/bis defaults
+              on submit when no manual override is given. */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-muted-foreground uppercase">Von</label>
-            <input name="from" type="date" defaultValue={from} className="input text-sm" />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-muted-foreground uppercase">Bis (Stichtag)</label>
-            <input name="ref" type="date" defaultValue={ref} className="input text-sm" />
+            <label className="text-xs font-medium text-muted-foreground uppercase">Saison</label>
+            <select name="season" defaultValue={season} className="input text-sm">
+              {seasonYears.map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
           </div>
 
           <div className="space-y-1">
@@ -140,7 +212,27 @@ export default async function VorschauPage({ searchParams }: Props) {
               ))}
             </select>
           </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-muted-foreground uppercase">
+              Von <span className="font-normal normal-case opacity-70">(optional)</span>
+            </label>
+            <input name="from" type="date" defaultValue={from} className="input text-sm" />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-muted-foreground uppercase">
+              Bis (Stichtag) <span className="font-normal normal-case opacity-70">(optional)</span>
+            </label>
+            <input name="ref" type="date" defaultValue={ref} className="input text-sm" />
+          </div>
         </div>
+
+        <p className="text-xs text-muted-foreground">
+          Saison setzt Von/Bis automatisch auf 01.01.–30.11. (bzw. Heute bei Aktueller Rangliste).
+          Die Datumsfelder können diesen Bereich übersteuern, z.B. um eine
+          unvollständige Saison zu bewerten.
+        </p>
 
         <button
           type="submit"
@@ -159,17 +251,21 @@ export default async function VorschauPage({ searchParams }: Props) {
 
       {result?.ok && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <p className="text-sm text-muted-foreground">
               {result.data.rows.length} Segler gelistet · {result.data.regattas.length} Regatten
             </p>
-            {type === "JAHRESRANGLISTE" && (
+            {canSave && (
               <Link
-                href={`/admin/ranglisten/neu?${new URLSearchParams(sp as Record<string, string>)}`}
+                href={`/admin/ranglisten/neu?${saveQs}`}
                 data-tour="vorschau-speichern"
                 className="text-xs text-blue-600 hover:underline"
               >
-                Als Jahresrangliste speichern →
+                {editing
+                  ? "Rangliste aktualisieren →"
+                  : type === "IDJM"
+                  ? "Als IDJM-Quali speichern →"
+                  : "Als Jahresrangliste speichern →"}
               </Link>
             )}
           </div>

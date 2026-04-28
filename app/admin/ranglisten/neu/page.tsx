@@ -1,28 +1,41 @@
-import { computeRankingAction, type ComputeParams, type RankingType } from "@/lib/actions/rankings";
+import { computeRankingAction, getRankingForEditAction, type ComputeParams, type RankingType } from "@/lib/actions/rankings";
 import Link from "next/link";
 import { SaveRanklisteForm } from "./save-form";
 
 type Props = {
   searchParams: Promise<{
     type?: string;
+    season?: string;
     from?: string;
     ref?: string;
     age?: string;
     gender?: string;
+    /** Issue #26: when set, save flow updates this ranking instead of creating a new one. */
+    editId?: string;
   }>;
 };
 
 export default async function NeueRanglistePage({ searchParams }: Props) {
   const sp = await searchParams;
-  const type = ((sp.type ?? "JAHRESRANGLISTE") as RankingType);
-  const age = (sp.age ?? "OPEN") as ComputeParams["ageCategory"];
-  const gender = (sp.gender ?? "OPEN") as ComputeParams["genderCategory"];
+
+  // Edit mode: hydrate name + params from the saved ranking unless the URL
+  // explicitly overrides them.
+  const editing = sp.editId
+    ? (await getRankingForEditAction(sp.editId))
+    : null;
+  const editingData = editing && editing.ok ? editing.data : null;
+
+  const type = ((sp.type ?? editingData?.params.type ?? "JAHRESRANGLISTE") as RankingType);
+  const age = (sp.age ?? editingData?.params.ageCategory ?? "OPEN") as ComputeParams["ageCategory"];
+  const gender = (sp.gender ?? editingData?.params.genderCategory ?? "OPEN") as ComputeParams["genderCategory"];
 
   const currentYear = new Date().getFullYear();
-  const defaultRef = `${currentYear}-11-30`;
-  const ref = sp.ref ?? defaultRef;
+  const defaultRef = type === "AKTUELLE"
+    ? new Date().toISOString().slice(0, 10)
+    : `${currentYear}-11-30`;
+  const ref = sp.ref ?? editingData?.params.referenceDate ?? defaultRef;
   const endYear = new Date(ref).getFullYear();
-  const from = sp.from ?? `${endYear}-01-01`;
+  const from = sp.from ?? editingData?.params.seasonStart ?? `${endYear}-01-01`;
 
   const params: ComputeParams = {
     type,
@@ -36,14 +49,17 @@ export default async function NeueRanglistePage({ searchParams }: Props) {
 
   const typeLabel: Record<RankingType, string> = {
     JAHRESRANGLISTE: "Jahresrangliste",
-    AKTUELLE: "Aktuelle Rangliste",
-    IDJM: "IDJM-Quali",
+    AKTUELLE:        "Aktuelle Rangliste",
+    IDJM:            "IDJM-Quali",
   };
 
   const fromLabel = new Date(from).toLocaleDateString("de-DE");
-  const toLabel = new Date(ref).toLocaleDateString("de-DE");
-  const defaultName = `${typeLabel[type]} ${endYear} ${age}/${gender}`;
+  const toLabel   = new Date(ref).toLocaleDateString("de-DE");
+  const defaultName = editingData?.name
+    ?? `${typeLabel[type]} ${endYear} ${age}/${gender}`;
   const backUrl = `/admin/ranglisten/vorschau?${new URLSearchParams(sp as Record<string, string>)}`;
+
+  const headingPrefix = editingData ? "Rangliste aktualisieren" : `${typeLabel[type]} speichern`;
 
   return (
     <div className="space-y-6">
@@ -51,7 +67,7 @@ export default async function NeueRanglistePage({ searchParams }: Props) {
         <Link href={backUrl} className="text-sm text-blue-600 hover:underline">
           ← Zurück zur Vorschau
         </Link>
-        <h1 className="text-xl font-semibold mt-2">Jahresrangliste speichern</h1>
+        <h1 className="text-xl font-semibold mt-2">{headingPrefix}</h1>
         <p className="text-sm text-muted-foreground">
           {typeLabel[type]} · {age} / {gender} · {fromLabel} – {toLabel}
         </p>
@@ -69,6 +85,7 @@ export default async function NeueRanglistePage({ searchParams }: Props) {
             defaultName={defaultName}
             params={params}
             regattaIds={result.data.regattas.map((r) => r.id)}
+            editId={editingData?.id ?? null}
           />
 
           {/* Preview table */}

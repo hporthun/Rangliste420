@@ -131,7 +131,8 @@ model Result {
 model Ranking {
   id             String    @id @default(cuid())
   name           String
-  // "JAHRESRANGLISTE" | "JWM_QUALI" | "JEM_QUALI"
+  // "JAHRESRANGLISTE" | "IDJM" | "JWM_QUALI" | "JEM_QUALI"
+  // ("AKTUELLE" is computed live and never stored.)
   type           String
   // flexible season window (e.g. 2025-01-01 to 2025-11-30)
   seasonStart    DateTime
