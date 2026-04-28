@@ -259,8 +259,59 @@
     page-break-after: always;
   }
 
-  /* Hide screen-only diagram colour fills that don't print well */
-  /* (kept light because the diagrams are CSS-rendered) */
+  /* TOC row layout: number · label · leader dots · page number */
+  .print-toc .toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .print-toc .toc-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4em;
+    padding: 1px 0;
+  }
+  .print-toc .toc-sub {
+    padding-left: 1.5em;
+  }
+  .print-toc .toc-main .toc-label {
+    font-weight: 600;
+    color: black;
+  }
+  .print-toc .toc-sub .toc-label {
+    color: #333;
+  }
+  .print-toc .toc-num {
+    flex: 0 0 2.5em;
+    color: #555;
+  }
+  .print-toc .toc-sub .toc-num {
+    flex-basis: 3em;
+    color: #777;
+  }
+  .print-toc .toc-label {
+    flex: 0 1 auto;
+    text-decoration: none;
+  }
+  .print-toc .toc-leader {
+    flex: 1 1 auto;
+    align-self: center;
+    border-bottom: 1px dotted #aaa;
+    margin: 0 0.4em;
+    transform: translateY(-0.2em);
+    height: 1px;
+    min-width: 1.5em;
+  }
+  .print-toc .toc-page {
+    flex: 0 0 auto;
+    color: #555;
+  }
+  /* Page counter: read the data-target href and look up the page number
+     of the matching anchor in the printed document. Supported by Chrome's
+     "Save as PDF" engine via the CSS Generated Content for Paged Media spec. */
+  .print-toc .toc-page::after {
+    content: target-counter(attr(data-target url), page);
+  }
 }
 
 @layer components {

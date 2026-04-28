@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 
-type TocEntry = { id: string; label: string; level: number };
+export type TocEntry = {
+  id: string;
+  label: string;
+  level: number;
+  /** Pre-computed chapter number (e.g. "1.", "2.3"). Optional. */
+  num?: string;
+};
 
 export function TocNav({ entries }: { entries: TocEntry[] }) {
   const [active, setActive] = useState<string>("");
@@ -26,7 +32,7 @@ export function TocNav({ entries }: { entries: TocEntry[] }) {
         <a
           key={e.id}
           href={`#${e.id}`}
-          className={`block text-sm py-0.5 transition-colors rounded px-2 ${
+          className={`flex items-baseline gap-2 text-sm py-0.5 transition-colors rounded px-2 ${
             e.level === 2 ? "pl-4 text-xs" : ""
           } ${
             active === e.id
@@ -34,7 +40,12 @@ export function TocNav({ entries }: { entries: TocEntry[] }) {
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          {e.label}
+          {e.num && (
+            <span className="tabular-nums shrink-0 opacity-60 w-7 text-right">
+              {e.num}
+            </span>
+          )}
+          <span className="truncate">{e.label}</span>
         </a>
       ))}
     </nav>

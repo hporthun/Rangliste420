@@ -5,9 +5,10 @@ import { PrintButton } from "./print-button";
 const TOC = [
   { id: "uebersicht",        label: "Übersicht",                    level: 1 },
   { id: "segler",            label: "Segler verwalten",             level: 1 },
-  { id: "segler-anlegen",    label: "Segler anlegen",               level: 2 },
-  { id: "segler-stammdaten", label: "Stammdaten & Felder",          level: 2 },
-  { id: "segler-altnamen",   label: "Alternative Namen",            level: 2 },
+  { id: "segler-anlegen",        label: "Segler anlegen",           level: 2 },
+  { id: "segler-stammdaten",     label: "Stammdaten & Felder",      level: 2 },
+  { id: "segler-schottenwechsel",label: "Schottenwechsel",          level: 2 },
+  { id: "segler-altnamen",       label: "Alternative Namen",        level: 2 },
   { id: "regatten",          label: "Regatten verwalten",           level: 1 },
   { id: "regatten-anlegen",  label: "Regatta anlegen",              level: 2 },
   { id: "regatten-felder",   label: "Felder & Faktor",              level: 2 },
@@ -44,19 +45,31 @@ function buildNumberedToc() {
   });
 }
 const NUMBERED_TOC = buildNumberedToc();
+/** id → number lookup ("uebersicht" → "1.", "segler-anlegen" → "2.1") */
+const NUM_BY_ID: Map<string, string> = new Map(
+  NUMBERED_TOC.map((e) => [e.id, e.num] as const),
+);
 
 // ── Typography helpers ─────────────────────────────────────────────────────────
 
 function H1({ id, children }: { id: string; children: React.ReactNode }) {
+  const num = NUM_BY_ID.get(id);
   return (
     <h2 id={id} className="chapter text-xl font-bold mt-10 mb-3 pb-2 border-b scroll-mt-20">
+      {num && (
+        <span className="text-muted-foreground tabular-nums mr-3">{num}</span>
+      )}
       {children}
     </h2>
   );
 }
 function H2({ id, children }: { id: string; children: React.ReactNode }) {
+  const num = NUM_BY_ID.get(id);
   return (
     <h3 id={id} className="text-base font-semibold mt-6 mb-2 scroll-mt-20">
+      {num && (
+        <span className="text-muted-foreground tabular-nums mr-2">{num}</span>
+      )}
       {children}
     </h3>
   );
@@ -136,25 +149,21 @@ function PrintToc() {
   return (
     <div className="print-toc hidden print:block mb-10 mt-4">
       <h2 className="text-base font-bold mb-3 pb-1 border-b">Inhaltsverzeichnis</h2>
-      <ol className="space-y-1 text-sm">
+      <ol className="toc-list space-y-1 text-sm">
         {NUMBERED_TOC.map((entry) => (
           <li
             key={entry.id}
-            className={`flex items-baseline gap-2 ${entry.indent ? "pl-6" : ""}`}
+            className={`toc-row ${entry.indent ? "toc-sub" : "toc-main"}`}
           >
-            <span
-              className={`tabular-nums shrink-0 ${
-                entry.indent ? "w-8 text-gray-500" : "w-6 font-semibold"
-              }`}
-            >
-              {entry.num}
-            </span>
-            <a
-              href={`#${entry.id}`}
-              className={entry.indent ? "text-gray-700" : "font-semibold"}
-            >
+            <span className="toc-num tabular-nums">{entry.num}</span>
+            <a href={`#${entry.id}`} className="toc-label">
               {entry.label}
             </a>
+            <span className="toc-leader" aria-hidden="true" />
+            <span
+              className="toc-page tabular-nums"
+              data-target={`#${entry.id}`}
+            />
           </li>
         ))}
       </ol>
@@ -370,7 +379,7 @@ export default function HilfePage() {
         <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wide mb-2 px-2">
           Inhalt
         </p>
-        <TocNav entries={TOC} />
+        <TocNav entries={NUMBERED_TOC} />
       </aside>
 
       {/* Content */}
