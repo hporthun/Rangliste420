@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db/client";
 import { generateRegistrationOptions } from "@simplewebauthn/server";
-import { RP_ID, RP_NAME, CHALLENGE_TTL_MS } from "@/lib/webauthn/config";
+import { getWebAuthnRP, CHALLENGE_TTL_MS } from "@/lib/webauthn/config";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -20,9 +20,10 @@ export async function GET() {
     transports: JSON.parse(c.transports) as AuthenticatorTransport[],
   }));
 
+  const { rpID, rpName } = await getWebAuthnRP(req.headers);
   const options = await generateRegistrationOptions({
-    rpName: RP_NAME,
-    rpID: RP_ID,
+    rpName,
+    rpID,
     userID: user.id,
     userName: user.username ?? user.email ?? user.id,
     userDisplayName: user.username ?? user.email ?? "Admin",

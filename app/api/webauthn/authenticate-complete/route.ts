@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db/client";
 import { verifyAuthenticationResponse } from "@simplewebauthn/server";
-import { RP_ID, ORIGIN, PASSKEY_SESSION_TTL_MS } from "@/lib/webauthn/config";
+import { getWebAuthnRP, PASSKEY_SESSION_TTL_MS } from "@/lib/webauthn/config";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
@@ -30,13 +30,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Credential not found" }, { status: 400 });
   }
 
+  const { rpID, origin } = await getWebAuthnRP(req.headers);
   let verification;
   try {
     verification = await verifyAuthenticationResponse({
       response: body,
       expectedChallenge: challengeRecord.challenge,
-      expectedOrigin: ORIGIN,
-      expectedRPID: RP_ID,
+      expectedOrigin: origin,
+      expectedRPID: rpID,
       // @simplewebauthn/server v9 uses 'authenticator' field
       authenticator: {
         credentialID: new Uint8Array(Buffer.from(storedCredential.credentialId, "base64url")),

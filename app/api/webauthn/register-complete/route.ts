@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db/client";
 import { verifyRegistrationResponse } from "@simplewebauthn/server";
-import { RP_ID, ORIGIN } from "@/lib/webauthn/config";
+import { getWebAuthnRP } from "@/lib/webauthn/config";
 import { logAudit, getIp, A } from "@/lib/security/audit";
 import { z } from "zod";
 
@@ -34,13 +34,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Challenge not found or expired" }, { status: 400 });
   }
 
+  const { rpID, origin } = await getWebAuthnRP(req.headers);
   let verification;
   try {
     verification = await verifyRegistrationResponse({
       response: response as Parameters<typeof verifyRegistrationResponse>[0]["response"],
       expectedChallenge: challengeRecord.challenge,
-      expectedOrigin: ORIGIN,
-      expectedRPID: RP_ID,
+      expectedOrigin: origin,
+      expectedRPID: rpID,
     });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 400 });

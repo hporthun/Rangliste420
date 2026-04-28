@@ -80,9 +80,23 @@ export function StammdatenImport() {
     <div className="space-y-4">
       {!preview && (
         <>
+          <p className="text-xs text-muted-foreground">
+            Tab-getrennte Zeilen mit der Spaltenfolge{" "}
+            <code className="font-mono bg-muted px-1 rounded">id · Nachname · Vorname · Geburtsjahr · Geschlecht</code>{" "}
+            (zwei Datums-Spalten am Ende werden ignoriert). Akzeptiert wird sowohl die
+            klassische unquotierte Schreibweise als auch das PostgreSQL-COPY-Format
+            mit Anführungszeichen und{" "}
+            <code className="font-mono bg-muted px-1 rounded">\N</code> für NULL.
+          </p>
           <textarea
             className="w-full h-64 font-mono text-xs border rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder={"499\tReuter\tVincenzo\t2005\tmale\t...\n500\tAlbani\tChiara\t2007\tfemale\t..."}
+            placeholder={
+              `499\tReuter\tVincenzo\t2005\tmale\t…\n` +
+              `500\tAlbani\tChiara\t2007\tfemale\t…\n\n` +
+              `oder im Postgres-Copy-Format:\n` +
+              `"744"\t"Akerson besier"\t"Johanna"\t\\N\t"female"\t…\n` +
+              `"500"\t"Albani"\t"Chiara"\t"2007"\t"female"\t…`
+            }
             value={text}
             onChange={(e) => setText(e.target.value)}
           />

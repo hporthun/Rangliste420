@@ -77,6 +77,39 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.9",
+    date: "2026-04-28",
+    title: "Passkeys + Stammdaten-Import",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            <strong>Passkey-Erstellung auf Vercel</strong> (Issue #22): RP-ID
+            war hardcoded auf <code className="font-mono text-xs">localhost</code>,
+            weshalb <code className="font-mono text-xs">navigator.credentials.create</code>{" "}
+            unter dem Vercel-Hostnamen mit „The RP ID 'localhost' is invalid"
+            abbrach. RP-ID und Origin werden jetzt pro Request aus den
+            Host-Headern abgeleitet — funktioniert auf Localhost,
+            Vercel-Previews und Production ohne Konfiguration.
+          </>,
+        ],
+      },
+      {
+        kind: "geändert",
+        items: [
+          <>
+            <strong>Segler-Stammdaten-Import unterstützt PostgreSQL-COPY-Format</strong>{" "}
+            (Issue #23): Werte in Anführungszeichen und{" "}
+            <code className="font-mono text-xs">\N</code> als NULL-Marker werden
+            jetzt akzeptiert, neben dem klassischen unquotierten Format. 10 neue
+            Unit-Tests decken beide Varianten ab.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.8",
     date: "2026-04-28",
     title: "Vercel-Cron-Hinweis + responsive Admin",

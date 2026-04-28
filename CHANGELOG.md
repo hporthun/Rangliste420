@@ -8,6 +8,30 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.9] — 2026-04-28
+
+**Passkeys auf Vercel + Postgres-COPY-Stammdaten-Import (Issues #22, #23).**
+
+### Korrigiert
+
+- **Passkey-Erstellung auf Vercel** (Issue #22): Die WebAuthn Relying-Party-ID
+  war hardcoded auf `localhost`, weshalb `navigator.credentials.create`
+  unter dem Vercel-Hostnamen mit „The RP ID 'localhost' is invalid" abbrach.
+  RP-ID und Origin werden jetzt pro Request aus den `host`- und
+  `x-forwarded-proto`-Headern abgeleitet — funktioniert auf Localhost,
+  Vercel-Previews und der Production-Domain ohne separate Env-Variablen.
+  Optional bleiben `WEBAUTHN_RP_ID`/`WEBAUTHN_ORIGIN` als Override.
+
+### Geändert
+
+- **Segler-Stammdaten-Import** (Issue #23): Neben dem alten Tab-Format
+  wird jetzt auch das PostgreSQL-COPY-Format akzeptiert — Werte in
+  Anführungszeichen, `\N` als NULL-Marker. Beispiel:
+  `"744"\t"Akerson besier"\t"Johanna"\t\N\t"female"`.
+  10 Unit-Tests decken legacy- und Postgres-Format ab.
+
+---
+
 ## [2026.04.8] — 2026-04-28
 
 **Vercel-Cron-Hinweis + responsive Admin-Bereich (Issues #13, #21).**

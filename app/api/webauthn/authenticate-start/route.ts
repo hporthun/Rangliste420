@@ -1,11 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db/client";
 import { generateAuthenticationOptions } from "@simplewebauthn/server";
-import { RP_ID, CHALLENGE_TTL_MS } from "@/lib/webauthn/config";
+import { getWebAuthnRP, CHALLENGE_TTL_MS } from "@/lib/webauthn/config";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const { rpID } = await getWebAuthnRP(req.headers);
   const options = await generateAuthenticationOptions({
-    rpID: RP_ID,
+    rpID,
     userVerification: "preferred",
     // No allowCredentials → discoverable credential (passkey) flow
   });
