@@ -171,7 +171,13 @@ function PrintCover() {
   });
   return (
     <div className="print-cover hidden">
-      <div className="text-5xl mb-6">⛵</div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/logo-420.png"
+        alt="420er-Klassenlogo"
+        width={180}
+        className="h-auto mb-8"
+      />
       <p className="text-xs uppercase tracking-widest text-gray-500 mb-2">
         420er-Klasse
       </p>
