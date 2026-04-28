@@ -7,6 +7,7 @@ import { AdminUserMenu } from "@/components/admin/user-menu";
 import { TourProvider } from "@/components/tour/tour-context";
 import { TourGuide } from "@/components/tour/tour-guide";
 import { TourButton } from "@/components/tour/tour-button";
+import { APP_VERSION } from "@/lib/version";
 
 export default async function AdminLayout({
   children,
@@ -64,7 +65,15 @@ export default async function AdminLayout({
         </main>
 
         <footer className="border-t border-border/50 py-3 text-center text-xs text-muted-foreground">
-          420er Rangliste · DSV-Ranglistensystem
+          <span>420er Rangliste · DSV-Ranglistensystem</span>
+          <span className="mx-2 opacity-30">·</span>
+          <Link
+            href="/admin/changelog"
+            className="font-mono hover:text-foreground transition-colors"
+            title="Änderungsverlauf anzeigen"
+          >
+            v{APP_VERSION}
+          </Link>
         </footer>
       </div>
 
