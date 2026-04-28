@@ -293,6 +293,22 @@ function toIsoOrNull(v: unknown): number | null {
 /** Boolean → SQLite INTEGER 0/1. */
 function toInt(v: unknown): number { return v ? 1 : 0; }
 
+/**
+ * Date helpers for Prisma typed-queries. Prisma expects a JS Date object for
+ * DateTime fields and handles cross-provider serialization (SQLite TEXT,
+ * Postgres TIMESTAMP) internally.
+ */
+function toDate(v: unknown): Date {
+  if (!v) return new Date();
+  const d = new Date(v as string | number);
+  return isNaN(d.getTime()) ? new Date() : d;
+}
+function toDateOrNull(v: unknown): Date | null {
+  if (!v) return null;
+  const d = new Date(v as string | number);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 // ── Restore backup ────────────────────────────────────────────────────────────
 
 /**
@@ -396,158 +412,150 @@ async function _performRestore(
         } catch (e) { throw new Error(`[delete] ${String(e)}`); }
       }
 
-      // ── Phase 2: re-insert scope-specific data ──────────────────────────────
-      // sailors — restored for scope "all" and "sailors"
+      // ── Phase 2: re-insert scope-specific data via Prisma typed creates ────
+      // Provider-agnostic — works on SQLite (?-placeholders) AND Postgres
+      // ($N-placeholders) without any provider-specific syntax.
+
       if (scope === "all" || scope === "sailors") {
-      try {
-        for (const s of sailors) {
-          await tx.$executeRawUnsafe(
-            `INSERT INTO "Sailor" ("id","firstName","lastName","birthYear","gender","nationality","club","sailingLicenseId","alternativeNames","createdAt","updatedAt") VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
-            s.id as string,
-            s.firstName as string,
-            s.lastName as string,
-            s.birthYear != null ? Number(s.birthYear) : null,
-            s.gender != null ? String(s.gender) : null,
-            (s.nationality as string) ?? "GER",
-            s.club != null ? String(s.club) : null,
-            s.sailingLicenseId != null ? String(s.sailingLicenseId) : null,
-            toJsonStr(s.alternativeNames),
-            toIso(s.createdAt),
-            toIso(s.updatedAt),
-          );
-        }
-      } catch (e) {
-        throw new Error(`[sailors] ${String(e)}`);
+        try {
+          for (const s of sailors) {
+            await tx.sailor.create({
+              data: {
+                id: s.id as string,
+                firstName: s.firstName as string,
+                lastName: s.lastName as string,
+                birthYear: s.birthYear != null ? Number(s.birthYear) : null,
+                gender: s.gender != null ? String(s.gender) : null,
+                nationality: (s.nationality as string) ?? "GER",
+                club: s.club != null ? String(s.club) : null,
+                sailingLicenseId: s.sailingLicenseId != null ? String(s.sailingLicenseId) : null,
+                alternativeNames: toJsonStr(s.alternativeNames),
+                createdAt: toDate(s.createdAt),
+                updatedAt: toDate(s.updatedAt),
+              },
+            });
+          }
+        } catch (e) { throw new Error(`[sailors] ${String(e)}`); }
       }
-      } // end scope sailors/all
 
-      // regattas — restored for scope "all" and "regattas"
       if (scope === "all" || scope === "regattas") {
-      try {
-        for (const r of regattas) {
-          await tx.$executeRawUnsafe(
-            `INSERT INTO "Regatta" ("id","name","location","country","startDate","endDate","numDays","plannedRaces","completedRaces","multiDayAnnouncement","ranglistenFaktor","scoringSystem","isRanglistenRegatta","sourceType","sourceUrl","sourceFile","importedAt","notes","createdAt","updatedAt") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-            r.id as string,
-            r.name as string,
-            r.location != null ? String(r.location) : null,
-            (r.country as string) ?? "GER",
-            toIso(r.startDate),
-            toIso(r.endDate),
-            Number(r.numDays ?? 1),
-            r.plannedRaces != null ? Number(r.plannedRaces) : null,
-            Number(r.completedRaces ?? 0),
-            toInt(r.multiDayAnnouncement),
-            toDecimalStr(r.ranglistenFaktor),
-            (r.scoringSystem as string) ?? "LOW_POINT",
-            toInt(r.isRanglistenRegatta),
-            (r.sourceType as string) ?? "MANUAL",
-            r.sourceUrl != null ? String(r.sourceUrl) : null,
-            r.sourceFile != null ? String(r.sourceFile) : null,
-            toIsoOrNull(r.importedAt),
-            r.notes != null ? String(r.notes) : null,
-            toIso(r.createdAt),
-            toIso(r.updatedAt),
-          );
-        }
-      } catch (e) {
-        throw new Error(`[regattas] ${String(e)}`);
+        try {
+          for (const r of regattas) {
+            await tx.regatta.create({
+              data: {
+                id: r.id as string,
+                name: r.name as string,
+                location: r.location != null ? String(r.location) : null,
+                country: (r.country as string) ?? "GER",
+                startDate: toDate(r.startDate),
+                endDate: toDate(r.endDate),
+                numDays: Number(r.numDays ?? 1),
+                plannedRaces: r.plannedRaces != null ? Number(r.plannedRaces) : null,
+                completedRaces: Number(r.completedRaces ?? 0),
+                multiDayAnnouncement: !!r.multiDayAnnouncement,
+                ranglistenFaktor: toDecimalStr(r.ranglistenFaktor),
+                scoringSystem: (r.scoringSystem as string) ?? "LOW_POINT",
+                isRanglistenRegatta: !!r.isRanglistenRegatta,
+                sourceType: (r.sourceType as string) ?? "MANUAL",
+                sourceUrl: r.sourceUrl != null ? String(r.sourceUrl) : null,
+                sourceFile: r.sourceFile != null ? String(r.sourceFile) : null,
+                importedAt: toDateOrNull(r.importedAt),
+                notes: r.notes != null ? String(r.notes) : null,
+                createdAt: toDate(r.createdAt),
+                updatedAt: toDate(r.updatedAt),
+              },
+            });
+          }
+        } catch (e) { throw new Error(`[regattas] ${String(e)}`); }
       }
-      } // end scope regattas/all (regattas table)
 
-      // rankings — only for scope "all"
       if (scope === "all") {
-      try {
-        for (const r of rankings) {
-          await tx.$executeRawUnsafe(
-            `INSERT INTO "Ranking" ("id","name","type","seasonStart","seasonEnd","ageCategory","genderCategory","scoringRule","isPublic","publishedAt","createdAt","updatedAt") VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
-            r.id as string,
-            r.name as string,
-            r.type as string,
-            toIso(r.seasonStart),
-            toIso(r.seasonEnd),
-            r.ageCategory as string,
-            r.genderCategory as string,
-            toJsonStr(r.scoringRule, "{}"),
-            toInt(r.isPublic),
-            toIsoOrNull(r.publishedAt),
-            toIso(r.createdAt),
-            toIso(r.updatedAt),
-          );
-        }
-      } catch (e) {
-        throw new Error(`[rankings] ${String(e)}`);
+        try {
+          for (const r of rankings) {
+            await tx.ranking.create({
+              data: {
+                id: r.id as string,
+                name: r.name as string,
+                type: r.type as string,
+                seasonStart: toDate(r.seasonStart),
+                seasonEnd: toDate(r.seasonEnd),
+                ageCategory: r.ageCategory as string,
+                genderCategory: r.genderCategory as string,
+                scoringRule: toJsonStr(r.scoringRule, "{}"),
+                isPublic: !!r.isPublic,
+                publishedAt: toDateOrNull(r.publishedAt),
+                createdAt: toDate(r.createdAt),
+                updatedAt: toDate(r.updatedAt),
+              },
+            });
+          }
+        } catch (e) { throw new Error(`[rankings] ${String(e)}`); }
       }
-      } // end scope all (rankings)
 
-      // teamEntries, results, rankingRegattas, importSessions — for scope "all" and "regattas"
       if (scope === "all" || scope === "regattas") {
-      try {
-        for (const t of teamEntries) {
-          await tx.$executeRawUnsafe(
-            `INSERT INTO "TeamEntry" ("id","regattaId","helmId","crewId","sailNumber","crewSwapApproved","crewSwapNote","createdAt","updatedAt") VALUES (?,?,?,?,?,?,?,?,?)`,
-            t.id as string,
-            t.regattaId as string,
-            t.helmId as string,
-            t.crewId != null ? String(t.crewId) : null,
-            t.sailNumber != null ? String(t.sailNumber) : null,
-            toInt(t.crewSwapApproved),
-            t.crewSwapNote != null ? String(t.crewSwapNote) : null,
-            toIso(t.createdAt),
-            toIso(t.updatedAt),
-          );
-        }
-      } catch (e) {
-        throw new Error(`[teamEntries] ${String(e)}`);
-      }
+        try {
+          for (const t of teamEntries) {
+            await tx.teamEntry.create({
+              data: {
+                id: t.id as string,
+                regattaId: t.regattaId as string,
+                helmId: t.helmId as string,
+                crewId: t.crewId != null ? String(t.crewId) : null,
+                sailNumber: t.sailNumber != null ? String(t.sailNumber) : null,
+                crewSwapApproved: !!t.crewSwapApproved,
+                crewSwapNote: t.crewSwapNote != null ? String(t.crewSwapNote) : null,
+                createdAt: toDate(t.createdAt),
+                updatedAt: toDate(t.updatedAt),
+              },
+            });
+          }
+        } catch (e) { throw new Error(`[teamEntries] ${String(e)}`); }
 
-      try {
-        for (const r of results) {
-          await tx.$executeRawUnsafe(
-            `INSERT INTO "Result" ("id","regattaId","teamEntryId","finalRank","finalPoints","racePoints","inStartArea","createdAt","updatedAt") VALUES (?,?,?,?,?,?,?,?,?)`,
-            r.id as string,
-            r.regattaId as string,
-            r.teamEntryId as string,
-            r.finalRank != null ? Number(r.finalRank) : null,
-            r.finalPoints != null ? toDecimalStr(r.finalPoints) : null,
-            toJsonStr(r.racePoints),
-            toInt(r.inStartArea),
-            toIso(r.createdAt),
-            toIso(r.updatedAt),
-          );
-        }
-      } catch (e) {
-        throw new Error(`[results] ${String(e)}`);
-      }
+        try {
+          for (const r of results) {
+            await tx.result.create({
+              data: {
+                id: r.id as string,
+                regattaId: r.regattaId as string,
+                teamEntryId: r.teamEntryId as string,
+                finalRank: r.finalRank != null ? Number(r.finalRank) : null,
+                finalPoints: r.finalPoints != null ? toDecimalStr(r.finalPoints) : null,
+                racePoints: toJsonStr(r.racePoints),
+                inStartArea: !!r.inStartArea,
+                createdAt: toDate(r.createdAt),
+                updatedAt: toDate(r.updatedAt),
+              },
+            });
+          }
+        } catch (e) { throw new Error(`[results] ${String(e)}`); }
 
-      try {
-        for (const rr of rankingRegattas) {
-          await tx.$executeRawUnsafe(
-            `INSERT INTO "RankingRegatta" ("rankingId","regattaId","weight") VALUES (?,?,?)`,
-            rr.rankingId as string,
-            rr.regattaId as string,
-            rr.weight != null ? Number(rr.weight) : null,
-          );
-        }
-      } catch (e) {
-        throw new Error(`[rankingRegattas] ${String(e)}`);
-      }
+        try {
+          for (const rr of rankingRegattas) {
+            await tx.rankingRegatta.create({
+              data: {
+                rankingId: rr.rankingId as string,
+                regattaId: rr.regattaId as string,
+                weight: rr.weight != null ? Number(rr.weight) : null,
+              },
+            });
+          }
+        } catch (e) { throw new Error(`[rankingRegattas] ${String(e)}`); }
 
-      try {
-        for (const i of importSessions) {
-          await tx.$executeRawUnsafe(
-            `INSERT INTO "ImportSession" ("id","regattaId","createdBy","parserType","sourceFile","matchDecisions","createdAt") VALUES (?,?,?,?,?,?,?)`,
-            i.id as string,
-            i.regattaId as string,
-            i.createdBy as string,
-            i.parserType as string,
-            i.sourceFile != null ? String(i.sourceFile) : null,
-            toJsonStr(i.matchDecisions, "{}"),
-            toIso(i.createdAt),
-          );
-        }
-      } catch (e) {
-        throw new Error(`[importSessions] ${String(e)}`);
-      }
+        try {
+          for (const i of importSessions) {
+            await tx.importSession.create({
+              data: {
+                id: i.id as string,
+                regattaId: i.regattaId as string,
+                createdBy: i.createdBy as string,
+                parserType: i.parserType as string,
+                sourceFile: i.sourceFile != null ? String(i.sourceFile) : null,
+                matchDecisions: toJsonStr(i.matchDecisions, "{}"),
+                createdAt: toDate(i.createdAt),
+              },
+            });
+          }
+        } catch (e) { throw new Error(`[importSessions] ${String(e)}`); }
       } // end scope regattas/all (team data)
 
       // ── Return counts for restored tables ─────────────────────────────────
