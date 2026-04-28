@@ -20,7 +20,7 @@ const ENTRIES: Entry[] = [
   {
     version: "1.1.1",
     date: "2026-04-28",
-    title: "Bugfix Import „Neu anlegen"",
+    title: "Bugfix Import — Neu anlegen",
     changes: [
       {
         kind: "korrigiert",
