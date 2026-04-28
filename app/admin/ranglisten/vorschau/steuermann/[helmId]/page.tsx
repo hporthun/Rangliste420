@@ -167,8 +167,8 @@ export default async function SteuermanDetailPage({ params, searchParams }: Prop
       {d.crewHistory.length > 0 && (
         <div className="space-y-2">
           <h2 className="text-base font-medium">Crew-Historie</h2>
-          <div className="rounded-md border overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="rounded-md border overflow-x-auto">
+            <table className="w-full text-sm min-w-[420px]">
               <thead className="bg-gray-50 text-xs text-muted-foreground uppercase">
                 <tr>
                   <th className="px-3 py-2 text-left">Regatta</th>

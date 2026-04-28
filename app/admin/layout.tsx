@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { auth, signOut } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { AdminNav, HilfeLink } from "@/components/admin/admin-nav";
+import { AdminNav, HilfeLink, AdminMobileMenu } from "@/components/admin/admin-nav";
 import { AdminUserMenu } from "@/components/admin/user-menu";
 import { TourProvider } from "@/components/tour/tour-context";
 import { TourGuide } from "@/components/tour/tour-guide";
@@ -41,9 +41,10 @@ export default async function AdminLayout({
       <div className="min-h-screen flex flex-col bg-background">
         {/* ── Maritime header ───────────────────────────────────────────── */}
         <header className="maritime-header sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-14">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 flex items-center justify-between h-14 gap-2">
             {/* Brand + Nav */}
-            <div className="flex items-center gap-8">
+            <div className="flex items-center gap-3 md:gap-8 min-w-0">
+              <AdminMobileMenu />
               <Link href="/admin" className="flex items-center gap-2.5 group shrink-0">
                 <Image
                   src="/logo-420.png"
@@ -62,7 +63,7 @@ export default async function AdminLayout({
             </div>
 
             {/* Right side: Tour + Hilfe + user menu */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0">
               <TourButton />
               <HilfeLink />
               <AdminUserMenu
@@ -74,7 +75,7 @@ export default async function AdminLayout({
           </div>
         </header>
 
-        <main className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
+        <main className="flex-1 max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8 w-full">
           {children}
         </main>
 

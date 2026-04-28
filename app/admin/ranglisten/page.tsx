@@ -99,8 +99,8 @@ export default async function RanglistenPage() {
           </Link>
         </p>
       ) : (
-        <div className="rounded-md border overflow-hidden" data-tour="ranglisten-tabelle">
-          <table className="w-full text-sm">
+        <div className="rounded-md border overflow-x-auto" data-tour="ranglisten-tabelle">
+          <table className="w-full text-sm min-w-[360px]">
             <thead className="bg-gray-50 text-xs text-muted-foreground uppercase">
               <tr>
                 <th className="px-4 py-2 text-left">Name</th>

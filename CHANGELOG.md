@@ -8,6 +8,34 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.8] — 2026-04-28
+
+**Vercel-Cron-Hinweis + responsive Admin-Bereich (Issues #13, #21).**
+
+### Geändert
+
+- **Backup-Uhrzeit im Serverless-Modus** (Issue #13): Auf Vercel ist das
+  Uhrzeit-Feld jetzt nicht mehr editierbar. Stattdessen wird „02:00 Uhr"
+  fest angezeigt, mit klarem Hinweis dass der Hobby-Cron einmal täglich
+  um 01:00 UTC (≈ 02:00 MEZ) läuft. Wochentag-Auswahl bleibt aktiv. Lokal
+  (FS-Storage) ist die Uhrzeit weiter frei wählbar.
+- **Admin-Header mit Mobile-Menü** (Issue #21): unter `md` (768 px)
+  klappt der Nav in ein Hamburger-Menü, das von oben einfährt. Logo,
+  Tour-Button und User-Menü bleiben sichtbar.
+
+### Korrigiert
+
+- **Alle Admin-Tabellen** (Issue #21): Tabellen mit `overflow-hidden`
+  haben jetzt `overflow-x-auto` mit Mindestbreite — verhindert
+  Layout-Brüche auf Smartphones (Segler-Liste, Regatta-Liste,
+  Ranglisten, Wartung-Backups, Audit-Log u.a.).
+- **Formular-Layouts** (Issue #21): Sailor- und Regatta-Form gehen auf
+  Mobil von `grid-cols-2` (bzw. `grid-cols-3`) auf eine Spalte zurück.
+- **Admin-Dashboard-Hero**: stapelt vertikal auf engen Viewports,
+  Buttons brechen sauber um.
+
+---
+
 ## [2026.04.7] — 2026-04-28
 
 **Bugfix: Vercel-Build TypeScript-Fehler bei pdfjs-Worker (Issue #20).**

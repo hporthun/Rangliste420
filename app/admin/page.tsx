@@ -78,7 +78,7 @@ export default async function AdminPage() {
 
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
       <div
-        className="rounded-2xl px-8 py-10 flex items-center gap-8"
+        className="rounded-2xl px-5 sm:px-8 py-6 sm:py-10 flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-8"
         style={{
           background:
             "linear-gradient(135deg, oklch(0.175 0.095 248) 0%, oklch(0.26 0.09 235) 100%)",
@@ -89,17 +89,17 @@ export default async function AdminPage() {
           alt="420er Klasse"
           width={1000}
           height={665}
-          className="h-20 w-auto rounded-lg ring-2 ring-white/20 shadow-lg shrink-0"
+          className="h-16 sm:h-20 w-auto rounded-lg ring-2 ring-white/20 shadow-lg shrink-0"
           priority
         />
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">
+        <div className="text-center sm:text-left min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight break-words">
             420er Ranglisten­verwaltung
           </h1>
           <p className="text-white/70 text-sm mt-1">
             DSV-Ranglistensystem · gültig ab 01.01.2026
           </p>
-          <div className="mt-4 flex gap-3">
+          <div className="mt-4 flex flex-wrap gap-3 justify-center sm:justify-start">
             <Link
               href="/admin/regatten"
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white text-primary text-sm font-semibold hover:bg-white/90 transition-colors shadow-sm"

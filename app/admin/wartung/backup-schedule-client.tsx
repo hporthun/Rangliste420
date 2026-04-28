@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, XCircle, Loader2, Trash2, Download, Save, PlayCircle, Lock, Eye, EyeOff, RotateCcw, AlertTriangle } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, Trash2, Download, Save, PlayCircle, Lock, Eye, EyeOff, RotateCcw, AlertTriangle, Info } from "lucide-react";
 import { saveScheduleAction, triggerBackupNowAction, deleteStoredBackupAction } from "@/lib/actions/backup-schedule";
 import { restoreStoredBackupAction, type RestoreScope } from "@/lib/actions/maintenance";
 import type { BackupSchedule } from "@/lib/backup/types";
@@ -20,7 +20,13 @@ const DAY_LABELS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
 
-export function ScheduleConfig({ initial }: { initial: BackupSchedule }) {
+export function ScheduleConfig({
+  initial,
+  isServerless = false,
+}: {
+  initial: BackupSchedule;
+  isServerless?: boolean;
+}) {
   const [schedule, setSchedule] = useState<BackupSchedule>(initial);
   const [saving, startSave] = useTransition();
   const [saveResult, setSaveResult] = useState<"ok" | string | null>(null);
@@ -82,27 +88,51 @@ export function ScheduleConfig({ initial }: { initial: BackupSchedule }) {
 
       {schedule.enabled && (
         <>
-          {/* Time picker */}
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-sm text-muted-foreground w-32 shrink-0">Uhrzeit</span>
-            <select
-              value={schedule.hour}
-              onChange={(e) => { setSchedule((p) => ({ ...p, hour: Number(e.target.value) })); setSaveResult(null); }}
-              className="rounded-md border border-input bg-background px-3 py-1.5 text-sm"
-            >
-              {HOURS.map((h) => (
-                <option key={h} value={h}>{pad(h)} Uhr</option>
-              ))}
-            </select>
-            <select
-              value={schedule.minute}
-              onChange={(e) => { setSchedule((p) => ({ ...p, minute: Number(e.target.value) })); setSaveResult(null); }}
-              className="rounded-md border border-input bg-background px-3 py-1.5 text-sm"
-            >
-              {MINUTES.map((m) => (
-                <option key={m} value={m}>:{pad(m)}</option>
-              ))}
-            </select>
+          {/* Time picker — read-only on Vercel (Hobby cron is fixed daily 01:00 UTC ≈ 02:00 MEZ) */}
+          <div className="flex items-start gap-3 flex-wrap">
+            <span className="text-sm text-muted-foreground w-32 shrink-0 mt-1.5">Uhrzeit</span>
+            {isServerless ? (
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <span className="rounded-md border border-input bg-muted px-3 py-1.5 text-sm font-mono">
+                    02:00 Uhr
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    (fest, durch Vercel-Cron vorgegeben)
+                  </span>
+                </div>
+                <p className="flex items-start gap-1.5 text-xs text-muted-foreground max-w-md">
+                  <Info className="h-3.5 w-3.5 shrink-0 mt-0.5 text-blue-600" />
+                  <span>
+                    Auf dem Vercel-Hobby-Tarif läuft der Backup-Cron einmal täglich
+                    fest um <strong>01:00&nbsp;UTC</strong> (≈&nbsp;02:00&nbsp;Uhr&nbsp;MEZ).
+                    Die Uhrzeit lässt sich daher nicht frei wählen — nur die
+                    Wochentag-Auswahl unten wird beachtet.
+                  </span>
+                </p>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <select
+                  value={schedule.hour}
+                  onChange={(e) => { setSchedule((p) => ({ ...p, hour: Number(e.target.value) })); setSaveResult(null); }}
+                  className="rounded-md border border-input bg-background px-3 py-1.5 text-sm"
+                >
+                  {HOURS.map((h) => (
+                    <option key={h} value={h}>{pad(h)} Uhr</option>
+                  ))}
+                </select>
+                <select
+                  value={schedule.minute}
+                  onChange={(e) => { setSchedule((p) => ({ ...p, minute: Number(e.target.value) })); setSaveResult(null); }}
+                  className="rounded-md border border-input bg-background px-3 py-1.5 text-sm"
+                >
+                  {MINUTES.map((m) => (
+                    <option key={m} value={m}>:{pad(m)}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           {/* Day-of-week picker */}
@@ -483,8 +513,8 @@ export function StoredBackupList({ initial }: { initial: StoredBackup[] }) {
       {backups.length === 0 ? (
         <p className="text-sm text-muted-foreground">Noch keine gespeicherten Backups.</p>
       ) : (
-        <div className="rounded-md border overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="rounded-md border overflow-x-auto">
+          <table className="w-full text-sm min-w-[480px]">
             <thead className="bg-muted/50 text-xs text-muted-foreground uppercase">
               <tr>
                 <th className="px-3 py-2 text-left">Dateiname</th>

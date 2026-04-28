@@ -93,8 +93,8 @@ export function RegattaTableWithSync({ regattas, year, q }: Props) {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded border">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded border">
+        <table className="w-full text-sm min-w-[560px]">
           <thead className="bg-muted/50">
             <tr>
               <th className="px-3 py-2 text-left font-medium">Name</th>

@@ -174,8 +174,8 @@ export default async function VorschauPage({ searchParams }: Props) {
             )}
           </div>
 
-          <div className="rounded-md border overflow-hidden" data-tour="vorschau-tabelle">
-            <table className="w-full text-sm">
+          <div className="rounded-md border overflow-x-auto" data-tour="vorschau-tabelle">
+            <table className="w-full text-sm min-w-[480px]">
               <thead className="bg-gray-50 text-xs text-muted-foreground uppercase">
                 <tr>
                   <th className="px-4 py-2 text-left w-12">Platz</th>

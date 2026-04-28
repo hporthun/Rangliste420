@@ -91,7 +91,7 @@ export function SailorForm({ action, sailor }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5 max-w-lg">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Vorname *">
           <input
             name="firstName"
@@ -111,7 +111,7 @@ export function SailorForm({ action, sailor }: Props) {
         </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Geburtsjahr">
           <input
             name="birthYear"
@@ -148,7 +148,7 @@ export function SailorForm({ action, sailor }: Props) {
         </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Nationalität">
           <select name="nationality" defaultValue={sailor?.nationality ?? "GER"} className="input">
             {NATIONALITIES.map((n) => (

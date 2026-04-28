@@ -46,7 +46,7 @@ export function RegattaForm({ action, regatta }: Props) {
         <input name="name" defaultValue={regatta?.name ?? ""} required className="input" />
       </Field>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Ort">
           <input name="location" defaultValue={regatta?.location ?? ""} className="input" />
         </Field>
@@ -59,7 +59,7 @@ export function RegattaForm({ action, regatta }: Props) {
         </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Startdatum *">
           <input
             name="startDate"
@@ -80,7 +80,7 @@ export function RegattaForm({ action, regatta }: Props) {
         </Field>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Field label="Geplante Wettfahrten">
           <input
             name="plannedRaces"
@@ -116,7 +116,7 @@ export function RegattaForm({ action, regatta }: Props) {
         </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Wertungssystem">
           <select name="scoringSystem" defaultValue={regatta?.scoringSystem ?? "LOW_POINT"} className="input">
             <option value="LOW_POINT">Low Point</option>

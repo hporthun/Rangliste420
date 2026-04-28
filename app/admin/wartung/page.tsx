@@ -178,7 +178,7 @@ export default async function WartungPage() {
           behalten, ältere werden automatisch gelöscht.
         </p>
 
-        <ScheduleConfig initial={schedule} />
+        <ScheduleConfig initial={schedule} isServerless={IS_SERVERLESS} />
 
         <div className="pt-2">
           <p className="text-sm font-medium mb-3">Gespeicherte Backups ({storedBackups.length})</p>

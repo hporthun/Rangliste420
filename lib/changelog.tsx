@@ -77,6 +77,48 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.8",
+    date: "2026-04-28",
+    title: "Vercel-Cron-Hinweis + responsive Admin",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            <strong>Backup-Uhrzeit im Serverless-Modus</strong> (Issue #13): Auf
+            Vercel ist die Uhrzeit-Auswahl jetzt nicht mehr editierbar. Stattdessen
+            wird „02:00&nbsp;Uhr" fest angezeigt, zusammen mit dem Hinweis dass der
+            Hobby-Cron einmal täglich um 01:00&nbsp;UTC läuft. Wochentag-Auswahl
+            bleibt aktiv. Lokal weiter frei wählbar.
+          </>,
+          <>
+            <strong>Admin-Header mit Mobile-Menü</strong> (Issue #21): unter
+            768&nbsp;px klappt die Navigation in ein Hamburger-Menü, das vom
+            Header-Rand einfährt.
+          </>,
+        ],
+      },
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            <strong>Alle Admin-Tabellen scrollen horizontal</strong> auf
+            Smartphones (Segler-Liste, Regatten, Ranglisten, Wartung,
+            Audit-Log) statt auszubrechen.
+          </>,
+          <>
+            <strong>Formulare</strong> (Sailor + Regatta): Felder stapeln auf
+            engen Viewports zu einer Spalte statt sich zu quetschen.
+          </>,
+          <>
+            <strong>Admin-Dashboard-Hero</strong>: stapelt vertikal auf
+            Mobilgeräten, Buttons brechen sauber um.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.7",
     date: "2026-04-28",
     title: "Bugfix Vercel-Build",

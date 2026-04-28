@@ -76,8 +76,8 @@ export default async function NeueRanglistePage({ searchParams }: Props) {
             <p className="text-sm text-muted-foreground">
               {result.data.rows.length} Segler · {result.data.regattas.length} Regatten
             </p>
-            <div className="rounded-md border overflow-hidden">
-              <table className="w-full text-sm">
+            <div className="rounded-md border overflow-x-auto">
+              <table className="w-full text-sm min-w-[480px]">
                 <thead className="bg-gray-50 text-xs text-muted-foreground uppercase">
                   <tr>
                     <th className="px-4 py-2 text-left w-12">Platz</th>
