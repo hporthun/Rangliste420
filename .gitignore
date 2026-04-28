@@ -44,6 +44,7 @@ yarn-error.log*
 
 # claude
 .claude/settings.local.json
+.claude/launch.json
 
 # sqlite dev db
 *.db

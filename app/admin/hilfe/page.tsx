@@ -21,6 +21,7 @@ const TOC = [
   { id: "ranglisten-formel", label: "DSV-Formel",                   level: 2 },
   { id: "ranglisten-tiebreak","label": "Tiebreak",                  level: 2 },
   { id: "ranglisten-idjm",   label: "IDJM-Quali",                   level: 2 },
+  { id: "ranglisten-jwmjem", label: "JWM/JEM-Quali",                level: 2 },
   { id: "wartung",           label: "Wartung",                      level: 1 },
   { id: "wartung-backup",    label: "Datensicherung",               level: 2 },
   { id: "wartung-restore",   label: "Rücksicherung",                level: 2 },
@@ -225,10 +226,11 @@ function WorkflowDiagram() {
 /** Import wizard step indicator */
 function ImportWizardSteps() {
   const steps = [
-    { n: "1", label: "Quelle", desc: "Copy-Paste, URL oder PDF" },
-    { n: "2", label: "Metadaten", desc: "Faktor, Wettfahrten prüfen" },
-    { n: "3", label: "Matching", desc: "Segler zuordnen / anlegen" },
-    { n: "4", label: "Vorschau & Speichern", desc: "Ergebnis bestätigen" },
+    { n: "1", label: "Quelle",      desc: "API, Copy-Paste oder PDF" },
+    { n: "2", label: "Regatta",     desc: "Stammdaten + Faktor prüfen" },
+    { n: "3", label: "Startgebiet", desc: "DNS/BFD/OCS markieren" },
+    { n: "4", label: "Zuordnung",   desc: "Segler matching" },
+    { n: "5", label: "Vorschau",    desc: "Ergebnis bestätigen" },
   ];
   return (
     <div className="my-4 rounded-lg border bg-muted/30 px-4 py-4">
@@ -391,6 +393,7 @@ export default function HilfePage() {
         <WorkflowDiagram />
 
         <Figure
+          src="/handbuch/01-admin-dashboard.jpg"
           alt="Admin-Dashboard mit Navigation, Kacheln für Segler, Regatten, Ranglisten und Wartung"
           caption="Abb. 1 — Admin-Dashboard mit den wichtigsten Bereichen"
         />
@@ -406,6 +409,12 @@ export default function HilfePage() {
           <Code>/regatta/[id]</Code> ist ohne Login zugänglich und zeigt alle veröffentlichten
           Ranglisten mit vollständiger Berechnungs­transparenz.
         </Hint>
+        <Hint>
+          <strong>Eingebaute Tour:</strong> Auf jeder Hauptseite findest du oben rechts den Button
+          <em> „Seite erkunden"</em>. Er hebt nacheinander die wichtigsten Bedienelemente hervor
+          und erklärt, was sie tun. Mit <kbd>Esc</kbd> oder einem Klick außerhalb beendest du die
+          Tour jederzeit.
+        </Hint>
 
         {/* ── Segler ─────────────────────────────────────────────────────────── */}
         <H1 id="segler">Segler verwalten</H1>
@@ -419,8 +428,9 @@ export default function HilfePage() {
         </P>
 
         <Figure
-          alt="Segler-Liste mit Suchfeld, Filter-Buttons und Tabelle mit Spalten Name, Verein, Geburtsjahr, Geschlecht"
-          caption="Abb. 2 — Segler-Liste mit Suche und Filtermöglichkeiten"
+          src="/handbuch/02-segler-liste.jpg"
+          alt="Segler-Liste mit Suchfeld und Tabelle: Name, Verein, Nationalität, Geburtsjahr, Geschlecht, Anzahl Regatten"
+          caption="Abb. 2 — Segler-Liste mit Suche, Warnhinweis bei fehlenden Stammdaten und Eintragstabelle"
         />
 
         <H2 id="segler-stammdaten">Stammdaten & Felder</H2>
@@ -432,6 +442,22 @@ export default function HilfePage() {
           <Li><strong>Segelnummer</strong> – Optionale Lizenznummer; verbessert das Fuzzy-Matching (+0,05 Bonus).</Li>
           <Li><strong>Staatsangehörigkeit</strong> – Standard: GER. Ausländische Segler können importiert werden, fließen aber nur mit deutschen Booten in die Rangliste ein.</Li>
         </Ul>
+
+        <H2 id="segler-schottenwechsel">Schottenwechsel</H2>
+        <P>
+          Der <strong>Steuermann</strong> ist die stabile Ranglisten-Einheit; der Vorschoter
+          (Crew) kann zwischen Regatten wechseln. Im Detail einer Regatta-Eintragung kannst du
+          pro Boot kennzeichnen, dass ein Schottenwechsel genehmigt wurde, und eine kurze Notiz
+          dazu hinterlegen.
+        </P>
+        <P>
+          Für die Filter <strong>Männer</strong>, <strong>Mix</strong> und <strong>Girls</strong>
+          müssen <em>beide</em> Mannschafts­mitglieder das Kriterium erfüllen. Bei der IDJM-Quali
+          gilt das Alterskriterium zusätzlich am <em>Tag der Regatta</em> – wechselt also der
+          Vorschoter zwischen zwei Regatten und das jüngere Crew-Mitglied erfüllt die Altersgrenze
+          nicht mehr, fällt diese eine Wertung aus dem Filter, ohne dass die Jahresrangliste
+          betroffen ist.
+        </P>
 
         <H2 id="segler-altnamen">Alternative Namen</H2>
         <P>
@@ -467,8 +493,9 @@ export default function HilfePage() {
         </Ul>
 
         <Figure
-          alt="Regatten-Liste mit M2S-Abgleich-Button, abweichende Wettfahrtenanzahl markiert"
-          caption="Abb. 3 — Regatten-Liste; M2S-Abgleich zeigt Abweichungen direkt in der Tabelle"
+          src="/handbuch/03-regatten-liste.jpg"
+          alt="Regatten-Liste mit Jahr-Filter, M2S-Abgleich-Button, Tabelle mit Name, Datum, Faktor, Wettfahrten, Booten, Ranglistenstatus"
+          caption="Abb. 3 — Regatten-Liste mit Jahr-Filter und M2S-Abgleich"
         />
 
         <H2 id="regatten-m2s">M2S-Abgleich</H2>
@@ -488,28 +515,31 @@ export default function HilfePage() {
         <P>
           Den Import-Wizard erreichst du über den orangenen <strong>„Ergebnisse importieren"</strong>-Button
           in der Regatten-Liste oder über die Detailseite einer Regatta. Der Wizard führt dich
-          in vier Schritten durch den Import:
+          in fünf Schritten durch den Import:
         </P>
 
         <ImportWizardSteps />
 
         <Figure
-          alt="Import-Wizard Schritt 1: Auswahl der Quelle (Copy-Paste, URL oder PDF) mit Eingabefeld"
-          caption="Abb. 4 — Import-Wizard, Schritt 1: Quelle wählen"
+          src="/handbuch/04-import-wizard-quelle.jpg"
+          alt="Import-Wizard Schritt 1 mit Schrittanzeige (Quelle, Regatta, Startgebiet, Zuordnung, Vorschau) und Tabs für Manage2Sail API, Web-Copy-Paste, PDF-Upload"
+          caption="Abb. 4 — Import-Wizard, Schritt 1: Quelle und Importmethode wählen"
         />
 
         <H2 id="import-quelle">Importquellen</H2>
         <Ul>
           <Li>
-            <strong>Manage2Sail Web-Copy-Paste (primär)</strong> – Öffne die Ergebnisseite der
-            gewünschten Klasse auf manage2sail.com, markiere die gesamte Ergebnistabelle
-            (Strg+A oder manuell), kopiere sie (Strg+C) und füge den Text im ersten Wizard-Schritt ein.
-            Enthält Steuermann, Vorschoter, Segelnummer, Verein und alle Race-Scores.
+            <strong>Manage2Sail API (empfohlen)</strong> – Füge die URL der Ergebnisseite
+            (<Code>manage2sail.com/de-DE/event/…#!/results?classId=…</Code>) oder ihre
+            <Code>classId</Code> ein. Die App ruft die Daten direkt aus der M2S-JSON-Schnittstelle
+            ab. Enthält Steuermann, Vorschoter, Segelnummer, Verein und alle Race-Scores
+            inklusive der Codes (DNC, DNS, DNF, OCS, BFD).
           </Li>
           <Li>
-            <strong>Manage2Sail URL</strong> – Füge direkt die URL der Ergebnisseite ein
-            (<Code>manage2sail.com/de-DE/event/…#!/results?classId=…</Code>).
-            Die App ruft die Daten automatisch ab.
+            <strong>Web-Copy-Paste</strong> – Öffne die M2S-Ergebnisseite, markiere die gesamte
+            Ergebnistabelle (Strg+A) und füge den kopierten Text in das Eingabefeld ein. Wird
+            verwendet, wenn die API-Quelle nicht erreichbar ist oder der Datenstand bereits in
+            der Zwischenablage liegt.
           </Li>
           <Li>
             <strong>PDF-Upload (Fallback)</strong> – Lade das „Overall Results"-PDF von
@@ -517,6 +547,11 @@ export default function HilfePage() {
             manuell nachgepflegt werden.
           </Li>
         </Ul>
+        <Hint>
+          Vor dem Matching-Schritt steht der Schritt <strong>Startgebiet</strong>: hier markierst
+          du Boote, die zwar in den Wettfahrten waren (DNS, BFD, OCS), aber kein Ergebnis
+          erzielt haben. Der Parser schlägt das anhand der Codes vor — du bestätigst nur noch.
+        </Hint>
 
         <H2 id="import-matching">Fuzzy-Matching</H2>
         <P>
@@ -587,8 +622,9 @@ export default function HilfePage() {
         <FormulaBreakdown />
 
         <Figure
-          alt="Ranglisten-Vorschau mit berechneter Tabelle: Platz, Steuermann, R, Anzahl Wertungen, Detail-Link"
-          caption="Abb. 6 — Berechnete Jahresrangliste (Vorschau, vor dem Speichern)"
+          src="/handbuch/06-ranglisten-vorschau.jpg"
+          alt="Ranglisten-Vorschau: Parameterformular oben, darunter berechnete Tabelle mit Platz, Name, Verein, R-Wert, Wertungsanzahl"
+          caption="Abb. 6 — Jahresrangliste-Vorschau mit Parameterformular und Live-Berechnung"
         />
 
         <P>
@@ -627,6 +663,25 @@ export default function HilfePage() {
           Mindest-R für die IDJM-Quali-Liste: <strong>25 Punkte</strong>.
         </P>
 
+        <H2 id="ranglisten-jwmjem">JWM/JEM-Quali</H2>
+        <P>
+          Die JWM- und JEM-Qualifikation der 420er-Klasse folgt einer eigenen Sonderregel der
+          Klassen­vereinigung (nicht DSV-RO). Sie wird im Admin-Bereich unter{" "}
+          <strong>Ranglisten → JWM/JEM-Quali berechnen</strong> aufgerufen.
+        </P>
+        <Ul>
+          <Li>Bis zu 3 ausgewählte Quali-Regatten</Li>
+          <Li>Pro Steuermann zählen die <strong>besten 2</strong> Ergebnisse, gewichtet</Li>
+          <Li>Filter nach Altersklasse (U15–U19, Open) und Gender</Li>
+          <Li>Nur deutsche Boote werden gewertet (für die JWM/JEM-Nominierung)</Li>
+        </Ul>
+        <P>
+          Im Eingabeformular wählst du Typ (JWM-Quali / JEM-Quali), Altersklasse, Gender,
+          Stichtag und bis zu 3 Regatten aus. Anschließend zeigt die Tabelle die berechnete
+          Rangliste mit Original-Platz, gewichtetem Score und der Markierung, welche der
+          Wertungen tatsächlich zählen.
+        </P>
+
         {/* ── Wartung ────────────────────────────────────────────────────────── */}
         <H1 id="wartung">Wartung</H1>
 
@@ -648,8 +703,9 @@ export default function HilfePage() {
         </Warn>
 
         <Figure
-          alt="Wartungsseite: Backup-Zeitplan mit Wochentag-Schaltern, Verschlüsselung und Liste gespeicherter Backups"
-          caption="Abb. 7 — Wartung: Backup-Zeitplan und gespeicherte Backups"
+          src="/handbuch/07-wartung-backup.jpg"
+          alt="Wartungsseite mit Datenbestand-Übersicht und Backup-Konfiguration: Aktivierung, Aufbewahrung, Uhrzeit, Wochentag-Schalter"
+          caption="Abb. 7 — Wartung: Datenbestand und Backup-Zeitplan"
         />
 
         <H2 id="wartung-restore">Rücksicherung</H2>
