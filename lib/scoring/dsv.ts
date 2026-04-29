@@ -57,10 +57,18 @@ export type DsvRankingInput = {
   /**
    * Age check reference date.
    * Jahresrangliste: new Date(seasonYear, 11, 31)
-   * IDJM / per-regatta check: regatta.startDate (handled by caller per regatta)
+   * Wird ignoriert wenn `useRegattaDateForAge: true`.
    */
   referenceDate: Date;
   regattas: RegattaData[];
+  /**
+   * Wenn true, wird das Alterskriterium pro Regatta gegen `regatta.startDate`
+   * geprüft statt gegen `referenceDate` (IDJM-Quali-Modus, siehe MO Anlage
+   * Jugend MO 10). Wichtig: `s` = Gesamtteilnehmerzahl bleibt unverändert,
+   * d.h. ausländische Boote zählen weiterhin in s und x — nur die
+   * Helm/Crew-Filterung läuft pro Regatta.
+   */
+  useRegattaDateForAge?: boolean;
 };
 
 // ── Output types ──────────────────────────────────────────────────────────────
@@ -104,21 +112,30 @@ export function calculateRA({ f, s, x }: { f: number; s: number; x: number }): n
  * Pass pre-fetched regattas with their results.
  */
 export function calculateDsvRanking(input: DsvRankingInput): DsvRankingResult {
-  const { ageCategory, genderCategory, referenceDate, regattas } = input;
+  const { ageCategory, genderCategory, referenceDate, regattas, useRegattaDateForAge } = input;
 
   const sailorValues = new Map<string, RankingValue[]>();
 
   for (const regatta of regattas) {
     const m = calculateMultiplier(regatta.completedRaces, regatta.multiDayAnnouncement);
     const f = regatta.ranglistenFaktor;
+    // s = Gesamtteilnehmerzahl der Regatta (inkl. ausländischer Boote).
+    // Wird unabhängig von Alters-/Gender-Filtern berechnet — alle Boote
+    // zählen in s und x.
     const s = regatta.results.length;
 
     if (s === 0 || m === 0) continue;
 
+    // Für IDJM-Quali (useRegattaDateForAge): pro Regatta wird das
+    // Alterskriterium gegen regatta.startDate geprüft, sodass eine
+    // Crew, die im Saisonverlauf zu alt wurde, nicht mehr für spätere
+    // Regatten zählt.
+    const ageRef = useRegattaDateForAge ? regatta.startDate : referenceDate;
+
     for (const result of regatta.results) {
       const { teamEntry } = result;
 
-      if (!matchesAgeCategory(teamEntry, ageCategory, referenceDate)) continue;
+      if (!matchesAgeCategory(teamEntry, ageCategory, ageRef)) continue;
       if (!matchesGenderCategory(teamEntry, genderCategory)) continue;
 
       // Boats in start area without a finish rank get R_A = 0

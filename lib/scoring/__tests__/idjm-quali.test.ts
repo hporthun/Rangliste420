@@ -135,4 +135,76 @@ describe("calculateIdjmQuali", () => {
       expect(IDJM_MIN_R).toBe(25);
     });
   });
+
+  // User-Klarstellung 2026-04-29: Für die normalen Ranglisten (inkl. IDJM)
+  // wird die GESAMTteilnehmerzahl der Regatta für s benutzt — auch
+  // ausländische Boote und auch Boote, die durch den Altersfilter rausfallen.
+  describe("Gesamtteilnehmerzahl s — ungefiltert", () => {
+    it("ausländische / zu alte Boote zählen weiterhin in s", () => {
+      // Setup: 1 berechtigter Helm + 99 zu alte/außerhalb-Filter Boote.
+      // Wenn s richtig ist, ist s=100 → R_A = f * 100 * (101-x)/100.
+      // Wenn s fälschlich gefiltert wird, wäre s=1 → R_A = f * 100 * (1+1-1)/1 = 100.
+      // Wir prüfen den Wert für x=1 → soll R_A = 100 sein (100 Boote, Platz 1).
+      const helmId = uid();
+      const regs: RegattaData[] = Array.from({ length: 9 }, () => {
+        // berechtigter Helm: Platz 1, Helm 2007, Crew 2007 (U19 ok)
+        const winner = mkResult(helmId, 1, 2007, "M", 2007, "F");
+        // 99 zu alte Boote (Helm 2000) belegen Plätze 2..100
+        const fillers = Array.from({ length: 99 }, (_, i) =>
+          mkResult(uid(), i + 2, 2000, "M", 2000, "F")
+        );
+        return mkRegatta("2025-06-01", [winner, ...fillers]);
+      });
+
+      const { rankings } = calculateIdjmQuali({
+        ageCategory: "U19",
+        genderCategory: "OPEN",
+        regattas: regs,
+      });
+
+      const entry = rankings.find((r) => r.helmId === helmId);
+      expect(entry).toBeDefined();
+      // f=1, s=100, x=1 → R_A = 100 * (100+1-1)/100 = 100
+      // Wenn s fälschlich gefiltert worden wäre (nur 1 Boot), wäre R_A
+      // weiterhin = 100 (1+1-1)/1 = 100 — schlechter Testfall. Nehmen
+      // wir x=2 stattdessen — vorher als zweiter Helm
+      // Stattdessen: prüfen wir s direkt aus den allValues
+      const value = entry!.allValues[0];
+      expect(value.s).toBe(100);
+      expect(value.x).toBe(1);
+      // R_A = 1 * 100 * (101-1)/100 = 100
+      expect(value.value).toBeCloseTo(100, 5);
+    });
+
+    it("Helm auf Platz 50 von 100 Booten: R_A wird mit s=100 berechnet", () => {
+      // Konkreter Auslandsregatta-Fall: 100 Boote in der Regatta, die
+      // Hälfte davon ist außerhalb der Quali-Altersgrenze. Trotzdem
+      // muss s=100 sein.
+      const helmId = uid();
+      const regs: RegattaData[] = Array.from({ length: 9 }, () => {
+        const me = mkResult(helmId, 50, 2007, "M", 2007, "F");
+        // 49 jüngere Boote auf Plätzen 1..49
+        const youngerThanMe = Array.from({ length: 49 }, (_, i) =>
+          mkResult(uid(), i + 1, 2007, "M", 2007, "F")
+        );
+        // 50 zu alte Boote auf Plätzen 51..100
+        const olderBehindMe = Array.from({ length: 50 }, (_, i) =>
+          mkResult(uid(), i + 51, 2000, "M", 2000, "F")
+        );
+        return mkRegatta("2025-06-01", [me, ...youngerThanMe, ...olderBehindMe]);
+      });
+      const { rankings } = calculateIdjmQuali({
+        ageCategory: "U19",
+        genderCategory: "OPEN",
+        regattas: regs,
+      });
+      const entry = rankings.find((r) => r.helmId === helmId);
+      expect(entry).toBeDefined();
+      const v = entry!.allValues[0];
+      expect(v.s).toBe(100);
+      expect(v.x).toBe(50);
+      // R_A = 1 * 100 * (101-50)/100 = 51
+      expect(v.value).toBeCloseTo(51, 5);
+    });
+  });
 });

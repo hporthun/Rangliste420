@@ -8,6 +8,27 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.18] — 2026-04-29
+
+**Bugfix: IDJM-Quali zählt jetzt korrekt alle gestarteten Boote in s.**
+
+### Korrigiert
+
+- **IDJM-Quali R_A-Verzerrung**: Das `idjm-quali.ts`-Modul filterte vorher
+  die Regatta-Ergebnisse nach Altersklasse, BEVOR die DSV-Berechnung lief.
+  Damit war `s` (Gesamtteilnehmerzahl) für IDJM-Berechnungen die
+  *gefilterte* Anzahl statt der tatsächlichen Starter — die R_A-Werte
+  wurden dadurch teils massiv überschätzt. Jetzt delegiert IDJM die
+  per-Regatta-Altersprüfung an `calculateDsvRanking` über das neue
+  `useRegattaDateForAge`-Flag, sodass `s` unverändert die
+  Gesamtteilnehmerzahl bleibt — auch bei Auslandsregatten und auch
+  wenn ein Großteil der Crews die Altersgrenze nicht erfüllt.
+- 2 neue Unit-Tests in `idjm-quali.test.ts` verifizieren konkret, dass
+  `s = Anzahl aller Boote` ist und `R_A` mit der echten Teilnehmerzahl
+  berechnet wird.
+
+---
+
 ## [2026.04.17] — 2026-04-29
 
 **JWM/JEM-Schottenwechsel-Regel umgesetzt.**

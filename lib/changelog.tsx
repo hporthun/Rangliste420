@@ -77,6 +77,30 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.18",
+    date: "2026-04-29",
+    title: "Bugfix IDJM s-Berechnung",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            <strong>IDJM-Quali R_A-Verzerrung behoben</strong>: Vorher hat
+            das IDJM-Modul die Regatta-Ergebnisse nach Altersklasse
+            ge-pre-filtert, bevor <code className="font-mono text-xs">s</code>{" "}
+            (Gesamtteilnehmerzahl) berechnet wurde. Dadurch wurden R_A-Werte
+            für IDJM systematisch überschätzt, weil ausgeschlossene Boote
+            nicht mehr in s zählten. Jetzt wird der Altersfilter über ein
+            Flag in der DSV-Engine angewendet, ohne s zu reduzieren — die
+            tatsächliche Anzahl gestarteter Boote zählt, auch bei
+            Auslandsregatten und auch wenn nur wenige Boote IDJM-berechtigt
+            sind.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.17",
     date: "2026-04-29",
     title: "JWM/JEM-Schottenwechsel-Regel",
