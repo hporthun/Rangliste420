@@ -1,4 +1,5 @@
 import { computeRankingAction, getRankingForEditAction, type ComputeParams, type RankingType } from "@/lib/actions/rankings";
+import { CrewLabel } from "@/components/rankings/crew-label";
 import Link from "next/link";
 import { SaveRanklisteForm } from "./save-form";
 
@@ -108,7 +109,10 @@ export default async function NeueRanglistePage({ searchParams }: Props) {
                   {result.data.rows.map((row) => (
                     <tr key={row.helmId}>
                       <td className="px-4 py-2 font-medium text-center">{row.rank}</td>
-                      <td className="px-4 py-2">{row.firstName} {row.lastName}</td>
+                      <td className="px-4 py-2">
+                        {row.firstName} {row.lastName}
+                        <CrewLabel crews={row.crews} />
+                      </td>
                       <td className="px-4 py-2 text-muted-foreground text-xs">{row.club ?? "—"}</td>
                       <td className="px-4 py-2 text-right font-mono font-medium">
                         {row.R.toFixed(2)}

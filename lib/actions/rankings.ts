@@ -54,6 +54,20 @@ async function fetchRegattaData(
 
 // ── Display types ─────────────────────────────────────────────────────────────
 
+/**
+ * Crew member used by a helm during the ranking period, with count of how
+ * many regattas they sailed together in. Issue #31: rankings now expose the
+ * crew name(s) so users can see at a glance who sailed in each boat —
+ * before, only the helm was visible.
+ */
+export type CrewEntry = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  /** Number of season regattas this crew sailed with this helm. */
+  count: number;
+};
+
 export type RankingRow = {
   rank: number;
   helmId: string;
@@ -62,6 +76,13 @@ export type RankingRow = {
   club: string | null;
   R: number;
   valuesCount: number;
+  /**
+   * All crews used by this helm during the season, ordered most-frequent
+   * first. Empty array if the helm only sailed PDF-imported regattas
+   * (where crew is unknown). UI typically shows the first one inline and
+   * indicates +N when there are more.
+   */
+  crews: CrewEntry[];
 };
 
 export type RegattaMeta = {
@@ -136,6 +157,55 @@ export async function computeRankingAction(
     });
     const sailorMap = Object.fromEntries(sailors.map((s) => [s.id, s]));
 
+    // Issue #31: aggregate the crew(s) each helm sailed with during the
+    // season. One DB query covers all helms in scope; we group in memory.
+    const teamEntriesWithCrew = await db.teamEntry.findMany({
+      where: {
+        helmId: { in: helmIds },
+        regatta: {
+          isRanglistenRegatta: true,
+          startDate: { gte: seasonStart, lte: refDate },
+        },
+        crewId: { not: null },
+      },
+      select: {
+        helmId: true,
+        crewId: true,
+        crew: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    type CrewMap = Map<string, { firstName: string; lastName: string; count: number }>;
+    const helmCrews = new Map<string, CrewMap>();
+    for (const te of teamEntriesWithCrew) {
+      if (!te.crew) continue;
+      const map = helmCrews.get(te.helmId) ?? new Map();
+      const existing = map.get(te.crew.id);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        map.set(te.crew.id, {
+          firstName: te.crew.firstName,
+          lastName: te.crew.lastName,
+          count: 1,
+        });
+      }
+      helmCrews.set(te.helmId, map);
+    }
+
+    function crewsFor(helmId: string): CrewEntry[] {
+      const map = helmCrews.get(helmId);
+      if (!map) return [];
+      return Array.from(map.entries())
+        .map(([id, v]) => ({ id, ...v }))
+        .sort(
+          (a, b) =>
+            b.count - a.count ||
+            a.lastName.localeCompare(b.lastName, "de") ||
+            a.firstName.localeCompare(b.firstName, "de")
+        );
+    }
+
     const rows: RankingRow[] = rankings.map((r) => {
       const sailor = sailorMap[r.helmId];
       return {
@@ -146,6 +216,7 @@ export async function computeRankingAction(
         club: sailor?.club ?? null,
         R: r.R,
         valuesCount: r.allValues.length,
+        crews: crewsFor(r.helmId),
       };
     });
 

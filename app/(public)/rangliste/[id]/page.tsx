@@ -2,6 +2,7 @@ import { db } from "@/lib/db/client";
 import { notFound } from "next/navigation";
 import { computeRankingAction, type ComputeParams, type RankingType } from "@/lib/actions/rankings";
 import { computeJwmJemAction, type JwmJemParams, type JwmJemDisplayRow } from "@/lib/actions/jwm-jem";
+import { CrewLabel } from "@/components/rankings/crew-label";
 import Link from "next/link";
 
 type Props = { params: Promise<{ id: string }> };
@@ -210,6 +211,7 @@ export default async function RanglistePage({ params }: Props) {
                   >
                     {row.firstName} {row.lastName}
                   </Link>
+                  <CrewLabel crews={row.crews} />
                 </td>
                 <td className="px-4 py-3 text-muted-foreground text-xs hidden sm:table-cell">
                   {row.club ?? "—"}
@@ -329,6 +331,7 @@ function JwmJemTable({
               </td>
               <td className="px-4 py-3 font-medium">
                 {row.firstName} {row.lastName}
+                <CrewLabel crews={row.crews} />
               </td>
               <td className="px-4 py-3 text-muted-foreground text-xs hidden sm:table-cell">
                 {row.club ?? "—"}

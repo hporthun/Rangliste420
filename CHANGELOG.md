@@ -8,6 +8,23 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.13] — 2026-04-29
+
+**Crew-Namen in den Ranglisten anzeigen (Issue #31).**
+
+### Neu
+
+- **Crew-Namen in jeder Rangliste**: jede Zeile zeigt jetzt unter dem
+  Steuermann die Crew-Namen, mit denen er in der Saison gesegelt ist.
+  Bei nur einer Crew steht der volle Name, bei zwei Crews beide,
+  ab drei Crews der häufigste + „+N weitere". Hover zeigt alle
+  vollständig. Funktioniert in der öffentlichen Rangliste, in der
+  Admin-Vorschau, im Speichern-Dialog und in JWM/JEM-Quali-Tabellen.
+  Bei PDF-Imports ohne Crew-Information bleibt die Zeile schlank
+  (kein leeres Crew-Label).
+
+---
+
 ## [2026.04.12] — 2026-04-29
 
 **Passwort-Reset per E-Mail + PWA-Logo (Issues #29, #30).**

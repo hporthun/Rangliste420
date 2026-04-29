@@ -31,6 +31,16 @@ export type JwmJemDisplayRow = {
     weightedScore: number | null;
     counted: boolean;
   }[];
+  /**
+   * Crews used by this helm in the selected regattas, most-frequent first.
+   * (Issue #31 — symmetric to RankingRow.crews.)
+   */
+  crews: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    count: number;
+  }[];
 };
 
 export type JwmJemComputeResult = {
@@ -152,6 +162,51 @@ export async function computeJwmJemAction(
     });
     const sailorMap = Object.fromEntries(sailors.map((s) => [s.id, s]));
 
+    // Issue #31: aggregate crew partners for each helm across the selected
+    // JWM/JEM regattas, so the display can show who sailed in each boat.
+    const teamEntriesWithCrew = await db.teamEntry.findMany({
+      where: {
+        helmId: { in: allOutputHelmIds },
+        regattaId: { in: regattaIds },
+        crewId: { not: null },
+      },
+      select: {
+        helmId: true,
+        crew: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    type CrewMap = Map<string, { firstName: string; lastName: string; count: number }>;
+    const helmCrews = new Map<string, CrewMap>();
+    for (const te of teamEntriesWithCrew) {
+      if (!te.crew) continue;
+      const map = helmCrews.get(te.helmId) ?? new Map();
+      const existing = map.get(te.crew.id);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        map.set(te.crew.id, {
+          firstName: te.crew.firstName,
+          lastName: te.crew.lastName,
+          count: 1,
+        });
+      }
+      helmCrews.set(te.helmId, map);
+    }
+
+    function crewsFor(helmId: string): JwmJemDisplayRow["crews"] {
+      const map = helmCrews.get(helmId);
+      if (!map) return [];
+      return Array.from(map.entries())
+        .map(([id, v]) => ({ id, ...v }))
+        .sort(
+          (a, b) =>
+            b.count - a.count ||
+            a.lastName.localeCompare(b.lastName, "de") ||
+            a.firstName.localeCompare(b.firstName, "de")
+        );
+    }
+
     function toDisplayRow(row: (typeof output.ranked)[number]): JwmJemDisplayRow {
       const sailor = sailorMap[row.helmId];
       return {
@@ -168,6 +223,7 @@ export async function computeJwmJemAction(
           weightedScore: s.weightedScore,
           counted: s.counted,
         })),
+        crews: crewsFor(row.helmId),
       };
     }
 

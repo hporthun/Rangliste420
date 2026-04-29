@@ -77,6 +77,26 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.13",
+    date: "2026-04-29",
+    title: "Crew-Namen in Ranglisten",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            <strong>Crew-Namen in jeder Rangliste</strong> (Issue #31): unter
+            jedem Steuermann steht jetzt, mit welcher Crew er in dieser Saison
+            gesegelt ist — eine Crew = Vollname, zwei Crews = beide,
+            ab drei Crews die häufigste + „+N weitere".
+            Hover blendet alle vollständig ein. Wirkt in öffentlicher
+            Rangliste, Admin-Vorschau, Speichern-Dialog und JWM/JEM-Tabellen.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.12",
     date: "2026-04-29",
     title: "Reset-Mail + PWA-Logo",
