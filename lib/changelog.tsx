@@ -77,6 +77,35 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.20",
+    date: "2026-04-29",
+    title: "totalStarters pro Regatta",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            <strong>Gesamtteilnehmerzahl pro Regatta gespeichert</strong>:
+            Neues Feld <code className="font-mono text-xs">totalStarters</code>{" "}
+            an der Regatta zählt alle gestarteten Boote — auch ausländische,
+            die beim M2S-Import (Default <code className="font-mono text-xs">germanOnly</code>)
+            nicht in die Sailor-Datenbank wandern. Der Wert kommt automatisch
+            beim Import von Paste, PDF und M2S-API; kann im Regatta-Formular
+            manuell überschrieben werden.
+          </>,
+          <>
+            <strong>DSV-Scoring nutzt totalStarters</strong>: <code className="font-mono text-xs">s</code>{" "}
+            in der R_A-Formel verwendet jetzt
+            <code className="ml-1 font-mono text-xs">totalStarters ?? results.length</code>{" "}
+            — Auslandsregatten werden damit korrekt mit voller Teilnehmerzahl
+            bewertet, ohne dass alle ausländischen Crews als Sailor-Records
+            angelegt werden müssen.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.19",
     date: "2026-04-29",
     title: "Beta-Hinweis Public-Seiten",

@@ -37,7 +37,12 @@ export function PreviewStep({
   async function handleCommit() {
     setLoading(true);
     setError(null);
-    const result = await commitImportAction(regattaId, entryDecisions, parsedData.numRaces);
+    const result = await commitImportAction(
+      regattaId,
+      entryDecisions,
+      parsedData.numRaces,
+      parsedData.totalStarters,
+    );
     setLoading(false);
     if (!result.ok) {
       setError(result.error);

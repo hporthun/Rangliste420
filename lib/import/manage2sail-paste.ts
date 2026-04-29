@@ -18,11 +18,31 @@ export type ParsedEntry = {
   raceScores: ParsedRaceScore[];
   /** Suggested value based on DNS/BFD/OCS codes — admin reviews in wizard */
   inStartAreaSuggestion: boolean;
+  /**
+   * ISO-3166-1 alpha-3 nationality, derived from the sail-number country
+   * prefix (e.g. "GER 12345" → "GER") or from the M2S API's
+   * SailNumberCountry/Country fields. When unknown, falls back to the
+   * Sailor schema's default "GER" at import time.
+   */
+  nationality?: string;
 };
 
 export type ParsedRegatta = {
   entries: ParsedEntry[];
   numRaces: number;
+  /**
+   * Anzahl der gestarteten Boote insgesamt — inkl. ausländischer Crews,
+   * die durch einen Country-Filter ggf. nicht in `entries` landen.
+   *
+   * Hintergrund: Die DSV-Formel R_A = f × 100 × ((s+1−x)/s) braucht für
+   * `s` die echte Gesamtteilnehmerzahl. Wenn der Import nur deutsche Crews
+   * herausschneidet, würde s zu klein, und R_A wäre falsch.
+   *
+   * Parser, die ohnehin alle Einträge liefern (Paste, PDF), setzen den
+   * Wert auf `entries.length`. Der M2S-API-Parser zählt zusätzlich die
+   * vor dem germanOnly-Filter gesehenen Einträge.
+   */
+  totalStarters?: number;
 };
 
 const PENALTY_CODES = new Set(["DNC", "DNS", "DNF", "DSQ", "BFD", "OCS", "RET", "WFD"]);
@@ -201,5 +221,7 @@ export function parsePaste(text: string): ParsedRegatta {
   commitEntry();
 
   const numRaces = Math.max(0, ...entries.map((e) => e.raceScores.length));
-  return { entries, numRaces };
+  // Paste-Quelle enthält ohnehin alle Einträge (kein Country-Filter), also
+  // ist die Gesamtteilnehmerzahl identisch mit `entries.length`.
+  return { entries, numRaces, totalStarters: entries.length };
 }

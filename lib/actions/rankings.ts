@@ -28,6 +28,7 @@ async function fetchRegattaData(
     completedRaces: reg.completedRaces,
     multiDayAnnouncement: reg.multiDayAnnouncement,
     startDate: reg.startDate,
+    totalStarters: reg.totalStarters,
     results: reg.results.map((r) => ({
       id: r.id,
       teamEntry: {
@@ -296,6 +297,7 @@ export async function computeHelmDetailAction(
       completedRaces: reg.completedRaces,
       multiDayAnnouncement: reg.multiDayAnnouncement,
       startDate: reg.startDate,
+      totalStarters: reg.totalStarters,
       results: reg.results.map((r) => ({
         id: r.id,
         teamEntry: {

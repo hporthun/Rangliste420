@@ -119,6 +119,7 @@ async function fetchRegattasByIds(ids: string[]): Promise<RegattaData[]> {
         completedRaces: reg.completedRaces,
         multiDayAnnouncement: reg.multiDayAnnouncement,
         startDate: reg.startDate,
+        totalStarters: reg.totalStarters,
         results,
       };
     });

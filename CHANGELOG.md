@@ -8,6 +8,28 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.20] — 2026-04-29
+
+**Gesamtteilnehmerzahl pro Regatta speichern.**
+
+### Neu
+
+- **`Regatta.totalStarters`-Feld**: pro Regatta wird jetzt die Anzahl
+  gestarteter Boote insgesamt gespeichert — inkl. ausländischer Crews,
+  die ggf. nicht importiert wurden. Wert kommt automatisch beim Import
+  (Paste, PDF und M2S-API liefern ihn jetzt mit), kann manuell im
+  Regatta-Formular nachträglich korrigiert werden. SQLite + Postgres-
+  Migration.
+- **DSV-Scoring nutzt totalStarters**: `s` in der Formel
+  R_A = f × 100 × ((s+1−x)/s) verwendet jetzt
+  `totalStarters ?? results.length`. Damit ist die Berechnung auch bei
+  Auslandsregatten korrekt, bei denen aus Sailor-DB-Hygiene-Gründen
+  nur die deutschen Boote importiert wurden.
+- **Regatta-Formular** erhält neues Feld „Gestartete Boote (s)" mit
+  Hinweis-Text. Leer = automatisch aus Anzahl importierter Ergebnisse.
+
+---
+
 ## [2026.04.19] — 2026-04-29
 
 **Beta-Hinweis-Banner auf Public-Seiten (Issue #34).**

@@ -47,6 +47,12 @@ export type RegattaData = {
   completedRaces: number;
   multiDayAnnouncement: boolean;
   startDate: Date;
+  /**
+   * Anzahl gestarteter Boote insgesamt — inkl. ausländischer Crews, die
+   * ggf. nicht importiert wurden. Wenn null/undefined, fällt `s` auf
+   * `results.length` zurück (Legacy-Datensätze ohne diesen Wert).
+   */
+  totalStarters?: number | null;
   results: ResultData[];
 };
 
@@ -120,9 +126,12 @@ export function calculateDsvRanking(input: DsvRankingInput): DsvRankingResult {
     const m = calculateMultiplier(regatta.completedRaces, regatta.multiDayAnnouncement);
     const f = regatta.ranglistenFaktor;
     // s = Gesamtteilnehmerzahl der Regatta (inkl. ausländischer Boote).
-    // Wird unabhängig von Alters-/Gender-Filtern berechnet — alle Boote
-    // zählen in s und x.
-    const s = regatta.results.length;
+    // Bevorzugt aus dem persistierten `totalStarters`-Feld (vom Import oder
+    // manuell auf der Regatta gepflegt). Fallback auf `results.length`,
+    // wenn kein expliziter Wert vorliegt — das ist die Anzahl tatsächlich
+    // importierter Crews, was bei reinen Inlandsregatten ebenfalls korrekt
+    // ist. Alters-/Gender-Filter wirken nur auf die Helm-Reihen, nicht auf s.
+    const s = regatta.totalStarters ?? regatta.results.length;
 
     if (s === 0 || m === 0) continue;
 

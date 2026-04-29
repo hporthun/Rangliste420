@@ -8,6 +8,7 @@ export const regattaSchema = z.object({
   endDate: z.string().min(1, "Enddatum erforderlich"),
   plannedRaces: z.coerce.number().int().min(0).optional().nullable(),
   completedRaces: z.coerce.number().int().min(0),
+  totalStarters: z.coerce.number().int().min(0).optional().nullable(),
   multiDayAnnouncement: z.boolean().default(false),
   ranglistenFaktor: z.coerce.number().min(0.8).max(2.6),
   scoringSystem: z.enum(["LOW_POINT", "BONUS_POINT"]).default("LOW_POINT"),

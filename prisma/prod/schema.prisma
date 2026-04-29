@@ -54,6 +54,12 @@ model Regatta {
   numDays              Int       @default(1)
   plannedRaces         Int?
   completedRaces       Int
+  // Anzahl der gestarteten Boote insgesamt — inkl. ausländische Crews.
+  // Wird beim Import aus der Quelle übernommen, kann manuell nachträglich
+  // korrigiert werden. Wenn null, fällt die Berechnung auf
+  // results.length zurück (für ältere Datensätze ohne den Wert).
+  // Wichtig für die DSV-Formel: s = totalStarters ?? results.length
+  totalStarters        Int?
   multiDayAnnouncement Boolean   @default(false)
   // 0.80–2.60 per DSV-RO
   ranglistenFaktor     Decimal

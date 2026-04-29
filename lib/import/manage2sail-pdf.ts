@@ -242,5 +242,5 @@ export async function parsePdfBuffer(buffer: ArrayBuffer | Uint8Array): Promise<
     ? Math.max(...entries.map((e) => e.raceScores.length))
     : 0;
 
-  return { entries, numRaces };
+  return { entries, numRaces, totalStarters: entries.length };
 }

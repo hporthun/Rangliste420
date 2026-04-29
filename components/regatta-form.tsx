@@ -123,6 +123,21 @@ export function RegattaForm({ action, regatta }: Props) {
             <option value="BONUS_POINT">Bonus Point</option>
           </select>
         </Field>
+        <Field label="Gestartete Boote (s)">
+          <input
+            name="totalStarters"
+            type="number"
+            min={0}
+            defaultValue={regatta?.totalStarters ?? ""}
+            className="input"
+            placeholder="auto (importierte Einträge)"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Inkl. ausländischer Crews. Leer = automatisch aus Anzahl
+            importierter Ergebnisse. Manuelles Setzen ist sinnvoll bei
+            Auslandsregatten, wo nur die deutschen Boote importiert wurden.
+          </p>
+        </Field>
       </div>
 
       <div className="space-y-2">

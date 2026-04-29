@@ -176,7 +176,7 @@ export function parsePages(pages: RawItem[][]): ParsedRegatta {
     allEntries.length > 0
       ? Math.max(...allEntries.map((e) => e.raceScores.length))
       : 0;
-  return { entries: allEntries, numRaces };
+  return { entries: allEntries, numRaces, totalStarters: allEntries.length };
 }
 
 export async function parsePdfBuffer(
@@ -194,5 +194,5 @@ export async function parsePdfBuffer(
       ? Math.max(...allEntries.map((e) => e.raceScores.length))
       : 0;
 
-  return { entries: allEntries, numRaces };
+  return { entries: allEntries, numRaces, totalStarters: allEntries.length };
 }

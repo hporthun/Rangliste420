@@ -37,7 +37,7 @@ function filterGerman(regatta: ParsedRegatta): ParsedRegatta {
     entries.length > 0
       ? Math.max(...entries.map((e) => e.raceScores.length))
       : 0;
-  return { entries, numRaces };
+  return { entries, numRaces, totalStarters: entries.length };
 }
 
 export type PdfFormat =

@@ -258,6 +258,11 @@ export async function fetchEventClasses(
  *
  * @param germanOnly  When true (default), only entries with SailNumberCountry === "GER"
  *                    or no country at all (domestic regatta) are returned.
+ *                    Important: regardless of the filter, the total starter
+ *                    count from the original API response is captured in
+ *                    `result.totalStarters`, sodass `s` für die DSV-Berechnung
+ *                    korrekt ist (auch bei Auslandsregatten mit gemischten
+ *                    Feldern).
  */
 export async function fetchM2SResults(
   eventIdOrAlias: string,
@@ -282,10 +287,17 @@ export async function fetchM2SResults(
 
   const entries: ParsedEntry[] = [];
 
+  // Vor dem Filter: Gesamtteilnehmerzahl der Regatta (inkl. ausländische
+  // Crews). Wird später als totalStarters auf der Regatta gespeichert,
+  // damit `s` für die DSV-Berechnung korrekt ist.
+  const totalStarters = (data.EntryResults ?? []).length;
+
   for (const er of data.EntryResults ?? []) {
     // ── GER filter ──────────────────────────────────────────────────────────
     if (germanOnly) {
-      const country = (er.SailNumberCountry ?? er.Country ?? "").toUpperCase().trim();
+      const country = (er.SailNumberCountry ?? er.Country ?? "")
+        .toUpperCase()
+        .trim();
       // Non-empty country that is not GER → skip
       if (country && country !== "GER") continue;
     }
@@ -347,7 +359,7 @@ export async function fetchM2SResults(
 
   return {
     regattaName: data.RegattaName ?? "",
-    result: { entries, numRaces },
+    result: { entries, numRaces, totalStarters },
   };
 }
 

@@ -203,17 +203,26 @@ export async function getMatchSuggestionsAction(
 export async function commitImportAction(
   regattaId: string,
   decisions: EntryDecision[],
-  numRaces: number
+  numRaces: number,
+  /**
+   * Anzahl gestarteter Boote insgesamt (inkl. ausländischer Crews, die
+   * ggf. nicht importiert wurden). Wird auf die Regatta gespeichert und
+   * für `s` in der DSV-Formel benutzt.
+   */
+  totalStarters?: number
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
     const session = await auth();
     if (!session) return { ok: false, error: "Nicht angemeldet." };
 
     await db.$transaction(async (tx) => {
-      // Update completedRaces on the regatta to reflect the imported data
+      // Update completedRaces + totalStarters on the regatta to reflect the imported data
       await tx.regatta.update({
         where: { id: regattaId },
-        data: { completedRaces: numRaces },
+        data: {
+          completedRaces: numRaces,
+          ...(totalStarters !== undefined && { totalStarters }),
+        },
       });
 
       await tx.importSession.create({

@@ -17,6 +17,7 @@ function parseInput(data: FormData) {
     multiDayAnnouncement: raw.multiDayAnnouncement === "on",
     isRanglistenRegatta: raw.isRanglistenRegatta === "on",
     plannedRaces: raw.plannedRaces === "" ? null : raw.plannedRaces,
+    totalStarters: raw.totalStarters === "" ? null : raw.totalStarters,
     location: raw.location || null,
     sourceUrl: raw.sourceUrl || null,
     notes: raw.notes || null,
