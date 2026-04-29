@@ -19,12 +19,25 @@ export type JwmJemParams = {
 
 export type JwmJemDisplayRow = {
   helmId: string;
+  /**
+   * Eindeutiger Schlüssel pro Team — ein Helm kann mehrere Zeilen haben,
+   * wenn er in den ausgewählten Regatten mit verschiedenen Crews ohne
+   * genehmigten Wechsel gefahren ist. Verwende diesen statt `helmId` als
+   * React-key in der Tabelle.
+   */
+  teamKey: string;
   rank: number | null;
   firstName: string;
   lastName: string;
   club: string | null;
   qualiScore: number;
   validCount: number;
+  /**
+   * True wenn diese Zeile aus einem Team-Split entstanden ist, das durch
+   * einen ungenehmigten Wechsel oder einen zweiten Wechsel ausgelöst wurde.
+   * Die UI zeigt dann ein Hinweis-Icon „neues Team".
+   */
+  splitFromSwap: boolean;
   slots: {
     regattaId: string;
     finalRank: number | null;
@@ -32,8 +45,9 @@ export type JwmJemDisplayRow = {
     counted: boolean;
   }[];
   /**
-   * Crews used by this helm in the selected regattas, most-frequent first.
-   * (Issue #31 — symmetric to RankingRow.crews.)
+   * Crews dieses Teams (1 oder 2 nach genehmigtem Swap), most-frequent first.
+   * Anders als vor der JWM/JEM-Schottenwechsel-Regel enthält diese Liste nur
+   * die Crews dieses Teams, nicht alle Crews des Helms in den Regatten.
    */
   crews: {
     id: string;
@@ -91,6 +105,8 @@ async function fetchRegattasByIds(ids: string[]): Promise<RegattaData[]> {
                 gender: r.teamEntry.crew.gender,
               }
             : null,
+          // Wird vom JWM/JEM-Quali-Scoring zur Team-Partitionierung benutzt
+          crewSwapApproved: r.teamEntry.crewSwapApproved,
         },
         finalRank: r.finalRank,
         inStartArea: r.inStartArea,
@@ -162,46 +178,41 @@ export async function computeJwmJemAction(
     });
     const sailorMap = Object.fromEntries(sailors.map((s) => [s.id, s]));
 
-    // Issue #31: aggregate crew partners for each helm across the selected
-    // JWM/JEM regattas, so the display can show who sailed in each boat.
-    const teamEntriesWithCrew = await db.teamEntry.findMany({
-      where: {
-        helmId: { in: allOutputHelmIds },
-        regattaId: { in: regattaIds },
-        crewId: { not: null },
-      },
-      select: {
-        helmId: true,
-        crew: { select: { id: true, firstName: true, lastName: true } },
-      },
+    // Crew name lookup: gather all crew IDs that appear in the output rows.
+    const allCrewIds = [
+      ...new Set(
+        [...output.ranked, ...output.preliminary]
+          .flatMap((r) => r.crewIds)
+          .filter((id): id is string => id !== null)
+      ),
+    ];
+    const crewSailors = await db.sailor.findMany({
+      where: { id: { in: allCrewIds } },
+      select: { id: true, firstName: true, lastName: true },
     });
+    const crewMap = Object.fromEntries(crewSailors.map((s) => [s.id, s]));
 
-    type CrewMap = Map<string, { firstName: string; lastName: string; count: number }>;
-    const helmCrews = new Map<string, CrewMap>();
-    for (const te of teamEntriesWithCrew) {
-      if (!te.crew) continue;
-      const map = helmCrews.get(te.helmId) ?? new Map();
-      const existing = map.get(te.crew.id);
-      if (existing) {
-        existing.count += 1;
-      } else {
-        map.set(te.crew.id, {
-          firstName: te.crew.firstName,
-          lastName: te.crew.lastName,
-          count: 1,
-        });
-      }
-      helmCrews.set(te.helmId, map);
-    }
-
-    function crewsFor(helmId: string): JwmJemDisplayRow["crews"] {
-      const map = helmCrews.get(helmId);
-      if (!map) return [];
-      return Array.from(map.entries())
-        .map(([id, v]) => ({ id, ...v }))
+    // Per-team crew counts: how often did this specific team's primary or
+    // approved-swap crew actually sail in the selected regattas? We derive
+    // it from the row's slots (regattas where the team appears with a
+    // weighted score = the team's actual sails) but we don't have crewId
+    // back at this layer, so fall back to "1 occurrence per crew".
+    function crewsForRow(
+      crewIds: (string | null)[]
+    ): JwmJemDisplayRow["crews"] {
+      return crewIds
+        .filter((id): id is string => id !== null)
+        .map((id) => {
+          const s = crewMap[id];
+          return {
+            id,
+            firstName: s?.firstName ?? "?",
+            lastName: s?.lastName ?? "?",
+            count: 1,
+          };
+        })
         .sort(
           (a, b) =>
-            b.count - a.count ||
             a.lastName.localeCompare(b.lastName, "de") ||
             a.firstName.localeCompare(b.firstName, "de")
         );
@@ -211,19 +222,21 @@ export async function computeJwmJemAction(
       const sailor = sailorMap[row.helmId];
       return {
         helmId: row.helmId,
+        teamKey: row.teamKey,
         rank: row.rank,
         firstName: sailor?.firstName ?? "?",
         lastName: sailor?.lastName ?? "?",
         club: sailor?.club ?? null,
         qualiScore: row.qualiScore,
         validCount: row.validCount,
+        splitFromSwap: row.splitFromSwap,
         slots: row.regattaSlots.map((s) => ({
           regattaId: s.regattaId,
           finalRank: s.finalRank,
           weightedScore: s.weightedScore,
           counted: s.counted,
         })),
-        crews: crewsFor(row.helmId),
+        crews: crewsForRow(row.crewIds),
       };
     }
 

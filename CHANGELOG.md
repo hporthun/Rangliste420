@@ -8,6 +8,30 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.17] — 2026-04-29
+
+**JWM/JEM-Schottenwechsel-Regel umgesetzt.**
+
+### Geändert
+
+- **JWM/JEM-Quali wertet Helm + Crew als Team**: Pro Helm ist nur ein
+  einziger genehmigter Schottenwechsel zulässig. Ungenehmigte oder
+  weitere Wechsel starten ein neues Team (eigene Zeile in der
+  Quali-Rangliste).
+  - `lib/scoring/jwm-jem-quali.ts`: chronologische Partitionierung der
+    Helm-Einträge in Teams. Jedes Team trackt seine akzeptierten
+    Crew-IDs und ob die 1×-Swap-Erlaubnis verbraucht ist.
+  - `JwmJemRow` und `JwmJemDisplayRow` erhalten neuen `teamKey` (für
+    React-Keys, da ein Helm jetzt mehrere Zeilen haben kann),
+    `crewIds` (Crews dieses Teams) und `splitFromSwap`-Flag.
+  - UI (Admin + Public): Tabelle nutzt `teamKey` als Key und zeigt
+    Crew-Namen + „neues Team"-Badge bei gesplitteten Teams.
+  - 6 neue Unit-Tests: stabile Crew, ungenehmigter Wechsel, genehmigter
+    Wechsel, zweiter Wechsel, Rückkehr zur Original-Crew, eindeutige
+    teamKeys.
+
+---
+
 ## [2026.04.16] — 2026-04-29
 
 **Schottenwechsel-Toggle in Regatta-Detail (Issue #11).**

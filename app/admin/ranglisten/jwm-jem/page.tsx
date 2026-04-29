@@ -234,17 +234,25 @@ export default async function JwmJemPage({ searchParams }: Props) {
 
 type TableRow = {
   helmId: string;
+  teamKey: string;
   rank: number | null;
   firstName: string;
   lastName: string;
   club: string | null;
   qualiScore: number;
   validCount: number;
+  splitFromSwap: boolean;
   slots: {
     regattaId: string;
     finalRank: number | null;
     weightedScore: number | null;
     counted: boolean;
+  }[];
+  crews: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    count: number;
   }[];
 };
 
@@ -288,12 +296,25 @@ function RankingTable({
         </thead>
         <tbody className="divide-y">
           {rows.map((row) => (
-            <tr key={row.helmId} className="hover:bg-muted/30 transition-colors">
+            <tr key={row.teamKey} className="hover:bg-muted/30 transition-colors">
               <td className="px-4 py-2 text-center font-medium text-muted-foreground">
                 {row.rank ?? "—"}
               </td>
               <td className="px-4 py-2 font-medium">
                 {row.firstName} {row.lastName}
+                {row.splitFromSwap && (
+                  <span
+                    className="ml-1.5 text-[10px] font-normal text-amber-700 bg-amber-50 border border-amber-200 rounded px-1 py-0.5 align-middle"
+                    title="Eigenständige Wertung wegen ungenehmigtem Schottenwechsel"
+                  >
+                    neues Team
+                  </span>
+                )}
+                {row.crews.length > 0 && (
+                  <span className="block text-xs text-muted-foreground font-normal mt-0.5">
+                    Crew: {row.crews.map((c) => `${c.firstName} ${c.lastName}`).join(" · ")}
+                  </span>
+                )}
               </td>
               <td className="px-4 py-2 text-xs text-muted-foreground hidden sm:table-cell">
                 {row.club ?? "—"}

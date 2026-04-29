@@ -25,6 +25,12 @@ export type TeamEntryData = {
   crewId: string | null;
   helm: SailorData;
   crew: SailorData | null;
+  /**
+   * Whether this entry's crew change has been formally approved.
+   * Only consumed by the JWM/JEM-Quali scoring (see `jwm-jem-quali.ts`);
+   * DSV/IDJM rankings ignore this flag.
+   */
+  crewSwapApproved?: boolean;
 };
 
 export type ResultData = {

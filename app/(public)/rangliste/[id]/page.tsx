@@ -299,7 +299,7 @@ function JwmJemTable({
         <tbody className="divide-y divide-border/60 bg-card">
           {rows.map((row, idx) => (
             <tr
-              key={row.helmId}
+              key={row.teamKey}
               className={`hover:bg-muted/40 transition-colors group ${
                 idx === 0 && row.rank !== null
                   ? "bg-yellow-50/60"
@@ -331,6 +331,14 @@ function JwmJemTable({
               </td>
               <td className="px-4 py-3 font-medium">
                 {row.firstName} {row.lastName}
+                {row.splitFromSwap && (
+                  <span
+                    className="ml-1.5 text-[10px] font-normal text-amber-700 bg-amber-50 border border-amber-200 rounded px-1 py-0.5 align-middle"
+                    title="Eigenständige Wertung wegen ungenehmigtem Schottenwechsel"
+                  >
+                    neues Team
+                  </span>
+                )}
                 <CrewLabel crews={row.crews} />
               </td>
               <td className="px-4 py-3 text-muted-foreground text-xs hidden sm:table-cell">

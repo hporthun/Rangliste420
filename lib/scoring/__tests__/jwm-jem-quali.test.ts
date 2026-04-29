@@ -10,8 +10,21 @@ function uid() {
   return `id-${++_id}`;
 }
 
-function mkSailor(birthYear: number | null = 2007, gender: string | null = "M") {
-  return { id: uid(), birthYear, gender };
+// (mkSailor wurde entfernt — wird nicht mehr benötigt seit defaultCrewForHelm.)
+
+/**
+ * Stabile Crew-ID je Helm — ohne ausdrücklichen `crewId`/`opts.crewId`
+ * teilt sich derselbe Helm in mehreren Regatten dieselbe Crew. So bleibt
+ * das Default-Verhalten der Tests erhalten, nachdem die JWM/JEM-Quali
+ * Helm/Crew-Kombinationen getrennt wertet (Schottenwechsel-Regel).
+ */
+const stableCrewByHelm = new Map<string, string>();
+function defaultCrewForHelm(helmId: string): string {
+  const existing = stableCrewByHelm.get(helmId);
+  if (existing) return existing;
+  const id = uid();
+  stableCrewByHelm.set(helmId, id);
+  return id;
 }
 
 function mkResult(
@@ -22,6 +35,8 @@ function mkResult(
     helmGender?: string | null;
     crewBirthYear?: number | null;
     crewGender?: string | null;
+    crewId?: string;
+    crewSwapApproved?: boolean;
   } = {}
 ): ResultData {
   const helm = {
@@ -29,13 +44,21 @@ function mkResult(
     birthYear: opts.helmBirthYear !== undefined ? opts.helmBirthYear : 2007,
     gender: opts.helmGender !== undefined ? opts.helmGender : "M",
   };
-  const crew = mkSailor(
-    opts.crewBirthYear !== undefined ? opts.crewBirthYear : 2007,
-    opts.crewGender !== undefined ? opts.crewGender : "F"
-  );
+  const crewId = opts.crewId ?? defaultCrewForHelm(helmId);
+  const crew = {
+    id: crewId,
+    birthYear: opts.crewBirthYear !== undefined ? opts.crewBirthYear : 2007,
+    gender: opts.crewGender !== undefined ? opts.crewGender : "F",
+  };
   return {
     id: uid(),
-    teamEntry: { helmId, crewId: crew.id, helm, crew },
+    teamEntry: {
+      helmId,
+      crewId: crew.id,
+      helm,
+      crew,
+      crewSwapApproved: opts.crewSwapApproved ?? false,
+    },
     finalRank,
     inStartArea: finalRank === null,
   };
@@ -412,6 +435,172 @@ describe("calculateJwmJemQuali", () => {
       // helmId slot has weightedScore=null (no finalRank) → validCount=0 → excluded
       expect(ranked.find((r) => r.helmId === helmId)).toBeUndefined();
       expect(preliminary.find((r) => r.helmId === helmId)).toBeUndefined();
+    });
+  });
+
+  // Schottenwechsel-Regel (User-Klarstellung 2026-04-29):
+  // Pro Helm ist nur ein einziger genehmigter Schottenwechsel zulässig;
+  // ungenehmigte Wechsel oder ein zweiter Wechsel starten ein neues Team.
+  describe("Schottenwechsel — JWM/JEM-Team-Regel", () => {
+    it("Helm mit gleicher Crew in beiden Regatten → ein Team, ein Eintrag", () => {
+      const helmId = uid();
+      const crewId = uid();
+      const reg1 = mkRegatta("2025-04-01", [
+        mkResult(helmId, 1, { crewId }),
+        mkResult(uid(), 2),
+      ]);
+      const reg2 = mkRegatta("2025-05-01", [
+        mkResult(helmId, 2, { crewId }),
+        mkResult(uid(), 1),
+      ]);
+
+      const { ranked } = calculateJwmJemQuali(mkInput({ regattas: [reg1, reg2] }));
+      const helmRows = ranked.filter((r) => r.helmId === helmId);
+      expect(helmRows).toHaveLength(1);
+      expect(helmRows[0].validCount).toBe(2);
+      expect(helmRows[0].splitFromSwap).toBe(false);
+      expect(helmRows[0].crewIds).toEqual([crewId]);
+    });
+
+    it("Helm mit unterschiedlicher Crew + ungenehmigt → zwei separate Teams", () => {
+      const helmId = uid();
+      const crewA = uid();
+      const crewB = uid();
+      const reg1 = mkRegatta("2025-04-01", [
+        mkResult(helmId, 1, { crewId: crewA }),
+        mkResult(uid(), 2),
+      ]);
+      const reg2 = mkRegatta("2025-05-01", [
+        // Wechsel zu crewB, KEIN Genehmigungs-Flag → split
+        mkResult(helmId, 1, { crewId: crewB, crewSwapApproved: false }),
+        mkResult(uid(), 2),
+      ]);
+
+      const { ranked, preliminary } = calculateJwmJemQuali(
+        mkInput({ regattas: [reg1, reg2] })
+      );
+      // Beide Teams haben je nur 1 valid → beide in preliminary
+      const allRows = [...ranked, ...preliminary];
+      const helmRows = allRows.filter((r) => r.helmId === helmId);
+      expect(helmRows).toHaveLength(2);
+      expect(helmRows.map((r) => r.crewIds[0]).sort()).toEqual(
+        [crewA, crewB].sort()
+      );
+      // Erstes Team (chronologisch) ist nicht "split", zweites schon
+      const firstTeam = helmRows.find((r) => r.crewIds[0] === crewA)!;
+      const secondTeam = helmRows.find((r) => r.crewIds[0] === crewB)!;
+      expect(firstTeam.splitFromSwap).toBe(false);
+      expect(secondTeam.splitFromSwap).toBe(true);
+    });
+
+    it("Genehmigter Schottenwechsel → ein Team mit beiden Crews, beide Ergebnisse zählen", () => {
+      const helmId = uid();
+      const crewA = uid();
+      const crewB = uid();
+      const reg1 = mkRegatta("2025-04-01", [
+        mkResult(helmId, 1, { crewId: crewA }),
+        mkResult(uid(), 2),
+      ]);
+      const reg2 = mkRegatta("2025-05-01", [
+        // Genehmigter Wechsel zu crewB → bleibt dasselbe Team
+        mkResult(helmId, 2, { crewId: crewB, crewSwapApproved: true }),
+        mkResult(uid(), 1),
+      ]);
+
+      const { ranked } = calculateJwmJemQuali(mkInput({ regattas: [reg1, reg2] }));
+      const helmRows = ranked.filter((r) => r.helmId === helmId);
+      expect(helmRows).toHaveLength(1);
+      expect(helmRows[0].validCount).toBe(2);
+      expect(helmRows[0].splitFromSwap).toBe(false);
+      expect(helmRows[0].crewIds.sort()).toEqual([crewA, crewB].sort());
+    });
+
+    it("Zweiter (genehmigter) Wechsel → erstes Team bleibt, zweites Team startet neu", () => {
+      const helmId = uid();
+      const crewA = uid();
+      const crewB = uid();
+      const crewC = uid();
+      const reg1 = mkRegatta("2025-04-01", [
+        mkResult(helmId, 1, { crewId: crewA }),
+        mkResult(uid(), 2),
+      ]);
+      const reg2 = mkRegatta("2025-05-01", [
+        // 1. Wechsel — genehmigt → erweitert Team 1
+        mkResult(helmId, 2, { crewId: crewB, crewSwapApproved: true }),
+        mkResult(uid(), 1),
+      ]);
+      const reg3 = mkRegatta("2025-06-01", [
+        // 2. Wechsel — auch wenn genehmigt: Allowance verbraucht → split
+        mkResult(helmId, 3, { crewId: crewC, crewSwapApproved: true }),
+        mkResult(uid(), 1),
+      ]);
+
+      const { ranked, preliminary } = calculateJwmJemQuali(
+        mkInput({ regattas: [reg1, reg2, reg3] })
+      );
+      const helmRows = [...ranked, ...preliminary].filter(
+        (r) => r.helmId === helmId
+      );
+      expect(helmRows).toHaveLength(2);
+
+      const team1 = helmRows.find((r) => r.crewIds.includes(crewA))!;
+      const team2 = helmRows.find((r) => r.crewIds.includes(crewC))!;
+      expect(team1).toBeDefined();
+      expect(team2).toBeDefined();
+      expect(team1.crewIds.sort()).toEqual([crewA, crewB].sort());
+      expect(team1.validCount).toBe(2); // reg1 + reg2
+      expect(team2.crewIds).toEqual([crewC]);
+      expect(team2.validCount).toBe(1); // reg3 only
+      expect(team2.splitFromSwap).toBe(true);
+    });
+
+    it("Helm-Reihenfolge crewA → crewB (genehmigt) → crewA → ein Team", () => {
+      // Wenn der Helm nach genehmigtem Wechsel zur Original-Crew zurückkehrt,
+      // bleibt das alles dasselbe Team.
+      const helmId = uid();
+      const crewA = uid();
+      const crewB = uid();
+      const reg1 = mkRegatta("2025-04-01", [
+        mkResult(helmId, 1, { crewId: crewA }),
+        mkResult(uid(), 2),
+      ]);
+      const reg2 = mkRegatta("2025-05-01", [
+        mkResult(helmId, 2, { crewId: crewB, crewSwapApproved: true }),
+        mkResult(uid(), 1),
+      ]);
+      const reg3 = mkRegatta("2025-06-01", [
+        // Zurück zu crewA — bereits Teil des Teams → kein Split
+        mkResult(helmId, 1, { crewId: crewA }),
+        mkResult(uid(), 2),
+      ]);
+
+      const { ranked } = calculateJwmJemQuali(
+        mkInput({ regattas: [reg1, reg2, reg3] })
+      );
+      const helmRows = ranked.filter((r) => r.helmId === helmId);
+      expect(helmRows).toHaveLength(1);
+      expect(helmRows[0].validCount).toBe(3);
+    });
+
+    it("Teams haben unterschiedliche teamKeys → React-Keys eindeutig", () => {
+      const helmId = uid();
+      const crewA = uid();
+      const crewB = uid();
+      const reg1 = mkRegatta("2025-04-01", [
+        mkResult(helmId, 1, { crewId: crewA }),
+        mkResult(uid(), 2),
+      ]);
+      const reg2 = mkRegatta("2025-05-01", [
+        mkResult(helmId, 2, { crewId: crewB, crewSwapApproved: false }),
+        mkResult(uid(), 1),
+      ]);
+
+      const { preliminary } = calculateJwmJemQuali(
+        mkInput({ regattas: [reg1, reg2] })
+      );
+      const helmRows = preliminary.filter((r) => r.helmId === helmId);
+      expect(helmRows).toHaveLength(2);
+      expect(helmRows[0].teamKey).not.toBe(helmRows[1].teamKey);
     });
   });
 });

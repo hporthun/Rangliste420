@@ -77,6 +77,35 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.17",
+    date: "2026-04-29",
+    title: "JWM/JEM-Schottenwechsel-Regel",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            <strong>JWM/JEM-Quali wertet Helm + Crew als Team</strong>: pro
+            Helm ist nur <em>ein einziger</em> genehmigter Schottenwechsel
+            erlaubt — der Helm bleibt dann mit beiden Crews dasselbe Team.
+            Ungenehmigte oder weitere Wechsel starten ein neues Team (eigene
+            Zeile mit „neues Team"-Markierung). Erste Crew vor dem Stichtag
+            wird als Original-Team gewertet.
+          </>,
+          <>
+            UI zeigt jetzt Crew-Name(n) pro Team in der JWM/JEM-Tabelle, sowohl
+            im Admin-Bereich als auch in der öffentlichen Ranglisten-Ansicht.
+          </>,
+          <>
+            6 neue Unit-Tests decken alle Kombinationen ab (stabile Crew,
+            ungenehmigter / genehmigter / zweiter Wechsel, Rückkehr zur
+            Original-Crew).
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.16",
     date: "2026-04-29",
     title: "Schottenwechsel-Toggle",
