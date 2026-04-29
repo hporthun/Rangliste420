@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { db } from "@/lib/db/client";
-import { Download, Upload, Trash2, ScissorsLineDashed, Clock, ShieldCheck, Info } from "lucide-react";
+import { Download, Upload, Trash2, ScissorsLineDashed, Clock, ShieldCheck, Info, Mail, ArrowRight } from "lucide-react";
 import { RestoreSection, DeleteAllSection, PruneSection, CleanupSection } from "./maintenance-client";
 import { ScheduleConfig, StoredBackupList } from "./backup-schedule-client";
 import { readSchedule, IS_SERVERLESS, HAS_BLOB_STORAGE } from "@/lib/backup/config";
@@ -243,6 +244,25 @@ export default async function WartungPage() {
           Bereinigt verwaiste Datensätze ohne zugehörige Einträge.
         </p>
         <CleanupSection />
+      </section>
+
+      <hr />
+
+      {/* Section: Mail-Konfiguration (link out) */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Mail className="h-5 w-5 text-muted-foreground" />
+          <h2 className="text-base font-semibold">E-Mail-Versand</h2>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          SMTP-Zugangsdaten für Passwort-Reset-Mails sind ausgelagert.
+        </p>
+        <Link
+          href="/admin/mail"
+          className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:underline"
+        >
+          E-Mail-Konfiguration öffnen <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
       </section>
 
       <hr />

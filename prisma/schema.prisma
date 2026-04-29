@@ -246,6 +246,23 @@ model WebAuthnChallenge {
   createdAt DateTime @default(now())
 }
 
+// ── MailConfig ────────────────────────────────────────────────────────────────
+// Singleton: at most one row (id = 1). Persists SMTP credentials configured
+// via the admin UI (Issue #32). When enabled, this overrides any SMTP_*
+// env vars; when disabled (or absent), the mailer falls back to env vars.
+// password is stored in plain text — same trust model as BackupSchedule's
+// encryptionPassword: the DB is admin-only.
+model MailConfig {
+  id        Int      @id @default(1)
+  enabled   Boolean  @default(false)
+  host      String   @default("")
+  port      Int      @default(587)
+  username  String   @default("")
+  password  String   @default("")
+  fromAddr  String   @default("")
+  updatedAt DateTime @updatedAt
+}
+
 // ── BackupSchedule ────────────────────────────────────────────────────────────
 // Singleton: at most one row (id = 1). Persists the user-configured backup
 // schedule across restarts. On Vercel/serverless this is the only place the

@@ -8,6 +8,34 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.14] — 2026-04-29
+
+**E-Mail-Konfiguration über das Webinterface (Issue #32).**
+
+### Neu
+
+- **SMTP-Konfiguration via Admin-UI**: neue Seite `/admin/mail` mit
+  Formular für Host, Port, Login, Passwort und Absenderadresse. Werte
+  werden in der Datenbank persistiert (Singleton-Tabelle `MailConfig`)
+  und überschreiben dann die `SMTP_*`-Env-Variablen, sobald „Aktivieren"
+  gesetzt ist. So lassen sich Zugänge ändern, ohne dass die App neu
+  deployed werden muss.
+- **Test-Mail-Button**: schickt sofort eine Test-Mail mit den im
+  Formular eingetragenen Werten — auch ohne vorher zu speichern. So
+  prüft man Host/Port/Login bevor man committed.
+- **Status-Banner** auf der Seite zeigt, ob aktuell die DB-Konfig
+  greift, ein Env-Fallback aktiv ist oder gar nichts konfiguriert ist.
+- Wartung-Seite verlinkt auf die Mail-Konfiguration als Sub-Sektion.
+
+### Geändert
+
+- `lib/mail/send.ts` resolved jetzt die Konfiguration pro Aufruf:
+  zuerst DB (wenn `enabled` und Host gesetzt), sonst Env-Vars, sonst
+  Konsolen-Log. `isMailConfigured()` ist daher jetzt async — Aufrufer
+  in `lib/actions/account.ts` entsprechend angepasst.
+
+---
+
 ## [2026.04.13] — 2026-04-29
 
 **Crew-Namen in den Ranglisten anzeigen (Issue #31).**

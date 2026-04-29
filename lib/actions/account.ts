@@ -194,7 +194,7 @@ export async function generateResetTokenAction(
   // Whether the SMTP transport is configured at all — exposed to the UI
   // as a separate flag so the user gets a clear hint while the existence
   // of the account itself stays hidden.
-  const transportConfigured = isMailConfigured();
+  const transportConfigured = await isMailConfigured();
 
   // Account doesn't exist → return success without doing anything.
   // (No token created, no email sent.)

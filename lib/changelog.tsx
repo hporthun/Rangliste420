@@ -77,6 +77,37 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.14",
+    date: "2026-04-29",
+    title: "E-Mail-Konfiguration im Web-UI",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            <strong>SMTP-Konfiguration via Admin-Oberfläche</strong> (Issue #32):
+            neue Seite{" "}
+            <code className="font-mono text-xs">/admin/mail</code> mit
+            Formular für Host, Port, Login, Passwort und Absender. Die Werte
+            werden in der Datenbank gespeichert und überschreiben die{" "}
+            <code className="font-mono text-xs">SMTP_*</code>-Env-Variablen —
+            kein Re-Deploy mehr nötig, um SMTP-Zugänge zu ändern.
+          </>,
+          <>
+            <strong>Test-Mail-Button</strong>: sendet sofort eine Test-Mail
+            mit den im Formular stehenden Werten, auch ohne vorher zu
+            speichern. So lassen sich Host und Login verifizieren, bevor
+            commitet wird.
+          </>,
+          <>
+            <strong>Status-Anzeige</strong> auf der Seite: zeigt deutlich, ob
+            DB-Konfig oder Env-Fallback aktiv ist (oder gar nichts).
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.13",
     date: "2026-04-29",
     title: "Crew-Namen in Ranglisten",

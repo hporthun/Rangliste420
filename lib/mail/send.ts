@@ -1,19 +1,19 @@
 /**
  * E-Mail-Versand-Schicht.
  *
- * Aktuell unterstützt: SMTP via nodemailer. Konfiguration läuft komplett
- * über Env-Vars — wenn `SMTP_HOST` nicht gesetzt ist, wird die Mail nicht
- * verschickt sondern in die Server-Konsole geloggt (Dev-Modus).
- *
- * Erforderliche Env-Vars im Produktivbetrieb:
- *   SMTP_HOST       z.B. "smtp.strato.de"
- *   SMTP_PORT       587 (STARTTLS) oder 465 (SSL/TLS); Default 587
- *   SMTP_USER       Login-Username
- *   SMTP_PASS       Login-Passwort
- *   MAIL_FROM       Absender, z.B. "noreply@meine-domain.de"
+ * Auflösungsreihenfolge der SMTP-Konfiguration:
+ *   1. Datenbank-Tabelle `MailConfig` (Singleton, id=1) — gepflegt über
+ *      die Admin-Oberfläche unter /admin/mail (Issue #32). Wenn das
+ *      `enabled`-Flag gesetzt ist und ein Host vorliegt, wird diese
+ *      Konfiguration genutzt.
+ *   2. Env-Vars `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` /
+ *      `MAIL_FROM` — bestehender Pfad, dient als Fallback.
+ *   3. Keine Konfiguration → Mail wird nicht versendet, Inhalt wandert
+ *      stattdessen in die Server-Konsole (Dev-Modus).
  */
 
 import nodemailer, { type Transporter } from "nodemailer";
+import { db } from "@/lib/db/client";
 
 export type MailMessage = {
   to: string;
@@ -29,26 +29,63 @@ export type MailResult =
   | { ok: false; error: string }
   | { ok: false; error: string; transport: "missing" };
 
-let cached: Transporter | null = null;
+/**
+ * Resolved SMTP credentials. Built per-call (no module-level cache) so that
+ * UI changes in /admin/mail take effect without a server restart.
+ */
+type ResolvedConfig = {
+  host: string;
+  port: number;
+  user: string;
+  pass: string;
+  from: string;
+  /** Where the config was read from — used in error messages and the UI. */
+  source: "database" | "env";
+};
 
-function getTransporter(): Transporter | null {
-  if (cached) return cached;
-  if (!process.env.SMTP_HOST) return null;
+async function resolveConfig(): Promise<ResolvedConfig | null> {
+  // Try DB first.
+  try {
+    const row = await db.mailConfig.findUnique({ where: { id: 1 } });
+    if (row?.enabled && row.host.trim().length > 0) {
+      return {
+        host: row.host,
+        port: row.port,
+        user: row.username,
+        pass: row.password,
+        from: row.fromAddr || row.username,
+        source: "database",
+      };
+    }
+  } catch {
+    // Table may not exist yet (migration not applied) — silently fall
+    // back to env vars.
+  }
 
-  const port = parseInt(process.env.SMTP_PORT ?? "587", 10);
-  cached = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port,
+  if (process.env.SMTP_HOST) {
+    return {
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT ?? "587", 10),
+      user: process.env.SMTP_USER ?? "",
+      pass: process.env.SMTP_PASS ?? "",
+      from: process.env.MAIL_FROM ?? process.env.SMTP_USER ?? "noreply@420er-rangliste.local",
+      source: "env",
+    };
+  }
+
+  return null;
+}
+
+function buildTransporter(cfg: ResolvedConfig): Transporter {
+  return nodemailer.createTransport({
+    host: cfg.host,
+    port: cfg.port,
     // Port 465 = implicit TLS, alle anderen (z.B. 587) = STARTTLS
-    secure: port === 465,
-    auth: process.env.SMTP_USER
-      ? {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS ?? "",
-        }
+    secure: cfg.port === 465,
+    auth: cfg.user
+      ? { user: cfg.user, pass: cfg.pass }
       : undefined,
   });
-  return cached;
 }
 
 /**
@@ -57,12 +94,8 @@ function getTransporter(): Transporter | null {
  * an User oder Audit-Log weiterreichen können.
  */
 export async function sendMail(msg: MailMessage): Promise<MailResult> {
-  const transporter = getTransporter();
-
-  if (!transporter) {
-    // Dev-Modus oder fehlende Konfiguration: nicht abbrechen, nur loggen.
-    // Caller (z.B. generateResetTokenAction) entscheidet, ob das ein
-    // Fehlerfall ist.
+  const cfg = await resolveConfig();
+  if (!cfg) {
     console.warn(
       "[mail] SMTP nicht konfiguriert — Nachricht wurde nicht versendet:\n",
       `  to:      ${msg.to}\n  subject: ${msg.subject}\n  text:\n${msg.text}`
@@ -71,8 +104,9 @@ export async function sendMail(msg: MailMessage): Promise<MailResult> {
   }
 
   try {
+    const transporter = buildTransporter(cfg);
     await transporter.sendMail({
-      from: process.env.MAIL_FROM ?? "noreply@420er-rangliste.local",
+      from: cfg.from,
       to: msg.to,
       subject: msg.subject,
       text: msg.text,
@@ -84,7 +118,20 @@ export async function sendMail(msg: MailMessage): Promise<MailResult> {
   }
 }
 
-/** Boolean-Helper für UI: zeigt Aufrufern an, dass kein Versand möglich ist. */
-export function isMailConfigured(): boolean {
-  return Boolean(process.env.SMTP_HOST);
+/**
+ * Whether *some* SMTP transport is available (DB-stored or env-provided).
+ * Used by the UI to surface the "no SMTP configured" warning banner.
+ */
+export async function isMailConfigured(): Promise<boolean> {
+  const cfg = await resolveConfig();
+  return cfg !== null;
+}
+
+/**
+ * Where the active SMTP config comes from. Returns null when nothing is
+ * configured. Useful for diagnostic output in the admin Mail-Settings page.
+ */
+export async function getMailConfigSource(): Promise<"database" | "env" | null> {
+  const cfg = await resolveConfig();
+  return cfg?.source ?? null;
 }
