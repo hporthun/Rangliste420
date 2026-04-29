@@ -8,6 +8,21 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.16] — 2026-04-29
+
+**Schottenwechsel-Toggle in Regatta-Detail (Issue #11).**
+
+### Neu
+
+- **Schottenwechsel-Toggle**: in der Regatta-Detail-Tabelle erscheint
+  jetzt neben jedem Crew-Eintrag ein kleines ↻-Icon. Klick öffnet ein
+  Popover mit „Genehmigt"-Checkbox + optionalem Notizfeld. Der Status
+  ist pro TeamEntry gespeichert (`crewSwapApproved`, `crewSwapNote`).
+  Hinweis im Popover: das Flag wirkt sich nur auf JWM/JEM-Quali aus,
+  nicht auf DSV-/Aktuelle-/IDJM-Ranglisten.
+
+---
+
 ## [2026.04.15] — 2026-04-29
 
 **Bugfix: OAuth-Buttons werden auf Vercel nicht angezeigt (Issue #33).**

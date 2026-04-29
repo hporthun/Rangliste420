@@ -77,6 +77,26 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.16",
+    date: "2026-04-29",
+    title: "Schottenwechsel-Toggle",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            <strong>Schottenwechsel pro Crew-Eintrag markieren</strong>{" "}
+            (Issue #11): In der Regatta-Detail-Tabelle erscheint neben
+            jedem Crew-Eintrag ein ↻-Icon. Klick öffnet ein Popover mit
+            „Genehmigt"-Checkbox und optionalem Notizfeld. Hinweis im
+            Popover: relevant ist das Feld nur für die JWM/JEM-Quali,
+            DSV-/Aktuelle-/IDJM-Ranglisten ignorieren es.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.15",
     date: "2026-04-29",
     title: "Bugfix OAuth-Buttons",

@@ -5,6 +5,7 @@ import { RegattaForm } from "@/components/regatta-form";
 import { updateRegatta } from "@/lib/actions/regattas";
 import { DeleteRegattaButton } from "@/components/delete-regatta-button";
 import { PageTour } from "@/components/tour/page-tour";
+import { CrewSwapToggle } from "@/components/admin/crew-swap-toggle";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { TourStep } from "@/components/tour/tour-context";
@@ -72,6 +73,7 @@ export default async function EditRegattaPage({ params }: Props) {
           },
         },
       },
+      // crewSwapApproved + crewSwapNote sind via Default-Select bereits drin
       orderBy: [
         // nulls last: entries without a result rank go to the bottom
         { result: { finalRank: "asc" } },
@@ -178,16 +180,27 @@ export default async function EditRegattaPage({ params }: Props) {
                       </Link>
                     </td>
                     <td className="px-3 py-2 text-muted-foreground">
-                      {e.crew ? (
-                        <Link
-                          href={`/admin/segler/${e.crew.id}`}
-                          className="hover:underline"
-                        >
-                          {e.crew.firstName} {e.crew.lastName}
-                        </Link>
-                      ) : (
-                        <span className="italic text-xs">—</span>
-                      )}
+                      <span className="inline-flex items-center gap-1.5">
+                        {e.crew ? (
+                          <Link
+                            href={`/admin/segler/${e.crew.id}`}
+                            className="hover:underline"
+                          >
+                            {e.crew.firstName} {e.crew.lastName}
+                          </Link>
+                        ) : (
+                          <span className="italic text-xs">—</span>
+                        )}
+                        <CrewSwapToggle
+                          teamEntryId={e.id}
+                          helmName={`${e.helm.firstName} ${e.helm.lastName}`}
+                          crewName={
+                            e.crew ? `${e.crew.firstName} ${e.crew.lastName}` : ""
+                          }
+                          initialApproved={e.crewSwapApproved}
+                          initialNote={e.crewSwapNote ?? ""}
+                        />
+                      </span>
                     </td>
                     <td className="px-3 py-2 text-right font-mono font-medium">
                       {e.result?.finalPoints != null
