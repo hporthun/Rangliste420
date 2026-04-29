@@ -5,6 +5,14 @@
  * deployment without OAuth credentials still boots correctly. The list is
  * also exposed to the login page so we render only buttons for actually
  * configured providers.
+ *
+ * Issue #33: previous implementation extracted the provider `id` at runtime
+ * via `(p as { id?: string }).id`, which was fragile because Auth.js v5
+ * providers can return either a config object or a lazy function — in the
+ * function case `id` is undefined and the button silently disappeared from
+ * the login screen even though env vars were set. We now build providers
+ * and the UI metadata together in a single pass so the lookup is no longer
+ * runtime-dependent.
  */
 import type { Provider } from "next-auth/providers";
 
@@ -21,34 +29,36 @@ export type OAuthProviderInfo = {
   name: string;
 };
 
-const ALL_INFO: Record<OAuthProviderId, OAuthProviderInfo> = {
-  "google":             { id: "google",             name: "Google"    },
-  "microsoft-entra-id": { id: "microsoft-entra-id", name: "Microsoft" },
-  "apple":              { id: "apple",              name: "Apple"     },
-  "facebook":           { id: "facebook",           name: "Meta"      },
+type Built = {
+  providers: Provider[];
+  info: OAuthProviderInfo[];
 };
 
 /**
- * Build the list of NextAuth provider instances based on which env vars are
- * present. Order matters for the UI (most common first).
+ * Build providers and UI info in a single pass. Each block reads the
+ * relevant env vars; when both client-id and -secret are present, the
+ * provider is added AND its display info is recorded in the same step.
+ * This avoids any runtime introspection of the provider object.
  */
-export function buildOAuthProviders(): Provider[] {
-  const list: Provider[] = [];
+function build(): Built {
+  const providers: Provider[] = [];
+  const info: OAuthProviderInfo[] = [];
 
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    list.push(
+    providers.push(
       Google({
         clientId: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       })
     );
+    info.push({ id: "google", name: "Google" });
   }
 
   if (
     process.env.MICROSOFT_ENTRA_ID_CLIENT_ID &&
     process.env.MICROSOFT_ENTRA_ID_CLIENT_SECRET
   ) {
-    list.push(
+    providers.push(
       MicrosoftEntraID({
         clientId: process.env.MICROSOFT_ENTRA_ID_CLIENT_ID,
         clientSecret: process.env.MICROSOFT_ENTRA_ID_CLIENT_SECRET,
@@ -60,39 +70,42 @@ export function buildOAuthProviders(): Provider[] {
         }/v2.0`,
       })
     );
+    info.push({ id: "microsoft-entra-id", name: "Microsoft" });
   }
 
   if (process.env.APPLE_CLIENT_ID && process.env.APPLE_CLIENT_SECRET) {
-    list.push(
+    providers.push(
       Apple({
         clientId: process.env.APPLE_CLIENT_ID,
         clientSecret: process.env.APPLE_CLIENT_SECRET,
       })
     );
+    info.push({ id: "apple", name: "Apple" });
   }
 
   if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
-    list.push(
+    providers.push(
       Facebook({
         clientId: process.env.FACEBOOK_CLIENT_ID,
         clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
       })
     );
+    info.push({ id: "facebook", name: "Meta" });
   }
 
-  return list;
+  return { providers, info };
+}
+
+/** NextAuth provider instances. Used in lib/auth.ts to wire the providers. */
+export function buildOAuthProviders(): Provider[] {
+  return build().providers;
 }
 
 /**
- * Returns the configured OAuth providers as a UI-friendly list, in the order
- * we want the buttons to appear. Server-only; do not import from a Client
- * Component.
+ * UI-friendly list of configured OAuth providers — one entry per
+ * `*_CLIENT_ID` + `*_CLIENT_SECRET` pair found in the environment.
+ * Server-only; do not import from a Client Component.
  */
 export function getEnabledOAuthProviders(): OAuthProviderInfo[] {
-  return buildOAuthProviders().map((p) => {
-    // NextAuth provider instances expose `id` for both function-style and
-    // object-style configs; we rely on that to look up our info table.
-    const id = ((p as unknown as { id?: string }).id ?? "") as OAuthProviderId;
-    return ALL_INFO[id];
-  }).filter((info): info is OAuthProviderInfo => Boolean(info));
+  return build().info;
 }

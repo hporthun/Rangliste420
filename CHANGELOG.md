@@ -8,6 +8,28 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.15] — 2026-04-29
+
+**Bugfix: OAuth-Buttons werden auf Vercel nicht angezeigt (Issue #33).**
+
+### Korrigiert
+
+- **Login-Page nicht mehr statisch generiert**: ohne explizites
+  `dynamic`-Flag prerenderte Next.js die Login-Seite zur Build-Zeit
+  und las dabei Env-Vars aus dem Build-Container statt aus dem
+  Vercel-Runtime. OAuth-Buttons fehlten dadurch dauerhaft, auch
+  wenn `GOOGLE_CLIENT_ID`/`SECRET` & Co. im Vercel-Dashboard
+  nachträglich gesetzt wurden. Fix:
+  `export const dynamic = "force-dynamic"` zwingt Per-Request-Rendering
+  → Env-Var-Änderungen wirken sofort, ohne Re-Deploy.
+- **`auth-providers.ts` refaktoriert**: Provider-Liste und
+  Display-Metadaten werden jetzt in einem einzigen Pass aufgebaut,
+  statt die `id` zur Laufzeit aus dem Provider-Objekt zu extrahieren.
+  Robust gegen die unterschiedlichen Rückgabetypen, die NextAuth-v5-
+  Provider-Helfer zurückgeben können.
+
+---
+
 ## [2026.04.14] — 2026-04-29
 
 **E-Mail-Konfiguration über das Webinterface (Issue #32).**

@@ -10,6 +10,14 @@ import Image from "next/image";
 import { LoginForm } from "./login-form";
 import { getEnabledOAuthProviders } from "@/lib/auth-providers";
 
+/**
+ * Force per-request rendering. Without this, Next.js may statically
+ * prerender the login page at build time and capture an empty OAuth list;
+ * env vars added later in the Vercel dashboard would not show up until the
+ * next deploy. (Issue #33)
+ */
+export const dynamic = "force-dynamic";
+
 export default function LoginPage() {
   const oauthProviders = getEnabledOAuthProviders();
 

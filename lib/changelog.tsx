@@ -77,6 +77,30 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.15",
+    date: "2026-04-29",
+    title: "Bugfix OAuth-Buttons",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            <strong>OAuth-Buttons fehlten auf Vercel</strong> (Issue #33):
+            Next.js prerendete die Login-Seite zur Build-Zeit, sodass nachträglich
+            im Dashboard gesetzte Provider-Env-Vars nie gelesen wurden. Mit{" "}
+            <code className="font-mono text-xs">dynamic = &quot;force-dynamic&quot;</code>{" "}
+            rendert die Seite jetzt pro Request — Änderungen an Env-Vars
+            wirken sofort. Zusätzlich wurde{" "}
+            <code className="font-mono text-xs">auth-providers.ts</code>{" "}
+            refaktoriert, sodass Provider und UI-Metadaten in einem Schritt
+            aufgebaut werden statt die ID zur Laufzeit zu extrahieren —
+            robust gegen verschiedene Rückgabe-Typen der NextAuth-Provider.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.14",
     date: "2026-04-29",
     title: "E-Mail-Konfiguration im Web-UI",
