@@ -77,6 +77,25 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.19",
+    date: "2026-04-29",
+    title: "Beta-Hinweis Public-Seiten",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            <strong>Beta-Hinweis</strong> auf allen öffentlichen Seiten
+            (Issue #34): Klar sichtbarer amber-farbener Banner unter dem
+            Header informiert die Besucher, dass die App noch in der
+            Entwicklung ist und Ranglisten fehlerhaft oder unvollständig
+            sein können. Admin-Bereich bleibt unverändert.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.18",
     date: "2026-04-29",
     title: "Bugfix IDJM s-Berechnung",

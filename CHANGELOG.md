@@ -8,6 +8,22 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.19] — 2026-04-29
+
+**Beta-Hinweis-Banner auf Public-Seiten (Issue #34).**
+
+### Neu
+
+- **Sichtbarer Hinweis** auf allen öffentlichen Seiten (Startseite,
+  Ranglisten, Regatten, Detail-Seiten): „Diese App ist noch in der
+  Entwicklung. Die angezeigten Ranglisten können fehlerhaft oder
+  unvollständig sein und sind nicht als verbindliche Ergebnisse zu
+  betrachten." Banner ist amber, mit Warn-Icon, direkt unter dem
+  Header positioniert. Bewusst nicht ausblendbar, solange wir noch
+  in der Beta-Phase sind. Admin-Bereich bleibt unberührt.
+
+---
+
 ## [2026.04.18] — 2026-04-29
 
 **Bugfix: IDJM-Quali zählt jetzt korrekt alle gestarteten Boote in s.**

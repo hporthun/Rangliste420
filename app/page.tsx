@@ -3,6 +3,7 @@ import Link from "next/link";
 import { db } from "@/lib/db/client";
 import { BarChart3, Trophy, ArrowRight, ExternalLink } from "lucide-react";
 import { PublicNav } from "./(public)/public-nav";
+import { DevWarningBanner } from "./(public)/dev-warning-banner";
 
 export default async function Home() {
   const [rankingCount, regattaCount, recentRankings] = await Promise.all([
@@ -50,6 +51,8 @@ export default async function Home() {
           <PublicNav />
         </div>
       </header>
+
+      <DevWarningBanner />
 
       <main className="flex-1">
 
