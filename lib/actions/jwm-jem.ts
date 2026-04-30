@@ -175,16 +175,26 @@ export async function computeJwmJemAction(
       ),
     ];
 
-    const sailorNationalities = await db.sailor.findMany({
+    const sailorData = await db.sailor.findMany({
       where: { id: { in: helmIds } },
-      select: { id: true, nationality: true },
+      select: { id: true, nationality: true, member420: true },
     });
     const helmNationalities: Record<string, string> = Object.fromEntries(
-      sailorNationalities.map((s) => [s.id, s.nationality])
+      sailorData.map((s) => [s.id, s.nationality])
+    );
+    const memberHelmIds = new Set(
+      sailorData.filter((s) => s.member420).map((s) => s.id)
     );
 
+    // Filter out non-members entirely — they don't appear in results and
+    // don't count towards the starters total.
+    const regattasForScoring = regattas.map((reg) => ({
+      ...reg,
+      results: reg.results.filter((r) => memberHelmIds.has(r.teamEntry.helmId)),
+    }));
+
     const output = calculateJwmJemQuali({
-      regattas,
+      regattas: regattasForScoring,
       ageCategory,
       genderCategory,
       referenceDate: new Date(referenceDate),

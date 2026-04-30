@@ -173,6 +173,17 @@ export function SailorForm({ action, sailor }: Props) {
         />
       </Field>
 
+      <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+        <input
+          type="checkbox"
+          name="member420"
+          defaultChecked={sailor?.member420 ?? true}
+          className="h-4 w-4 rounded border-gray-300"
+        />
+        <span className="font-medium">Mitglied 420er-Klassenvereinigung</span>
+        <span className="text-muted-foreground font-normal">(Pflicht für JWM/JEM-Quali)</span>
+      </label>
+
       <div>
         <label className="block text-sm font-medium mb-1">
           Alternative Namen{" "}

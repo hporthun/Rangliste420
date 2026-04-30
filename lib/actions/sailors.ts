@@ -57,6 +57,8 @@ function parseInput(data: FormData | Record<string, unknown>) {
     gender: raw.gender || null,
     club: raw.club || null,
     sailingLicenseId: raw.sailingLicenseId || null,
+    // HTML checkbox: "on" when checked, absent when unchecked
+    member420: raw.member420 === "on" || raw.member420 === true,
   });
 }
 

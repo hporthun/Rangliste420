@@ -77,6 +77,23 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.41",
+    date: "2026-04-30",
+    title: "Mitglied 420er-Klassenvereinigung",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Segler haben jetzt ein Flag „Mitglied 420er-Klassenvereinigung"
+            (Standard: aktiviert). Nur Mitglieder werden in der
+            JWM/JEM-Qualifikationsberechnung berücksichtigt.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.40",
     date: "2026-04-30",
     title: "IDJM: Altersfilter nach Saisonstichtag",

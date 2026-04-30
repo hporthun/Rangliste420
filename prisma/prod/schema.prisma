@@ -34,6 +34,8 @@ model Sailor {
   sailingLicenseId String?
   // JSON-serialized string array of alternative names used for fuzzy matching
   alternativeNames String    @default("[]")
+  // Mitglied der 420er-Klassenvereinigung — Pflicht für JWM/JEM-Quali
+  member420        Boolean   @default(true)
 
   helmEntries TeamEntry[] @relation("HelmSailor")
   crewEntries TeamEntry[] @relation("CrewSailor")

@@ -9,6 +9,7 @@ export const sailorSchema = z.object({
   club: z.string().max(200).optional().nullable(),
   sailingLicenseId: z.string().max(50).optional().nullable(),
   alternativeNames: z.array(z.string().min(1).max(200)).default([]),
+  member420: z.boolean().default(true),
 });
 
 export type SailorInput = z.infer<typeof sailorSchema>;

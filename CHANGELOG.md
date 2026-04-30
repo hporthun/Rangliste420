@@ -8,6 +8,20 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.41] — 2026-04-30
+
+**Segler: Flag „Mitglied 420er-Klassenvereinigung".**
+
+### Neu
+
+- Neues Boolean-Feld `member420` an jedem Segler (Default: aktiviert).
+  Editierbar in der Segler-Bearbeitungsmaske als Checkbox.
+- In der JWM/JEM-Qualifikationsberechnung werden nur Mitglieder
+  berücksichtigt — Nicht-Mitglieder zählen weder als Starter noch
+  erscheinen sie in der Rangliste.
+
+---
+
 ## [2026.04.40] — 2026-04-30
 
 **IDJM: Altersfilter nach Saisonstichtag statt Regattadatum.**
