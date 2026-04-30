@@ -77,6 +77,30 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.32",
+    date: "2026-04-30",
+    title: "Ergebnislisten manuell bearbeitbar",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Jeder Eintrag in der Regatta-Detailseite hat jetzt ein
+            Stift-Icon. Das Modal erlaubt es, Segelnummer, Startgebiet-
+            Flag (SG) sowie alle Einzelwertungen (Punkte, Code wie DNC /
+            DNS / BFD / …, Streichungs-Flag) nachträglich zu korrigieren.
+            Nettopunkte und Platzierungen der gesamten Regatta werden
+            automatisch neu berechnet.
+          </>,
+          <>
+            Mülleimer-Icon löscht einen Eintrag nach Bestätigung;
+            die Platzierungen der verbleibenden Einträge werden neu vergeben.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.31",
     date: "2026-04-30",
     title: "Velaware-PDF: Nationen werden geparst",

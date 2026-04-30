@@ -8,6 +8,22 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.32] — 2026-04-30
+
+**Ergebnislisten manuell bearbeitbar.**
+
+### Neu
+
+- Jeder Eintrag in der Regatta-Detailseite hat jetzt ein Stift-Icon: das
+  Modal erlaubt es, Segelnummer, Startgebiet-Flag (SG) sowie alle
+  Einzelwertungen (Punkte, Code wie DNC/DNS/BFD/…, Streichungs-Flag) zu
+  korrigieren. Nach dem Speichern werden Nettopunkte und Platzierungen der
+  gesamten Regatta automatisch neu berechnet.
+- Mülleimer-Icon löscht einen Eintrag nach Bestätigung; die Platzierungen
+  der verbleibenden Einträge werden ebenfalls neu vergeben.
+
+---
+
 ## [2026.04.31] — 2026-04-30
 
 **Velaware-PDF: Nationen werden geparst.**
