@@ -15,7 +15,7 @@ import type { ParsedRaceScore } from "./manage2sail-paste";
 
 export const PENALTY_CODES_SET = new Set([
   "DNC", "DNS", "DNF", "DSQ", "BFD", "OCS", "RET", "WFD",
-  "UFD", "SCP", "TLE", "OOD", "DGM", "ZFP", "RDG",
+  "UFD", "SCP", "TLE", "OOD", "DGM", "ZFP", "RDG", "DNE",
 ]);
 
 export type RawItem = { str: string; x: number; y: number };
