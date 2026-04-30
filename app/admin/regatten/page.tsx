@@ -67,11 +67,11 @@ export default async function RegattenPage({ searchParams }: Props) {
   const q = sp.q?.trim() ?? "";
 
   // Collect all years that have regattas for the filter dropdown
-  const allRegattas = await db.regatta.findMany({
+  const allDates = await db.regatta.findMany({
     select: { startDate: true },
     orderBy: { startDate: "asc" },
   });
-  const years = [...new Set(allRegattas.map((r) => r.startDate.getFullYear()))].sort();
+  const years = [...new Set(allDates.map((r) => r.startDate.getFullYear()))].sort();
 
   const currentYear = new Date().getFullYear();
 
