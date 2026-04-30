@@ -14,7 +14,8 @@
  *   inkl. Crew-Namen, teamKey (für React-Keys, da ein Helm mehrere Zeilen
  *   haben kann) und splitFromSwap-Flag
  * - `saveJwmJemAction` — persistiert die Quali als `Ranking` mit Type
- *   `JWM_QUALI` oder `JEM_QUALI` (s. `Ranking.type` in Schema)
+ *   `JWM_QUALI` oder `JEM_QUALI`. Optionales `editId` → Update (Issue #42)
+ * - `getJwmJemRankingForEditAction` — lädt gespeicherte Params zur Bearbeitung
  *
  * Schreibt in: `Ranking` + `RankingRegatta` (nur saveJwmJemAction).
  * Compute liest pure aus `Regatta`/`Result`/`TeamEntry`.
@@ -290,7 +291,8 @@ export async function computeJwmJemAction(
 
 export async function saveJwmJemAction(
   params: JwmJemParams,
-  name: string
+  name: string,
+  editId?: string | null
 ): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   const session = await auth();
   if (!session) return { ok: false, error: "Nicht angemeldet." };
@@ -308,7 +310,6 @@ export async function saveJwmJemAction(
       return { ok: false, error: "Maximal 3 Regatten können ausgewählt werden." };
     }
 
-    // Determine seasonStart from earliest regatta date
     const regattas = await db.regatta.findMany({
       where: { id: { in: regattaIds } },
       select: { startDate: true },
@@ -321,6 +322,30 @@ export async function saveJwmJemAction(
 
     const seasonStart = regattas[0].startDate;
     const seasonEnd = new Date(referenceDate);
+
+    if (editId) {
+      // Update existing ranking
+      await db.$transaction([
+        db.ranking.update({
+          where: { id: editId },
+          data: {
+            name: trimmedName,
+            type,
+            seasonStart,
+            seasonEnd,
+            ageCategory,
+            genderCategory,
+            scoringRule: JSON.stringify({ kind: "jwm_jem_quali", type }),
+          },
+        }),
+        db.rankingRegatta.deleteMany({ where: { rankingId: editId } }),
+        db.rankingRegatta.createMany({
+          data: regattaIds.map((id) => ({ rankingId: editId, regattaId: id })),
+        }),
+      ]);
+      revalidatePath("/admin/ranglisten");
+      return { ok: true, id: editId };
+    }
 
     const ranking = await db.ranking.create({
       data: {
@@ -343,4 +368,52 @@ export async function saveJwmJemAction(
   } catch (e) {
     return { ok: false, error: String(e) };
   }
+}
+
+// ── getJwmJemRankingForEditAction ─────────────────────────────────────────────
+
+export type JwmJemEditData = {
+  id: string;
+  name: string;
+  params: JwmJemParams;
+};
+
+export async function getJwmJemRankingForEditAction(
+  id: string
+): Promise<{ ok: true; data: JwmJemEditData } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
+
+  const r = await db.ranking.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      type: true,
+      seasonEnd: true,
+      ageCategory: true,
+      genderCategory: true,
+      rankingRegattas: { select: { regattaId: true } },
+    },
+  });
+
+  if (!r) return { ok: false, error: "Rangliste nicht gefunden." };
+  if (r.type !== "JWM_QUALI" && r.type !== "JEM_QUALI") {
+    return { ok: false, error: "Kein JWM/JEM-Typ." };
+  }
+
+  return {
+    ok: true,
+    data: {
+      id: r.id,
+      name: r.name,
+      params: {
+        type: r.type as "JWM_QUALI" | "JEM_QUALI",
+        regattaIds: r.rankingRegattas.map((rr) => rr.regattaId),
+        ageCategory: r.ageCategory as JwmJemParams["ageCategory"],
+        genderCategory: r.genderCategory as JwmJemParams["genderCategory"],
+        referenceDate: r.seasonEnd.toISOString().slice(0, 10),
+      },
+    },
+  };
 }
