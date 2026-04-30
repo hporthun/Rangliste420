@@ -77,6 +77,8 @@ const updateTeamEntrySchema = z.object({
   sailNumber: z.string().max(30).nullable(),
   inStartArea: z.boolean(),
   raceScores: z.array(raceScoreSchema),
+  /** Explizit gesetzter Rang. null = automatisch neu berechnen. */
+  manualRank: z.number().int().min(1).nullable().optional(),
 });
 
 /**
@@ -96,7 +98,7 @@ export async function updateTeamEntryAction(
   if (!parsed.success) {
     return { ok: false, error: "Ungültige Eingabe: " + parsed.error.issues[0]?.message };
   }
-  const { teamEntryId, sailNumber, inStartArea, raceScores } = parsed.data;
+  const { teamEntryId, sailNumber, inStartArea, raceScores, manualRank } = parsed.data;
 
   const entry = await db.teamEntry.findUnique({
     where: { id: teamEntryId },
@@ -123,14 +125,18 @@ export async function updateTeamEntryAction(
               racePoints: JSON.stringify(raceScores),
               finalPoints,
               inStartArea,
+              // Rang nur explizit setzen wenn übergeben; bei null → Neuberechnung unten
+              ...(manualRank != null ? { finalRank: manualRank } : {}),
             },
           }),
         ]
       : []),
   ]);
 
-  // Alle Einträge neu ranken
-  await rerankRegatta(regattaId);
+  // Auto-Reranking nur wenn kein manueller Rang gesetzt wurde
+  if (manualRank == null) {
+    await rerankRegatta(regattaId);
+  }
 
   revalidatePath(`/admin/regatten/${regattaId}`);
   return { ok: true };
