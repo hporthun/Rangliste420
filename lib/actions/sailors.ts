@@ -36,6 +36,7 @@ import { auth } from "@/lib/auth";
 import { sailorSchema } from "@/lib/schemas/sailor";
 import { revalidatePath } from "next/cache";
 import { parseStammdaten } from "@/lib/import/parse-stammdaten";
+import { parseStammdatenCsv } from "@/lib/import/parse-stammdaten-csv";
 import { findMatches } from "@/lib/import/matching";
 import { toTitleCase } from "@/lib/import/normalize";
 import { logAudit, A } from "@/lib/security/audit";
@@ -401,6 +402,109 @@ export async function applyStammdatenAction(
     }
     revalidatePath("/admin/segler");
     return { ok: true, count };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+
+// ── CSV-Stammdaten-Import (Seglerdaten_JJJJ.csv) ──────────────────────────────
+
+export type StammdatenCsvPreviewRow = {
+  idx: number;
+  lastName: string;
+  firstName: string;
+  birthYear: number | null;
+  duplicateName: boolean;
+  matchedSailorId: string | null;
+  matchedName: string | null;
+  matchedBirthYear: number | null;
+  matchScore: number;
+  matchType: "exact" | "fuzzy" | "none";
+};
+
+export async function previewStammdatenCsvAction(
+  text: string
+): Promise<{ ok: true; rows: StammdatenCsvPreviewRow[] } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
+  try {
+    const parsed = parseStammdatenCsv(text);
+    if (parsed.length === 0) return { ok: false, error: "Keine Zeilen erkannt. Bitte Headerzeile und Spaltenfolge prüfen (Name, Vorname, Geburtsjahr)." };
+
+    const sailors = await db.sailor.findMany({
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        birthYear: true,
+        alternativeNames: true,
+        sailingLicenseId: true,
+      },
+    });
+
+    const rows: StammdatenCsvPreviewRow[] = parsed.map((row) => {
+      const matches = findMatches(row.firstName, row.lastName, null, sailors);
+      const top = matches[0];
+
+      if (!top) {
+        return {
+          ...row,
+          matchedSailorId: null,
+          matchedName: null,
+          matchedBirthYear: null,
+          matchScore: 0,
+          matchType: "none",
+        };
+      }
+
+      const matched = sailors.find((s) => s.id === top.candidate.id)!;
+      return {
+        ...row,
+        matchedSailorId: matched.id,
+        matchedName: `${matched.firstName} ${matched.lastName}`,
+        matchedBirthYear: matched.birthYear,
+        matchScore: top.score,
+        matchType: top.confidence === "high" ? "exact" : "fuzzy",
+      };
+    });
+
+    return { ok: true, rows };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+
+export async function applyStammdatenCsvAction(input: {
+  updates: Array<{ sailorId: string; birthYear: number }>;
+  newSailors: Array<{ firstName: string; lastName: string; birthYear: number | null }>;
+}): Promise<{ ok: true; updated: number; created: number } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
+  try {
+    let updated = 0;
+    for (const u of input.updates) {
+      await db.sailor.update({
+        where: { id: u.sailorId },
+        data: { birthYear: u.birthYear },
+      });
+      updated++;
+    }
+
+    let created = 0;
+    for (const n of input.newSailors) {
+      await db.sailor.create({
+        data: {
+          firstName: toTitleCase(n.firstName),
+          lastName: toTitleCase(n.lastName),
+          birthYear: n.birthYear ?? undefined,
+          nationality: "GER",
+        },
+      });
+      created++;
+    }
+
+    revalidatePath("/admin/segler");
+    return { ok: true, updated, created };
   } catch (e) {
     return { ok: false, error: String(e) };
   }

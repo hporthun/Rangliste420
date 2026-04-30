@@ -8,6 +8,22 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.35] — 2026-04-30
+
+**CSV-Stammdatenimport.**
+
+### Neu
+
+- Neues Importformat auf `/admin/segler/import`: CSV-Datei `Seglerdaten_JJJJ.csv`
+  hochladen (Spalten: Name, Vorname, Geburtsjahr; kommagetrennt).
+  Bekannte Segler werden per Fuzzy-Matching zugeordnet, Geburtsjahr wird
+  vorgeschlagen. Neue Segler (kein Match) können direkt angelegt werden.
+  Konflikte (CSV-Geburtsjahr weicht von DB ab) werden farblich markiert.
+  Duplikate im CSV (gleicher Name, unterschiedliches Geburtsjahr) werden
+  mit „doppelt"-Badge gekennzeichnet.
+
+---
+
 ## [2026.04.34] — 2026-04-30
 
 **Ergebnisliste: Einträge manuell hinzufügen.**
