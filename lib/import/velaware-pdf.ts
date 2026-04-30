@@ -6,7 +6,12 @@
  *
  * Quirks:
  *  - Rank: plain integer (no ° suffix)
- *  - Sail: NAT code + number in the "Numero velico" column  ("ESP 55249")
+ *  - Sail: the visual "Numero velico" column has TWO sub-cells: a 3-letter
+ *    NAT code (left) and the digit sail number (right). The single header
+ *    text "Numero velico" sits between them, so the column boundaries from
+ *    `makeColDefs` (header midpoints) miss the NAT sub-cell. We therefore
+ *    widen the sailvelico column to span the full gap from the rank digit
+ *    to the start of the name, and classify items by content.
  *  - Nome: "Helm Name, Crew Name, Club, …" comma-separated in a single cell
  *  - Net points: Italian comma decimal ("63,0")
  *  - Scores: integers; "(29)" = discard; "ufd"/"bfd"/"dnc" = penalty code (lowercase)
@@ -71,7 +76,28 @@ function buildColDefs(header: RawItem[]): ColDef[] {
     cols.push({ name: "rank", x: sorted[0].x });
   }
 
-  return makeColDefs(cols);
+  const built = makeColDefs(cols);
+
+  // Velaware quirk: the "Numero velico" column visually has two sub-cells
+  // (NAT code on the left, digit sail number on the right). The header text
+  // sits centered, so makeColDefs's midpoint boundaries miss both sub-cells:
+  // the NAT code lands in the rank column, and short sail numbers can land
+  // in the nome column. Tighten rank's xEnd to just past the rank digits and
+  // widen sailvelico to span the full gap up to the name column.
+  const rankColIn = cols.find((c) => c.name === "rank");
+  const nomeColIn = cols.find((c) => c.name === "nome");
+  const rankCol = built.find((c) => c.name === "rank");
+  const sailCol = built.find((c) => c.name === "sailvelico");
+  const nomeCol = built.find((c) => c.name === "nome");
+  if (rankColIn && nomeColIn && rankCol && sailCol && nomeCol) {
+    const rankRight = rankColIn.x + 10; // rank digits are 1–2 chars wide
+    rankCol.xEnd = rankRight;
+    sailCol.xStart = rankRight;
+    sailCol.xEnd = nomeColIn.x;
+    nomeCol.xStart = nomeColIn.x;
+  }
+
+  return built;
 }
 
 function parsePage(pageItems: RawItem[]): ParsedEntry[] {
@@ -119,10 +145,25 @@ function parsePage(pageItems: RawItem[]): ParsedEntry[] {
     const rank = parseInt(rankText, 10);
     if (isNaN(rank)) continue;
 
-    // Sail number: NAT code + number from the velico column, joined
+    // Sail number: classify items in the (widened) velico column by content.
+    // 3-letter alpha tokens are NAT codes; everything else is the sail digits.
     const sailItems = colItems(items, "sailvelico", cols);
-    const sailRaw = sailItems.map((it) => it.str).join(" ").trim();
-    const sailNumber = sailRaw || null;
+    let nationality: string | undefined;
+    const sailDigits: string[] = [];
+    for (const it of sailItems) {
+      const t = it.str.trim();
+      if (!t) continue;
+      if (/^[A-Z]{2,3}$/.test(t)) {
+        nationality = t;
+      } else {
+        sailDigits.push(t);
+      }
+    }
+    const sailNumber = sailDigits.length
+      ? nationality
+        ? `${nationality} ${sailDigits.join(" ")}`
+        : sailDigits.join(" ")
+      : nationality ?? null;
 
     // Nome: "Helm Name, Crew Name, Club, …"
     const nomeRaw = colText(items, "nome", cols);
@@ -166,6 +207,7 @@ function parsePage(pageItems: RawItem[]): ParsedEntry[] {
       netPoints,
       raceScores,
       inStartAreaSuggestion: detectInStartArea(raceScores),
+      ...(nationality && { nationality }),
     });
   }
 

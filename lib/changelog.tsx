@@ -77,6 +77,31 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.31",
+    date: "2026-04-30",
+    title: "Velaware-PDF: Nationen werden geparst",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            Beim Import von Velaware-Ergebnislisten (Italien, z. B.
+            Imperia Winter Regatta) wurden die Nationenkürzel bisher
+            verloren — die Spalte „Numero velico" enthält visuell zwei
+            Sub-Zellen, lag aber unter einer einzelnen Headerschrift.
+            Jetzt landet der NAT-Code („ESP", „ITA", …) korrekt in der
+            Segelnummer und im neuen <code>nationality</code>-Feld.
+          </>,
+          <>
+            Der Filter „nur deutsche Crews" beim PDF-Import nutzt jetzt
+            die geparste Nationalität und entfernt ausländische Crews
+            zuverlässig.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.30",
     date: "2026-04-30",
     title: "Suchfelder ignorieren Groß-/Kleinschreibung",
