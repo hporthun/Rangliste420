@@ -32,7 +32,6 @@ export default async function RanglistePage({ params }: Props) {
   // ── JWM/JEM Quali branch ───────────────────────────────────────────────────
   if (ranking.type === "JWM_QUALI" || ranking.type === "JEM_QUALI") {
     const jwmParams: JwmJemParams = {
-      type: ranking.type,
       regattaIds: ranking.rankingRegattas.map((rr) => rr.regattaId),
       ageCategory: ranking.ageCategory as JwmJemParams["ageCategory"],
       genderCategory: ranking.genderCategory as JwmJemParams["genderCategory"],
