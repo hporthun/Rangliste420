@@ -7,9 +7,10 @@ import { saveJwmJemAction, type JwmJemParams } from "@/lib/actions/jwm-jem";
 type Props = {
   params: JwmJemParams;
   defaultName: string;
+  editId?: string | null;
 };
 
-export function JwmJemSaveForm({ params, defaultName }: Props) {
+export function JwmJemSaveForm({ params, defaultName, editId }: Props) {
   const router = useRouter();
   const [name, setName] = useState(defaultName);
   const [saving, setSaving] = useState(false);
@@ -19,7 +20,7 @@ export function JwmJemSaveForm({ params, defaultName }: Props) {
     if (!name.trim()) return;
     setSaving(true);
     setError(null);
-    const result = await saveJwmJemAction(params, name.trim());
+    const result = await saveJwmJemAction(params, name.trim(), editId);
     if (result.ok) {
       router.push("/admin/ranglisten");
     } else {
@@ -49,7 +50,7 @@ export function JwmJemSaveForm({ params, defaultName }: Props) {
           disabled={saving || !name.trim()}
           className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
         >
-          {saving ? "Wird gespeichert…" : "Rangliste speichern"}
+          {saving ? "Wird gespeichert…" : editId ? "Rangliste aktualisieren" : "Rangliste speichern"}
         </button>
         <button
           type="button"
@@ -60,8 +61,9 @@ export function JwmJemSaveForm({ params, defaultName }: Props) {
         </button>
       </div>
       <p className="text-xs text-muted-foreground">
-        Die Rangliste wird als Entwurf gespeichert und kann anschließend
-        veröffentlicht werden.
+        {editId
+          ? "Die bestehende Rangliste wird mit den neuen Parametern überschrieben."
+          : "Die Rangliste wird als Entwurf gespeichert und kann anschließend veröffentlicht werden."}
       </p>
     </div>
   );

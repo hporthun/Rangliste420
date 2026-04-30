@@ -1,6 +1,10 @@
 import { db } from "@/lib/db/client";
 import Link from "next/link";
-import { computeJwmJemAction, type JwmJemParams } from "@/lib/actions/jwm-jem";
+import {
+  computeJwmJemAction,
+  getJwmJemRankingForEditAction,
+  type JwmJemParams,
+} from "@/lib/actions/jwm-jem";
 import { JwmJemSaveForm } from "./save-form";
 import { RegattaFilterList } from "./regatta-filter-list";
 import type { AgeCategory, GenderCategory } from "@/lib/scoring/filters";
@@ -15,31 +19,42 @@ type Props = {
     gender?: string;
     regattas?: string | string[];
     ref?: string;
+    editId?: string;
   }>;
 };
 
 export default async function JwmJemPage({ searchParams }: Props) {
   const sp = await searchParams;
 
-  const type = (sp.type === "JEM_QUALI" ? "JEM_QUALI" : "JWM_QUALI") as
-    | "JWM_QUALI"
-    | "JEM_QUALI";
+  // Edit mode: load saved params; URL params still take precedence
+  const editing = sp.editId
+    ? await getJwmJemRankingForEditAction(sp.editId)
+    : null;
+  const editingData = editing?.ok ? editing.data : null;
+
+  const type = (
+    sp.type
+      ? sp.type === "JEM_QUALI" ? "JEM_QUALI" : "JWM_QUALI"
+      : editingData?.params.type ?? "JWM_QUALI"
+  ) as "JWM_QUALI" | "JEM_QUALI";
+
   const age = (AGE_CATEGORIES.includes(sp.age as AgeCategory)
     ? sp.age
-    : "U19") as AgeCategory;
+    : editingData?.params.ageCategory ?? "U19") as AgeCategory;
+
   const gender = (GENDER_CATEGORIES.includes(sp.gender as GenderCategory)
     ? sp.gender
-    : "OPEN") as GenderCategory;
+    : editingData?.params.genderCategory ?? "OPEN") as GenderCategory;
 
   const rawRegattas = sp.regattas;
   const regattaIds = Array.isArray(rawRegattas)
     ? rawRegattas
     : rawRegattas
     ? [rawRegattas]
-    : [];
+    : (editingData?.params.regattaIds ?? []);
 
   const defaultRef = new Date().toISOString().slice(0, 10);
-  const ref = sp.ref ?? defaultRef;
+  const ref = sp.ref ?? editingData?.params.referenceDate ?? defaultRef;
 
   const hasParams = regattaIds.length > 0;
 
@@ -76,7 +91,7 @@ export default async function JwmJemPage({ searchParams }: Props) {
   const result = hasParams ? await computeJwmJemAction(params) : null;
 
   const typeLabel = type === "JWM_QUALI" ? "JWM-Quali" : "JEM-Quali";
-  const defaultName = `${typeLabel} ${new Date(ref).getFullYear()} ${age}/${gender}`;
+  const defaultName = editingData?.name ?? `${typeLabel} ${new Date(ref).getFullYear()} ${age}/${gender}`;
 
   return (
     <div className="space-y-6">
@@ -89,7 +104,9 @@ export default async function JwmJemPage({ searchParams }: Props) {
             ← Ranglisten
           </Link>
           <h1 className="text-xl font-semibold mt-1">
-            JWM/JEM-Qualifikationsrangliste berechnen
+            {editingData
+              ? `JWM/JEM-Rangliste bearbeiten — ${editingData.name}`
+              : "JWM/JEM-Qualifikationsrangliste berechnen"}
           </h1>
           <p className="text-sm text-muted-foreground">
             Klassenspezifische Sonderregel (420er-Klassenvereinigung). Bis zu 3
@@ -221,8 +238,14 @@ export default async function JwmJemPage({ searchParams }: Props) {
 
           {/* Save section */}
           <div className="space-y-2">
-            <h2 className="font-semibold text-base">Rangliste speichern</h2>
-            <JwmJemSaveForm params={params} defaultName={defaultName} />
+            <h2 className="font-semibold text-base">
+              {editingData ? "Rangliste aktualisieren" : "Rangliste speichern"}
+            </h2>
+            <JwmJemSaveForm
+              params={params}
+              defaultName={defaultName}
+              editId={editingData?.id ?? null}
+            />
           </div>
         </div>
       )}

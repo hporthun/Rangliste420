@@ -6,13 +6,14 @@ import { Pencil, Trash2, Check, X, Loader2, Settings2 } from "lucide-react";
 import { deleteRankingAction, renameRankingAction } from "@/lib/actions/rankings";
 import Link from "next/link";
 
-/**
- * Whether this ranking type can be re-edited via the vorschau form.
- * JWM/JEM-Quali use a different flow (jwm-jem page); we hide the edit
- * button for those rather than send the user to the wrong place.
- */
-function isEditableType(type: string | undefined): boolean {
-  return type === "JAHRESRANGLISTE" || type === "IDJM";
+function editHref(id: string, type: string | undefined): string | null {
+  if (type === "JAHRESRANGLISTE" || type === "IDJM") {
+    return `/admin/ranglisten/vorschau?editId=${id}`;
+  }
+  if (type === "JWM_QUALI" || type === "JEM_QUALI") {
+    return `/admin/ranglisten/jwm-jem?editId=${id}`;
+  }
+  return null;
 }
 
 export function RankingActions({ id, name, type }: { id: string; name: string; type?: string }) {
@@ -135,9 +136,9 @@ export function RankingActions({ id, name, type }: { id: string; name: string; t
       </td>
       <td className="px-2 py-2 text-right whitespace-nowrap">
         <div className="flex items-center justify-end gap-1">
-          {isEditableType(type) && (
+          {editHref(id, type) && (
             <Link
-              href={`/admin/ranglisten/vorschau?editId=${id}`}
+              href={editHref(id, type)!}
               title="Berechnung bearbeiten"
               className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
             >
