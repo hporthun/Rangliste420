@@ -4,6 +4,7 @@ import { Geist_Mono } from "next/font/google";
 import { cookies } from "next/headers";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AppBadge } from "@/components/app-badge";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -76,6 +77,7 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <AppBadge />
           {children}
         </ThemeProvider>
       </body>

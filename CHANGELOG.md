@@ -8,6 +8,26 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.26] — 2026-04-30
+
+**App-Symbol-Plakette für neue Inhalte (Issue #35).**
+
+### Neu
+
+- **PWA-App-Badge**: Das installierte App-Symbol zeigt eine kleine Zahl,
+  wenn seit dem letzten Besuch neue Inhalte vorliegen. Drei Kategorien
+  zählen je 1: ein neuer Changelog-Eintrag, eine neue
+  Ranglistenregatta, eine neue veröffentlichte Rangliste. Das Markieren
+  als gesehen passiert automatisch beim Öffnen der jeweiligen Liste
+  (`/admin/changelog`, `/regatten`, `/rangliste`).
+- Browser-Unterstützung: Chrome/Edge auf Windows/macOS/ChromeOS sowie
+  installierte iOS-PWAs ab iOS 16.4. Browser ohne Badging-API
+  ignorieren die Aufrufe stillschweigend — keine Funktion geht verloren.
+- Server-Endpoint `/api/badge` liefert nur Zeitstempel/Versionen, keine
+  Nutzerdaten. Der Vergleich passiert clientseitig in localStorage.
+
+---
+
 ## [2026.04.25] — 2026-04-30
 
 **Codebase-Aufräumarbeiten — keine Verhaltensänderungen für End-User.**

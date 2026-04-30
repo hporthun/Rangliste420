@@ -77,6 +77,26 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.26",
+    date: "2026-04-30",
+    title: "App-Symbol-Plakette",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            <strong>App-Badge</strong>: Das installierte PWA-Symbol bekommt
+            eine kleine Zahl, sobald seit dem letzten Besuch ein neuer
+            Changelog-Eintrag, eine neue Ranglistenregatta oder eine neue
+            veröffentlichte Rangliste vorliegt. Markieren als gesehen
+            passiert automatisch beim Öffnen der jeweiligen Liste.
+            (Issue #35)
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.25",
     date: "2026-04-30",
     title: "Codebase-Aufräumarbeiten",
