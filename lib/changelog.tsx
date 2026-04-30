@@ -77,6 +77,30 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.22",
+    date: "2026-04-30",
+    title: "Bugfix Regatta-Detail s-Wert",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            <strong>Öffentliche Regatta-Detail-Seite ignorierte totalStarters</strong>:
+            Die R_A-Anzeige auf{" "}
+            <code className="font-mono text-xs">/regatta/[id]</code> hat
+            unabhängig von der Scoring-Engine{" "}
+            <code className="font-mono text-xs">s = results.length</code>{" "}
+            hartcodiert. Bei Auslandsregatten wie Carnival 2026 (126 Teilnehmer,
+            12 importierte Deutsche) führte das zu negativen R_A-Werten
+            (z.B. −450 für Platz 58 von 12 angeblichen Booten). Jetzt wird
+            <code className="ml-1 font-mono text-xs">totalStarters ?? results.length</code>{" "}
+            verwendet, konsistent zur Rangliste.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.21",
     date: "2026-04-30",
     title: "s-Wert in Vorschau sichtbar",

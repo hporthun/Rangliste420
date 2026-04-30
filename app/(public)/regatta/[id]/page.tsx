@@ -28,7 +28,11 @@ export default async function RegattaDetailPage({ params }: Props) {
   if (!regatta) notFound();
 
   const f = Number(regatta.ranglistenFaktor);
-  const s = regatta.results.length;
+  // s = Gesamtteilnehmerzahl der Regatta. Bevorzugt aus dem persistierten
+  // totalStarters-Feld (falls Auslandsregatta mit nicht-importierten
+  // Crews), Fallback auf die Anzahl tatsächlich importierter Ergebnisse.
+  // Muss konsistent zur Scoring-Engine in lib/scoring/dsv.ts sein.
+  const s = regatta.totalStarters ?? regatta.results.length;
 
   function dateRange(start: Date, end: Date) {
     const fmt = (d: Date) =>

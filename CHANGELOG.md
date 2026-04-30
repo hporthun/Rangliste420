@@ -8,6 +8,24 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.22] — 2026-04-30
+
+**Bugfix: öffentliche Regatta-Detail-Seite ignorierte totalStarters.**
+
+### Korrigiert
+
+- **`/regatta/[id]` (Public-Seite) nutzt jetzt totalStarters**: die
+  zweite, von der Scoring-Engine unabhängige R_A-Berechnung in der
+  Regatta-Detail-Ansicht hat hartcodiert `s = results.length` benutzt
+  und damit die manuell gepflegte Gesamtteilnehmerzahl ignoriert.
+  Konkret bei Auslandsregatten wie „Carnival Race 2026" (126 Teilnehmer
+  insgesamt, 12 importierte Deutsche) lieferte das negative R_A-Werte
+  (z.B. −450 für Platz 58 von 12). Jetzt: korrekter Wert via
+  `regatta.totalStarters ?? regatta.results.length` — analog zur
+  Scoring-Engine. Auch die „Starter s"-Karte oben zeigt jetzt 126.
+
+---
+
 ## [2026.04.21] — 2026-04-30
 
 **`s` pro Regatta in der Vorschau sichtbar.**
