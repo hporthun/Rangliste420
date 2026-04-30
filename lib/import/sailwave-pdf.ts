@@ -111,8 +111,12 @@ function parsePage(pageItems: RawItem[]): ParsedEntry[] {
     if (isNaN(rank)) continue;
 
     const nat = colText(items, "nat", cols);
-    const sailno = colText(items, "sailno", cols);
-    // Prefer plain number; prepend NAT only if useful
+    const sailnoRaw = colText(items, "sailno", cols);
+    // Strip non-numeric tokens (e.g. club website URLs accidentally entered in
+    // the sail-number field). Sailwave sail numbers are always plain integers —
+    // keep only the last digit-only token.
+    const sailnoTokens = sailnoRaw.split(/\s+/).filter((t) => /^\d+$/.test(t));
+    const sailno = sailnoTokens.at(-1) ?? sailnoRaw.trim();
     const sailNumber = sailno
       ? nat
         ? `${nat} ${sailno}`
