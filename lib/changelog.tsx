@@ -77,6 +77,25 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.36",
+    date: "2026-04-30",
+    title: "JWM/JEM-Quali bearbeiten",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Gespeicherte JWM- und JEM-Qualifikationsranglisten können jetzt
+            über das ⚙️-Icon in der Ranglisten-Übersicht bearbeitet werden.
+            Alle Parameter (Typ, Altersklasse, Gender, Stichtag, Regatten-
+            auswahl, Name) werden vorausgefüllt; beim Speichern wird die
+            bestehende Rangliste überschrieben statt neu angelegt.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.35",
     date: "2026-04-30",
     title: "CSV-Stammdatenimport",
