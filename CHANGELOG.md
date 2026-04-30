@@ -8,6 +8,23 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.33] — 2026-04-30
+
+**Sailwave 2.38+ PDF-Format unterstützt.**
+
+### Neu
+
+- Neuer Parser `sailwave2-pdf` erkennt und verarbeitet Sailwave-PDFs im
+  „Crewman 1 Name / Crewman 2 Name"-Format (z. B. JK Burja Spring Cup).
+  Unterschiede zum bisherigen Sailwave-Format: Platzierung als „1st/2nd/…",
+  eigene Nationality-Spalte mit NAT-Kürzel, Punkte als Integer, Gesamt/Netto
+  als „Total/Nett". Auto-Detection prüft jetzt als ersten Schritt auf
+  `Crewman 1` oder `Crewman 2` im Seitentext.
+- Penalty-Code `DNE` (Disqualification not excludable) in `PENALTY_CODES_SET`
+  ergänzt — wird korrekt als Strafpunktecode geparst.
+
+---
+
 ## [2026.04.32] — 2026-04-30
 
 **Ergebnislisten manuell bearbeitbar.**

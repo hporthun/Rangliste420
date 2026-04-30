@@ -77,6 +77,29 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.33",
+    date: "2026-04-30",
+    title: "Sailwave 2.38+ PDF-Format unterstützt",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Neuer Parser für Sailwave-PDFs im „Crewman 1 Name"-Format
+            (z. B. JK Burja Spring Cup). Platzierung als „1st/2nd/…",
+            eigene Nationality-Spalte, Integer-Punkte, Total/Nett.
+            Auto-Detection erkennt das Format automatisch.
+          </>,
+          <>
+            Penalty-Code <code>DNE</code> (Disqualification not
+            excludable, Regel 88.3(b)) wird jetzt korrekt als
+            nicht-streichbarer Strafpunktecode geparst.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.32",
     date: "2026-04-30",
     title: "Ergebnislisten manuell bearbeitbar",

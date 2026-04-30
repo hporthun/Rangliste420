@@ -3,10 +3,11 @@
  * Pages are extracted exactly once to avoid ArrayBuffer detachment issues.
  *
  * Detection order (first match wins):
- *   1. Sailwave    – page-1 item with text "crewname" (case-insensitive)
- *   2. SailResults – page-1 item with text "flight"
- *   3. Velaware    – page-1 item with text "punti" (Italian scoring)
- *   4. unknown     – tries all parsers and returns first with entries
+ *   1. Sailwave2   – page-1 item matching /^crewman\s*[12]/i ("Crewman 1 Name" format)
+ *   2. Sailwave    – page-1 item with text "crewname" (case-insensitive)
+ *   3. SailResults – page-1 item with text "flight"
+ *   4. Velaware    – page-1 item with text "punti" (Italian scoring)
+ *   5. unknown     – tries all parsers and returns first with entries
  */
 
 import type { ParsedEntry, ParsedRegatta } from "./manage2sail-paste";
@@ -40,6 +41,7 @@ function filterGerman(regatta: ParsedRegatta): ParsedRegatta {
 }
 
 export type PdfFormat =
+  | "sailwave2"
   | "sailwave"
   | "sailresults"
   | "velaware"
@@ -49,6 +51,8 @@ export type PdfFormat =
  * Detect the PDF format from page-1 text items.
  */
 export function detectPdfFormat(page1Texts: string[]): PdfFormat {
+  // Sailwave 2.38+ uses "Crewman 1 Name" / "Crewman 2 Name" column headers
+  if (page1Texts.some((t) => /^crewman\s*[12]/i.test(t))) return "sailwave2";
   const set = new Set(page1Texts.map((t) => t.toLowerCase()));
   if (set.has("crewname")) return "sailwave";
   if (set.has("flight")) return "sailresults";
@@ -70,7 +74,10 @@ export async function parsePdf(
 
   let result: ParsedRegatta | null = null;
 
-  if (format === "sailwave") {
+  if (format === "sailwave2") {
+    const { parsePages } = await import("./sailwave2-pdf");
+    result = filterGerman(parsePages(pages));
+  } else if (format === "sailwave") {
     const { parsePages } = await import("./sailwave-pdf");
     result = filterGerman(parsePages(pages));
   } else if (format === "sailresults") {
@@ -82,6 +89,7 @@ export async function parsePdf(
   } else {
     // Unknown format: try all parsers and take the first with entries
     const parsers = [
+      () => import("./sailwave2-pdf").then((m) => filterGerman(m.parsePages(pages))),
       () => import("./sailwave-pdf").then((m) => filterGerman(m.parsePages(pages))),
       () => import("./sailresults-pdf").then((m) => filterGerman(m.parsePages(pages))),
       () => import("./velaware-pdf").then((m) => filterGerman(m.parsePages(pages))),
@@ -101,7 +109,7 @@ export async function parsePdf(
 
   if (!result || result.entries.length === 0) {
     throw new Error(
-      "Keine Ergebnisse im PDF gefunden (oder keine deutschen Teilnehmer). Unterstützte Formate: Velaware, SailResults (Carnival), Sailwave."
+      "Keine Ergebnisse im PDF gefunden (oder keine deutschen Teilnehmer). Unterstützte Formate: Velaware, SailResults (Carnival), Sailwave, Sailwave 2.38+."
     );
   }
 
