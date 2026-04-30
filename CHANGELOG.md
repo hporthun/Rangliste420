@@ -8,6 +8,20 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.29] — 2026-04-30
+
+**Hinweis: „Inoffizielle Ranglisten" auf der öffentlichen Seite (Issue #37).**
+
+### Geändert
+
+- Hero-Texte auf der Startseite und der Ranglisten-Übersicht sprechen
+  jetzt von „Inoffizielle Ranglisten" / „Inoffizielle DSV-
+  Jahresrangliste". Die hier berechneten Ranglisten sind eine Service-
+  Anwendung der Klassenvereinigung — die offiziellen DSV-Ranglisten
+  bleiben bei den entsprechenden Stellen.
+
+---
+
 ## [2026.04.28] — 2026-04-30
 
 **Web-Push-Benachrichtigungen für neue Inhalte (Issue #36).**

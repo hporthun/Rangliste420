@@ -46,7 +46,7 @@ export default async function RanglisteIndexPage() {
       <div className="rounded-xl border bg-gradient-to-br from-card to-muted/40 px-6 py-6 shadow-sm">
         <h1 className="text-2xl font-bold tracking-tight">420er Ranglisten</h1>
         <p className="text-sm text-muted-foreground mt-1 max-w-lg">
-          Offizielle Ranglisten der 420er-Klassenvereinigung, berechnet nach DSV-Ranglistenordnung
+          Inoffizielle Ranglisten der 420er-Klassenvereinigung, berechnet nach DSV-Ranglistenordnung
           (gültig ab 01.01.2026).
         </p>
         <div className="mt-4 flex flex-wrap gap-3 text-xs text-muted-foreground">

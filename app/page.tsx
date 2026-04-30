@@ -78,7 +78,7 @@ export default async function Home() {
                 420er&thinsp;Klassen-<wbr />Rangliste
               </h1>
               <p className="text-white/70 mt-2 text-sm sm:text-base max-w-md">
-                Offizielle DSV-Jahresrangliste, Aktuelle Rangliste und
+                Inoffizielle DSV-Jahresrangliste, Aktuelle Rangliste und
                 IDJM-Qualifikation für die deutsche 420er-Klasse.
               </p>
               <div className="mt-6 flex flex-wrap gap-3 justify-center sm:justify-start">

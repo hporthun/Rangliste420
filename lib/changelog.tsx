@@ -77,6 +77,26 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.29",
+    date: "2026-04-30",
+    title: "„Inoffizielle Ranglisten" auf der öffentlichen Seite",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            Hero-Texte auf Start- und Ranglisten-Seite sprechen jetzt
+            von <em>Inoffizielle Ranglisten</em> / <em>Inoffizielle
+            DSV-Jahresrangliste</em>. Die hier berechneten Ranglisten
+            sind eine Service-Anwendung der Klassenvereinigung — die
+            offiziellen DSV-Ranglisten bleiben bei den entsprechenden
+            Stellen. (Issue #37)
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.28",
     date: "2026-04-30",
     title: "Push-Benachrichtigungen",
