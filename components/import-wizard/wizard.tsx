@@ -17,6 +17,8 @@ export type RegattaOption = {
   startDate: string;
   completedRaces: number;
   ranglistenFaktor: number;
+  /** Bereits gespeicherter Wert für Gesamtteilnehmerzahl, wenn vorhanden. */
+  totalStarters: number | null;
 };
 
 type WizardState =

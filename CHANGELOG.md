@@ -8,6 +8,24 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.23] — 2026-04-30
+
+**Gesamtteilnehmerzahl im Import-Wizard editierbar.**
+
+### Neu
+
+- **Eingabefeld „Gesamtteilnehmerzahl der Regatta"** im Preview-Schritt
+  des Import-Wizards. Der Wert wird automatisch aus dem Parser vorbelegt
+  (M2S API zählt vor dem germanOnly-Filter, Paste/PDF zählen ihre eigenen
+  Einträge). Bei Auslandsregatten, deren Paste nur die deutschen Crews
+  enthält, lässt sich der echte Gesamtwert (z.B. 126) hier vor dem
+  Commit eintragen — und wird dann zusammen mit dem Import auf die
+  Regatta gespeichert. Default berücksichtigt zudem einen bereits
+  manuell gepflegten Wert auf der Regatta, sodass ein Re-Import einen
+  vorher gesetzten Wert nicht stillschweigend überschreibt.
+
+---
+
 ## [2026.04.22] — 2026-04-30
 
 **Bugfix: öffentliche Regatta-Detail-Seite ignorierte totalStarters.**

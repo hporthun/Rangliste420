@@ -77,6 +77,29 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.23",
+    date: "2026-04-30",
+    title: "Gesamtteilnehmerzahl im Import-Wizard",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            <strong>Gesamtteilnehmerzahl im Import-Wizard editierbar</strong>:
+            Im Preview-Schritt erscheint jetzt ein klar markiertes Feld für die
+            Gesamtteilnehmerzahl der Regatta. Vorbelegt mit dem vom Parser
+            ermittelten Wert (M2S API zählt VOR dem germanOnly-Filter,
+            Paste/PDF zählen ihre eigenen Einträge). Bei Auslandsregatten,
+            deren Paste nur die deutschen Crews enthält, kann der echte Wert
+            (z.B. 126) hier vor dem Commit eingetragen werden und wird mit
+            dem Import auf die Regatta geschrieben. Re-Imports überschreiben
+            einen bereits gepflegten Wert nicht mehr stillschweigend.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.22",
     date: "2026-04-30",
     title: "Bugfix Regatta-Detail s-Wert",

@@ -18,6 +18,7 @@ export default async function ImportPage({ searchParams }: Props) {
       startDate: true,
       completedRaces: true,
       ranglistenFaktor: true,
+      totalStarters: true,
     },
   });
 
@@ -27,6 +28,7 @@ export default async function ImportPage({ searchParams }: Props) {
     startDate: r.startDate.toISOString(),
     completedRaces: r.completedRaces,
     ranglistenFaktor: Number(r.ranglistenFaktor),
+    totalStarters: r.totalStarters,
   }));
 
   return (

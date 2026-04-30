@@ -27,6 +27,25 @@ export function PreviewStep({
   const [error, setError] = useState<string | null>(null);
 
   const regatta = regattas.find((r) => r.id === regattaId);
+
+  // Default-Auswahl für die Gesamtteilnehmerzahl in dieser Reihenfolge:
+  //   1. Bereits manuell auf der Regatta gepflegter Wert (überschreibt
+  //      sich beim Re-Import nicht stillschweigend selbst)
+  //   2. Vom Parser ermittelter Wert (M2S API liefert die Vor-Filter-Anzahl,
+  //      Paste/PDF die Anzahl im Source)
+  //   3. Anzahl der geparsten Einträge als letzter Fallback
+  const parsedDefault =
+    parsedData.totalStarters ?? parsedData.entries.length;
+  const initialTotalStarters = regatta?.totalStarters ?? parsedDefault;
+  const [totalStarters, setTotalStarters] = useState<number>(initialTotalStarters);
+
+  // Track whether the user has manually changed the value, um in der UI
+  // einen Hinweis zu zeigen.
+  const overridden = totalStarters !== initialTotalStarters;
+  const sourceLabel =
+    regatta?.totalStarters != null
+      ? `bereits auf Regatta gespeichert: ${regatta.totalStarters}`
+      : `vom Parser ermittelt: ${parsedDefault}`;
   const newSailorsCount = entryDecisions.filter(
     (d) => d.helmDecision.type === "create"
   ).length;
@@ -41,7 +60,7 @@ export function PreviewStep({
       regattaId,
       entryDecisions,
       parsedData.numRaces,
-      parsedData.totalStarters,
+      totalStarters,
     );
     setLoading(false);
     if (!result.ok) {
@@ -83,6 +102,56 @@ export function PreviewStep({
             </>
           )}
         </div>
+      </div>
+
+      {/* Gesamtteilnehmerzahl — wird auf der Regatta gespeichert und bestimmt
+          s in der DSV-Formel R_A = f × 100 × ((s+1−x)/s).
+          Default = Anzahl tatsächlich importierter Crews. Bei Auslandsregatten
+          (z.B. Carnival mit 126 Booten, davon 12 Deutsche im Paste) hier den
+          echten Wert eintragen, damit R_A korrekt berechnet wird. */}
+      <div className="rounded-md border bg-blue-50/60 border-blue-200 px-4 py-3 space-y-2">
+        <div className="flex items-start gap-3 flex-wrap">
+          <div className="flex-1 min-w-[220px] space-y-1">
+            <label htmlFor="totalStarters" className="text-sm font-medium block">
+              Gesamtteilnehmerzahl der Regatta
+            </label>
+            <p className="text-xs text-muted-foreground">
+              Anzahl aller gestarteten Boote — inkl. ausländischer Crews, die
+              hier ggf. nicht als Einträge importiert werden. Wird auf die
+              Regatta gespeichert und bestimmt das{" "}
+              <code className="font-mono">s</code> in der DSV-Formel.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              id="totalStarters"
+              type="number"
+              min={0}
+              value={totalStarters}
+              onChange={(e) =>
+                setTotalStarters(Math.max(0, parseInt(e.target.value, 10) || 0))
+              }
+              className="input w-24 text-right font-mono"
+            />
+            {overridden && (
+              <button
+                type="button"
+                onClick={() => setTotalStarters(initialTotalStarters)}
+                className="text-xs text-muted-foreground hover:text-foreground underline"
+                title={sourceLabel}
+              >
+                ↺ {initialTotalStarters}
+              </button>
+            )}
+          </div>
+        </div>
+        <p className="text-xs text-blue-800">
+          Default ({sourceLabel}){overridden && (
+            <>
+              {" "}— manuell auf <strong>{totalStarters}</strong> gesetzt.
+            </>
+          )}
+        </p>
       </div>
 
       {/* Entry table */}
