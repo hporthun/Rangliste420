@@ -254,7 +254,10 @@ export default async function EditRegattaPage({ params }: Props) {
                           initialSailNumber={e.sailNumber ?? null}
                           initialInStartArea={e.result?.inStartArea ?? false}
                           numRaces={numRaces}
-                          initialRaceScores={e.racePoints}
+                          initialRaceScores={e.racePoints.map((rp) => ({
+                            ...rp,
+                            isDiscard: rp.isDiscard ?? false,
+                          }))}
                         />
                         <DeleteTeamEntryButton
                           teamEntryId={e.id}
