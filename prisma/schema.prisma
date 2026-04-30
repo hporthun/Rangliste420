@@ -286,6 +286,36 @@ model BackupSchedule {
   updatedAt          DateTime @updatedAt
 }
 
+// ── PushSubscription ──────────────────────────────────────────────────────────
+// Anonymous Web-Push subscription per browser (Issue #36). The subscription
+// endpoint uniquely identifies the device — no User foreign key, since public
+// visitors can subscribe without an account. Stale subscriptions (browser
+// uninstalled, key rotated) are removed when the push service returns 410.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  // Free-form, used to help debugging which device is subscribed
+  userAgent String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+}
+
+// ── PushBroadcastState ────────────────────────────────────────────────────────
+// Singleton: at most one row (id = 1). Stores the latest APP_VERSION that has
+// already been pushed out as "neue Version verfügbar" — so the boot-time
+// check in instrumentation.ts can broadcast exactly once per release, even
+// across multiple serverless instances.
+model PushBroadcastState {
+  id                Int      @id @default(1)
+  lastPushedVersion String?
+  updatedAt         DateTime @updatedAt
+}
+
 // ── AuditLog ──────────────────────────────────────────────────────────────────
 // Immutable record of security-relevant events.
 model AuditLog {

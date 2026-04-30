@@ -43,6 +43,7 @@ import { calculateDsvRanking } from "@/lib/scoring/dsv";
 import { calculateIdjmQuali } from "@/lib/scoring/idjm-quali";
 import type { RegattaData, AgeCategory, GenderCategory, HelmRanking } from "@/lib/scoring/dsv";
 import { revalidatePath } from "next/cache";
+import { broadcastPush } from "@/lib/push/notify";
 
 // ── DB → scoring types ────────────────────────────────────────────────────────
 
@@ -632,12 +633,30 @@ export async function publishRankingAction(
   const session = await auth();
   if (!session) return { ok: false, error: "Nicht angemeldet." };
   try {
-    await db.ranking.update({
+    const before = await db.ranking.findUnique({
+      where: { id },
+      select: { isPublic: true, name: true },
+    });
+    const ranking = await db.ranking.update({
       where: { id },
       data: { isPublic, publishedAt: isPublic ? new Date() : null },
+      select: { name: true },
     });
     revalidatePath("/admin/ranglisten");
     revalidatePath(`/rangliste/${id}`);
+
+    // Broadcast nur, wenn die Rangliste neu auf "public" geht — Re-Veröffentlichen
+    // einer schon sichtbaren oder das Zurücknehmen löst keinen Push aus.
+    if (isPublic && before && !before.isPublic) {
+      await broadcastPush({
+        title: "Neue Rangliste verfügbar",
+        body: ranking.name,
+        url: `/rangliste/${id}`,
+        count: 1,
+        tag: `ranking:${id}`,
+      });
+    }
+
     return { ok: true };
   } catch (e) {
     return { ok: false, error: String(e) };

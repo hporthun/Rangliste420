@@ -8,6 +8,41 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.28] — 2026-04-30
+
+**Web-Push-Benachrichtigungen für neue Inhalte (Issue #36).**
+
+### Neu
+
+- **Push-Benachrichtigungen** für Public-Visitors. Banner unter dem Header
+  („Bei neuen Ranglisten oder Regatten benachrichtigt werden? — Aktivieren");
+  nach Bestätigung zeigt der Browser eine Notification UND aktualisiert
+  die App-Plakette auf dem PWA-Symbol, sobald
+  - eine neue Rangliste veröffentlicht wird,
+  - eine neue Ranglistenregatta angelegt wird (auch beim Bulk-Import als
+    Sammel-Push, nicht 30 Pings am Stück),
+  - der Server eine neue App-Version startet.
+- Banner ist anonym — keine Anmeldung nötig. „Abbestellen" jederzeit über
+  denselben Banner möglich. Dismiss merkt sich für 30 Tage, dann fragt der
+  Banner erneut.
+- Browser-Unterstützung: Chrome/Edge auf Windows/macOS/ChromeOS sowie
+  installierte iOS-PWAs ab iOS 16.4. Firefox unterstützt Push, aber kein
+  Badge — die Notification kommt trotzdem.
+- Server-Setup: VAPID-Keys einmalig per `node scripts/generate-vapid.mjs`
+  erzeugen und in `.env` (lokal) bzw. Vercel-Env (Produktion) als
+  `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` hinterlegen.
+  Ohne diese Variablen ist Push deaktiviert — Banner erscheint dann nicht.
+
+### Geändert
+
+- Neue Prisma-Modelle `PushSubscription` (Endpoint + Keys, anonym pro
+  Browser) und `PushBroadcastState` (Singleton mit zuletzt verteilter
+  Version, idempotent über Serverless-Boots hinweg).
+- Tote Subscriptions (HTTP 410 vom Push-Provider) werden beim nächsten
+  Broadcast automatisch gelöscht.
+
+---
+
 ## [2026.04.27] — 2026-04-30
 
 **Code-Dokumentation deutlich ausgebaut.**

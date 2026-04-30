@@ -75,5 +75,17 @@ export async function register() {
 
     const { initBackupScheduler } = await import("./lib/backup/scheduler");
     await initBackupScheduler();
+
+    // Push-Broadcast bei neuer App-Version (Issue #36). Best-effort: ein
+    // Fehler darf den Boot nicht aufhalten — Server muss starten, auch wenn
+    // VAPID nicht gesetzt ist oder die DB gerade unerreichbar.
+    try {
+      const { broadcastNewVersionIfNeeded } = await import(
+        "./lib/push/version-broadcast"
+      );
+      await broadcastNewVersionIfNeeded();
+    } catch (e) {
+      console.warn("[push] Version-Broadcast-Check fehlgeschlagen:", e);
+    }
   }
 }

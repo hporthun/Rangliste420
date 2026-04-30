@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { PublicNav } from "./public-nav";
 import { DevWarningBanner } from "./dev-warning-banner";
+import { PushBanner } from "@/components/push-banner";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -27,6 +28,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       </header>
 
       <DevWarningBanner />
+      <PushBanner />
 
       <main className="flex-1 max-w-5xl mx-auto px-4 py-8 w-full">
         {children}

@@ -77,6 +77,33 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.28",
+    date: "2026-04-30",
+    title: "Push-Benachrichtigungen",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            <strong>Web-Push für neue Inhalte</strong>: Public-Visitors
+            können sich per Banner („Aktivieren") für Notifications
+            anmelden und bekommen eine Nachricht plus App-Plakette, sobald
+            eine neue Rangliste veröffentlicht, eine neue
+            Ranglistenregatta angelegt oder die App auf eine neue Version
+            aktualisiert wird. Anonym, ohne Account. (Issue #36)
+          </>,
+          <>
+            <strong>VAPID-Setup</strong>: Schlüssel einmalig per{" "}
+            <code>node scripts/generate-vapid.mjs</code> erzeugen und als{" "}
+            <code>VAPID_*</code>-Variablen in <code>.env</code> bzw.
+            Vercel-Env hinterlegen. Ohne diese Variablen bleibt Push
+            deaktiviert — Banner erscheint nicht.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.27",
     date: "2026-04-30",
     title: "Code-Dokumentation ausgebaut",

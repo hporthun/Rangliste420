@@ -31,6 +31,7 @@ import {
   fetchClassAssociationRegattas,
   type M2SRegattaCandidate,
 } from "@/lib/import/manage2sail-api";
+import { broadcastPush } from "@/lib/push/notify";
 
 function parseInput(data: FormData) {
   const raw = Object.fromEntries(data.entries());
@@ -61,6 +62,17 @@ export async function createRegatta(data: FormData) {
   });
 
   revalidatePath("/admin/regatten");
+
+  if (regatta.isRanglistenRegatta) {
+    await broadcastPush({
+      title: "Neue Regatta",
+      body: regatta.name,
+      url: `/regatta/${regatta.id}`,
+      count: 1,
+      tag: `regatta:${regatta.id}`,
+    });
+  }
+
   return { ok: true as const, data: regatta };
 }
 
@@ -101,6 +113,7 @@ export async function importRegattenAction(
   try {
     let created = 0;
     let skipped = 0;
+    let createdRanglistenregattas = 0;
 
     for (const row of rows) {
       const start = new Date(row.startDate);
@@ -129,9 +142,26 @@ export async function importRegattenAction(
         },
       });
       created++;
+      if (row.isRanglistenRegatta) createdRanglistenregattas++;
     }
 
     revalidatePath("/admin/regatten");
+
+    // Sammelt mehrere Importe in einer einzigen Push-Nachricht — sonst
+    // bekäme der Nutzer beim Bulk-Import 30 Pings auf einmal.
+    if (createdRanglistenregattas > 0) {
+      await broadcastPush({
+        title:
+          createdRanglistenregattas === 1
+            ? "Neue Regatta"
+            : `${createdRanglistenregattas} neue Regatten`,
+        body: "Im Regattakalender ergänzt.",
+        url: "/regatten",
+        count: 1,
+        tag: "regatta:bulk",
+      });
+    }
+
     return { ok: true, created, skipped };
   } catch (e) {
     return { ok: false, error: String(e) };
