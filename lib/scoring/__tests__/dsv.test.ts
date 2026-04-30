@@ -111,6 +111,75 @@ describe("calculateDsvRanking", () => {
     });
   });
 
+  // User-Wunsch 2026-04-29: Auslandsregatten haben oft Crews, die nicht
+  // importiert werden. Damit s in der R_A-Formel trotzdem stimmt, kann an
+  // der Regatta ein expliziter `totalStarters`-Wert gepflegt werden.
+  describe("totalStarters override (Auslandsregatten)", () => {
+    it("nutzt totalStarters statt results.length wenn gesetzt", () => {
+      const helmId = uid();
+      // 9 Regatten, je 10 importierte Boote, helmId auf Platz 5.
+      // Ohne totalStarters: s=10 → R_A = 1*100*(10+1-5)/10 = 60 → R=60
+      // Mit totalStarters=20 (z.B. Auslandsregatta): s=20 → R_A = 1*100*(21-5)/20 = 80 → R=80
+      const regattas: RegattaData[] = Array.from({ length: 9 }, () => {
+        const results: ResultData[] = [
+          mkResult(uid(), 1),
+          mkResult(uid(), 2),
+          mkResult(uid(), 3),
+          mkResult(uid(), 4),
+          mkResult(helmId, 5),
+          mkResult(uid(), 6),
+          mkResult(uid(), 7),
+          mkResult(uid(), 8),
+          mkResult(uid(), 9),
+          mkResult(uid(), 10),
+        ];
+        return { ...mkRegatta(1, false, results, 1.0), totalStarters: 20 };
+      });
+
+      const { rankings } = calculateDsvRanking(mkInput(regattas));
+      const e = rankings.find((r) => r.helmId === helmId)!;
+      expect(e).toBeDefined();
+      // s sollte 20 sein in jedem RankingValue (überschrieben)
+      expect(e.top9[0].s).toBe(20);
+      expect(e.R).toBeCloseTo(80, 5);
+    });
+
+    it("fällt auf results.length zurück wenn totalStarters undefined", () => {
+      const helmId = uid();
+      const regattas = buildRegattas(helmId, 9, 10, 1.0);
+      // Kein totalStarters gesetzt → fallback
+      const { rankings } = calculateDsvRanking(mkInput(regattas));
+      const e = rankings.find((r) => r.helmId === helmId)!;
+      expect(e.top9[0].s).toBe(10); // = results.length
+    });
+
+    it("fällt auf results.length zurück wenn totalStarters explizit null", () => {
+      const helmId = uid();
+      const regattas = buildRegattas(helmId, 9, 10, 1.0).map((r) => ({
+        ...r,
+        totalStarters: null,
+      }));
+      const { rankings } = calculateDsvRanking(mkInput(regattas));
+      const e = rankings.find((r) => r.helmId === helmId)!;
+      expect(e.top9[0].s).toBe(10);
+    });
+
+    it("totalStarters kleiner als results.length wirkt trotzdem (auch wenn unsinnig)", () => {
+      // Defensiv: Wir vertrauen dem Admin-Wert. Falls jemand totalStarters
+      // unter results.length setzt, wird es trotzdem verwendet — ist
+      // semantisch fragwürdig, aber kein Grund die Formel zu ändern.
+      const helmId = uid();
+      const regattas: RegattaData[] = Array.from({ length: 9 }, () => {
+        const results: ResultData[] = [mkResult(helmId, 1)];
+        for (let i = 1; i < 10; i++) results.push(mkResult(uid(), i + 1));
+        return { ...mkRegatta(1, false, results, 1.0), totalStarters: 5 };
+      });
+      const { rankings } = calculateDsvRanking(mkInput(regattas));
+      const e = rankings.find((r) => r.helmId === helmId)!;
+      expect(e.top9[0].s).toBe(5);
+    });
+  });
+
   describe("minimum values requirement", () => {
     it("8 values → not in rankings", () => {
       const helmId = uid();

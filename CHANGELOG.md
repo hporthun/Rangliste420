@@ -8,6 +8,28 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.21] — 2026-04-30
+
+**`s` pro Regatta in der Vorschau sichtbar.**
+
+### Neu
+
+- **Effektive Teilnehmerzahl wird in der Vorschau angezeigt**: in der
+  „Einbezogene Regatten"-Aufklappung erscheint pro Regatta jetzt der
+  tatsächlich verwendete `s`-Wert. Mit `*` markiert, wenn er aus dem
+  manuell gesetzten `totalStarters` der Regatta kommt — sonst aus der
+  Anzahl importierter Ergebnisse. Damit lässt sich auf einen Blick
+  prüfen, ob die Auslandsregatta-Korrektur tatsächlich in die Berechnung
+  einfließt.
+
+### Verifiziert
+
+- 4 neue Unit-Tests in `dsv.test.ts` belegen: `totalStarters` überschreibt
+  `results.length`, fällt bei undefined/null korrekt zurück, akzeptiert
+  auch unsinnig kleine Werte (Admin-Vertrauen).
+
+---
+
 ## [2026.04.20] — 2026-04-29
 
 **Gesamtteilnehmerzahl pro Regatta speichern.**

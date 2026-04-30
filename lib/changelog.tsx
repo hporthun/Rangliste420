@@ -77,6 +77,30 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.21",
+    date: "2026-04-30",
+    title: "s-Wert in Vorschau sichtbar",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            <strong>Effektive Teilnehmerzahl pro Regatta sichtbar</strong>:
+            In der „Einbezogene Regatten"-Aufklappliste der Vorschau wird
+            jetzt der tatsächlich verwendete{" "}
+            <code className="font-mono text-xs">s</code>-Wert angezeigt
+            (Gesamtteilnehmerzahl). Mit <span className="text-amber-700">*</span>{" "}
+            markiert wenn aus dem manuellen{" "}
+            <code className="font-mono text-xs">totalStarters</code>{" "}
+            der Regatta — sonst aus der Anzahl importierter Ergebnisse.
+            So lässt sich verifizieren, dass die Auslandsregatta-Korrektur
+            wirklich in die R_A-Berechnung einfließt.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.20",
     date: "2026-04-29",
     title: "totalStarters pro Regatta",

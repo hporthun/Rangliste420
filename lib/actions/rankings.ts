@@ -92,6 +92,16 @@ export type RegattaMeta = {
   startDate: string;
   ranglistenFaktor: number;
   completedRaces: number;
+  /**
+   * Effektive Anzahl gestarteter Boote, die in der R_A-Formel als `s`
+   * verwendet wurde — entweder das auf der Regatta gepflegte
+   * `totalStarters`-Feld oder, als Fallback, die Anzahl tatsächlich
+   * importierter Ergebnisse.
+   */
+  starters: number;
+  /** Wahr, wenn `starters` aus dem manuell gepflegten totalStarters-Feld
+   *  kommt (statt aus der Anzahl importierter Ergebnisse). */
+  startersFromOverride: boolean;
 };
 
 export type RankingComputeResult = {
@@ -221,13 +231,18 @@ export async function computeRankingAction(
       };
     });
 
-    const regattaMetas: RegattaMeta[] = regattas.map((reg) => ({
-      id: reg.id,
-      name: reg.name,
-      startDate: reg.startDate.toISOString(),
-      ranglistenFaktor: reg.ranglistenFaktor,
-      completedRaces: reg.completedRaces,
-    }));
+    const regattaMetas: RegattaMeta[] = regattas.map((reg) => {
+      const override = reg.totalStarters != null;
+      return {
+        id: reg.id,
+        name: reg.name,
+        startDate: reg.startDate.toISOString(),
+        ranglistenFaktor: reg.ranglistenFaktor,
+        completedRaces: reg.completedRaces,
+        starters: override ? reg.totalStarters! : reg.results.length,
+        startersFromOverride: override,
+      };
+    });
 
     return { ok: true, data: { rows, regattas: regattaMetas } };
   } catch (e) {

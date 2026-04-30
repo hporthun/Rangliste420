@@ -327,11 +327,25 @@ export default async function VorschauPage({ searchParams }: Props) {
             <ul className="mt-2 space-y-1 text-xs text-muted-foreground pl-4">
               {result.data.regattas.map((r) => (
                 <li key={r.id}>
-                  {r.name} — {new Date(r.startDate).toLocaleDateString("de-DE")} (f={r.ranglistenFaktor.toFixed(2)},{" "}
-                  {r.completedRaces} WF)
+                  {r.name} — {new Date(r.startDate).toLocaleDateString("de-DE")}{" "}
+                  (f={r.ranglistenFaktor.toFixed(2)}, {r.completedRaces} WF,{" "}
+                  <span title="Anzahl gestarteter Boote, die in der R_A-Formel als s verwendet wird">
+                    s={r.starters}
+                    {r.startersFromOverride && (
+                      <span className="ml-0.5 text-amber-700" title="manuell auf der Regatta gesetzt (Auslandsregatta-Override)">
+                        *
+                      </span>
+                    )}
+                  </span>
+                  )
                 </li>
               ))}
             </ul>
+            <p className="mt-2 pl-4 text-[11px] text-muted-foreground">
+              s = Gesamtteilnehmerzahl. Mit <span className="text-amber-700">*</span>{" "}
+              markiert: manuell auf der Regatta gesetzt; sonst = Anzahl
+              importierter Ergebnisse.
+            </p>
           </details>
         </div>
       )}
