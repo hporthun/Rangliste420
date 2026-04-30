@@ -77,6 +77,26 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.34",
+    date: "2026-04-30",
+    title: "Ergebnisliste: Einträge manuell hinzufügen",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Auf der Regatta-Detailseite gibt es jetzt den Button
+            „Eintrag hinzufügen". Er öffnet ein Modal zur Auswahl
+            von Steuermann und optionalem Vorschoter (Freitextsuche
+            über alle Segler), Segelnummer, Startgebiet-Flag sowie
+            allen Einzelwertungen. Nettopunkte und Platzierungen
+            werden sofort neu berechnet.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.33",
     date: "2026-04-30",
     title: "Sailwave 2.38+ PDF-Format unterstützt",

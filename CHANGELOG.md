@@ -8,6 +8,20 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.34] — 2026-04-30
+
+**Ergebnisliste: Einträge manuell hinzufügen.**
+
+### Neu
+
+- Button „Eintrag hinzufügen" auf der Regatta-Detailseite öffnet ein Modal
+  zur manuellen Erfassung: Steuermann (Pflicht, Suche über alle Segler),
+  optionaler Vorschoter, Segelnummer, Startgebiet-Flag sowie alle
+  Einzelwertungen (Punkte, Code, Streichungs-Flag). Nettopunkte und
+  Platzierungen der Regatta werden automatisch neu berechnet (Issue #41).
+
+---
+
 ## [2026.04.33] — 2026-04-30
 
 **Sailwave 2.38+ PDF-Format unterstützt.**
