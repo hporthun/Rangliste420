@@ -8,6 +8,21 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.37] — 2026-04-30
+
+**JWM/JEM-Quali: Neu-Platzierung nur unter Deutschen.**
+
+### Geändert
+
+- Bei der Berechnung der JWM/JEM-Qualifikationsrangliste werden Platzierungen
+  und Starterzahlen jetzt ausschließlich unter deutschen Seglern neu ermittelt.
+  Der gewichtete Score (`weightedScore = rank × maxStarters / starters`) basiert
+  damit auf dem deutschen Rang und der deutschen Starterzahl pro Regatta.
+  `maxStarters` ist die höchste deutsche Starterzahl über alle ausgewählten
+  Regatten.
+
+---
+
 ## [2026.04.36] — 2026-04-30
 
 **JWM/JEM-Quali bearbeiten.**

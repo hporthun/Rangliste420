@@ -77,6 +77,25 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.37",
+    date: "2026-04-30",
+    title: "JWM/JEM-Quali: Neu-Platzierung nur unter Deutschen",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            Bei der JWM/JEM-Qualifikationsberechnung werden Platzierungen und
+            Starterzahlen jetzt rein unter deutschen Seglern neu ermittelt.
+            Der gewichtete Score basiert damit auf dem deutschen Rang (nicht
+            dem Gesamtrang), und <code>maxStarters</code> entspricht der
+            höchsten deutschen Starterzahl über alle ausgewählten Regatten.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.36",
     date: "2026-04-30",
     title: "JWM/JEM-Quali bearbeiten",

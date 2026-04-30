@@ -174,7 +174,39 @@ export function calculateJwmJemQuali(input: JwmJemInput): JwmJemOutput {
     ).length;
   }
 
-  const maxStarters = Math.max(0, ...Object.values(startersByRegatta));
+  // German-only re-ranking: when germanOnly=true, re-number ranks and count
+  // starters among German sailors only per regatta.
+  const germanStartersByRegatta: Record<string, number> = {};
+  const germanRankMap: Record<string, Record<string, number>> = {};
+
+  if (germanOnly) {
+    for (const regatta of regattas) {
+      const germanResults = regatta.results
+        .filter(
+          (r) =>
+            r.finalRank !== null &&
+            helmNationalities[r.teamEntry.helmId] === "GER"
+        )
+        .sort((a, b) => (a.finalRank ?? Infinity) - (b.finalRank ?? Infinity));
+
+      germanStartersByRegatta[regatta.id] = germanResults.length;
+      const rankMap: Record<string, number> = {};
+      let currentRank = 1;
+      for (let i = 0; i < germanResults.length; i++) {
+        if (i > 0 && germanResults[i].finalRank !== germanResults[i - 1].finalRank) {
+          currentRank = i + 1;
+        }
+        rankMap[germanResults[i].teamEntry.helmId] = currentRank;
+      }
+      germanRankMap[regatta.id] = rankMap;
+    }
+  }
+
+  const effectiveStartersByRegatta = germanOnly
+    ? germanStartersByRegatta
+    : startersByRegatta;
+
+  const maxStarters = Math.max(0, ...Object.values(effectiveStartersByRegatta));
 
   // Build per-helm entry list (one entry per regatta the helm sailed in,
   // carrying the crewId + approval flag).
@@ -218,7 +250,7 @@ export function calculateJwmJemQuali(input: JwmJemInput): JwmJemOutput {
             regattaId: regatta.id,
             regattaName: regatta.name,
             regattaDate: regatta.startDate.toISOString(),
-            starters: startersByRegatta[regatta.id],
+            starters: effectiveStartersByRegatta[regatta.id] ?? 0,
             finalRank: null,
             weightedScore: null,
             counted: false,
@@ -244,7 +276,7 @@ export function calculateJwmJemQuali(input: JwmJemInput): JwmJemOutput {
             regattaId: regatta.id,
             regattaName: regatta.name,
             regattaDate: regatta.startDate.toISOString(),
-            starters: startersByRegatta[regatta.id],
+            starters: effectiveStartersByRegatta[regatta.id] ?? 0,
             finalRank: null,
             weightedScore: null,
             counted: false,
@@ -252,8 +284,10 @@ export function calculateJwmJemQuali(input: JwmJemInput): JwmJemOutput {
           continue;
         }
 
-        const starters = startersByRegatta[regatta.id];
-        const finalRank = teamEntry.result.finalRank;
+        const starters = effectiveStartersByRegatta[regatta.id] ?? 0;
+        const finalRank = germanOnly
+          ? (germanRankMap[regatta.id]?.[helmId] ?? null)
+          : teamEntry.result.finalRank;
 
         const weightedScore =
           finalRank !== null && starters > 0
@@ -331,5 +365,5 @@ export function calculateJwmJemQuali(input: JwmJemInput): JwmJemOutput {
     r.rank = i + 1;
   });
 
-  return { ranked, preliminary, maxStarters, startersByRegatta };
+  return { ranked, preliminary, maxStarters, startersByRegatta: effectiveStartersByRegatta };
 }
