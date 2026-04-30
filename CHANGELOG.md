@@ -8,6 +8,21 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.30] — 2026-04-30
+
+**Suchfelder ignorieren Groß-/Kleinschreibung (Issue #38).**
+
+### Korrigiert
+
+- Die Suchfelder auf der Segler- und Regatten-Liste finden jetzt
+  Treffer unabhängig von Groß-/Kleinschreibung. Vorher mussten Eingaben
+  in PostgreSQL (Produktion) exakt der Schreibweise entsprechen — auf
+  SQLite (lokal) war ASCII tolerant, Umlaute aber nicht. Der Filter
+  läuft jetzt als JavaScript-Vergleich nach `toLowerCase()` und liefert
+  dieselben Ergebnisse auf beiden Datenbanken.
+
+---
+
 ## [2026.04.29] — 2026-04-30
 
 **Hinweis: „Inoffizielle Ranglisten" auf der öffentlichen Seite (Issue #37).**

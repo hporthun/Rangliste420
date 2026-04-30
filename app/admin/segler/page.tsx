@@ -66,20 +66,25 @@ export default async function SeglerPage({ searchParams }: Props) {
   const sp = await searchParams;
   const q = sp.q?.trim() ?? "";
 
-  const sailors = await db.sailor.findMany({
-    where: q
-      ? {
-          OR: [
-            { firstName: { contains: q } },
-            { lastName: { contains: q } },
-          ],
-        }
-      : undefined,
+  const allSailors = await db.sailor.findMany({
     orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
     include: {
       _count: { select: { helmEntries: true, crewEntries: true } },
     },
   });
+
+  // JS-Filter: case-insensitive (Prisma `contains` ist auf PostgreSQL case-
+  // sensitive und auf SQLite nur für ASCII case-insensitiv).
+  const sailors = q
+    ? (() => {
+        const nq = q.toLowerCase();
+        return allSailors.filter(
+          (s) =>
+            s.firstName.toLowerCase().includes(nq) ||
+            s.lastName.toLowerCase().includes(nq),
+        );
+      })()
+    : allSailors;
 
   const warnings = sailors.filter((s) => !s.birthYear || !s.gender);
 

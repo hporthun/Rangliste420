@@ -77,6 +77,24 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.30",
+    date: "2026-04-30",
+    title: "Suchfelder ignorieren Groß-/Kleinschreibung",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            Die Suchfelder auf der Segler- und Regatten-Liste finden
+            jetzt Treffer unabhängig von Groß-/Kleinschreibung. Vorher
+            war die Suche auf der Produktiv-Datenbank streng case-
+            sensitiv. (Issue #38)
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.29",
     date: "2026-04-30",
     title: "Inoffizielle Ranglisten auf der öffentlichen Seite",

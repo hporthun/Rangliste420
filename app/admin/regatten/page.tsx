@@ -94,16 +94,20 @@ export default async function RegattenPage({ searchParams }: Props) {
         },
       };
 
-  const searchWhere = q ? { name: { contains: q } } : undefined;
-
-  const regattas = await db.regatta.findMany({
-    where:
-      yearWhere && searchWhere
-        ? { AND: [yearWhere, searchWhere] }
-        : yearWhere ?? searchWhere,
+  const allRegattas = await db.regatta.findMany({
+    where: yearWhere,
     orderBy: { startDate: "asc" },
     include: { _count: { select: { teamEntries: true } } },
   });
+
+  // JS-Filter: case-insensitive (Prisma `contains` ist auf PostgreSQL case-
+  // sensitive und auf SQLite nur für ASCII case-insensitiv).
+  const regattas = q
+    ? (() => {
+        const nq = q.toLowerCase();
+        return allRegattas.filter((r) => r.name.toLowerCase().includes(nq));
+      })()
+    : allRegattas;
 
   // Serialize for client component (Dates → strings, Decimal → number)
   const serialized = regattas.map((r) => ({
