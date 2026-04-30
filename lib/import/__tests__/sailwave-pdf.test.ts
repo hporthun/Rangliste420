@@ -7,13 +7,14 @@ import type { RawItem } from "../pdf-utils";
  * Tests for sailwave-pdf.ts using a synthetic RawItem[][] fixture.
  *
  * Fixture layout (sailwave-pages.json):
- *   One page, 5 entries, 3 races.
+ *   One page, 6 entries, 3 races.
  *   Entry 1  – name wraps across two PDF lines ("Theda-Marieke" + "BRUHNS")
  *   Entry 2  – Umlaut in last name (MÜLLER)
  *   Entry 3  – split DNC penalty: "(56.0" on main row + "DNC)" on continuation row
  *              → joined as "(56.0 DNC)"; DNC ∉ {DNS,BFD,OCS,UFD} → inStartAreaSuggestion:false
  *   Entry 4  – "(56.0 DNS)" in R1 → DNS ∈ {DNS,BFD,OCS,UFD} → inStartAreaSuggestion:true
  *   Entry 5  – all normal scores, no special cases
+ *   Entry 6  – URL in sailno column ("www.circolovelatorbole.com 56800") → sail number = "GER 56800"
  *
  * Sailwave column order: Totale (gross) before Netto (net) — opposite of SailResults.
  */
@@ -21,8 +22,8 @@ import type { RawItem } from "../pdf-utils";
 const result = parsePages(sailwavePages as RawItem[][]);
 
 describe("sailwave-pdf parsePages – structure", () => {
-  it("parses 5 entries", () => {
-    expect(result.entries).toHaveLength(5);
+  it("parses 6 entries", () => {
+    expect(result.entries).toHaveLength(6);
   });
 
   it("detects 3 races", () => {
@@ -133,6 +134,23 @@ describe("sailwave-pdf parsePages – entry 4 (DNS → inStartArea)", () => {
 
   it("DNS sets inStartAreaSuggestion:true", () => {
     expect(e.inStartAreaSuggestion).toBe(true);
+  });
+});
+
+describe("sailwave-pdf parsePages – entry 6 (URL in sailno column)", () => {
+  const e = result.entries[5];
+
+  it("rank is 6", () => {
+    expect(e.rank).toBe(6);
+  });
+
+  it("URL token stripped, sail number is 'GER 56800'", () => {
+    expect(e.sailNumber).toBe("GER 56800");
+  });
+
+  it("helm name not contaminated by URL", () => {
+    expect(e.helmFirstName).toBe("Koch");
+    expect(e.helmLastName).toBe("Carina");
   });
 });
 
