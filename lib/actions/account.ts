@@ -1,3 +1,24 @@
+/**
+ * Server-Actions: User-Account-Self-Service.
+ *
+ * Was hier lebt:
+ * - Username / E-Mail / Passwort ändern (eingeloggter User)
+ * - TOTP-2FA: setup, verify+enable, disable
+ * - Passkey: rename, delete (Verwaltung)
+ * - Passwort-Reset-Token erzeugen + verbrauchen (öffentlicher Forgot-Flow)
+ * - Account-Info abrufen
+ *
+ * Schreibt in: `User`-Tabelle, plus `WebAuthnCredential` (Passkey-Aktionen),
+ * plus `AuditLog` für sicherheitsrelevante Events.
+ *
+ * Auth: alle Actions außer `generateResetTokenAction` und
+ * `resetPasswordAction` (öffentliche Reset-Flows) erfordern eine gültige
+ * Session via `auth()`.
+ *
+ * Mail-Versand: `generateResetTokenAction` schickt den Reset-Link per
+ * SMTP via `lib/mail`. Ohne SMTP-Konfig wird der Link nur in den
+ * Server-Logs ausgegeben (Dev-Fallback).
+ */
 "use server";
 
 import { auth } from "@/lib/auth";

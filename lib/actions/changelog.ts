@@ -1,3 +1,11 @@
+/**
+ * Server-Action: Changelog-Read-Marker setzen.
+ *
+ * `markChangelogReadAction` setzt `User.lastReadChangelogVersion` auf den
+ * aktuellen `APP_VERSION` — danach unterdrückt das Admin-Layout das
+ * Changelog-Popup, bis ein neuer Eintrag mit höherer Version published
+ * wird. Compare-Logic in `lib/changelog.tsx`:`compareVersions`.
+ */
 "use server";
 
 import { auth } from "@/lib/auth";

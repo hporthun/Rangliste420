@@ -1,3 +1,18 @@
+/**
+ * Server-Action: TeamEntry-Schottenwechsel-Toggle.
+ *
+ * `setCrewSwapAction` setzt `crewSwapApproved` und optional
+ * `crewSwapNote` an einem TeamEntry. UI-Aufruf aus dem Repeat-Icon-
+ * Popover in der Regatta-Detail-Tabelle (`/admin/regatten/[id]`).
+ *
+ * Wirkt fachlich nur auf JWM/JEM-Quali (Team-Identität bei Crew-Wechsel,
+ * 1× genehmigter Swap erlaubt). DSV-/Aktuelle-/IDJM-Ranglisten
+ * ignorieren das Flag — siehe `docs/business-rules.md` §2.5.
+ *
+ * Schreibt in: `TeamEntry` (kein Audit-Log, weil low-impact).
+ *
+ * Auth: erfordert eine gültige Session.
+ */
 "use server";
 
 import { z } from "zod";

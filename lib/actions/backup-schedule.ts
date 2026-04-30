@@ -1,3 +1,24 @@
+/**
+ * Server-Actions: Backup-Zeitplan + manuelle Backup-Operationen.
+ *
+ * Was hier lebt:
+ * - `getScheduleAction`         — aktuellen Zeitplan lesen
+ * - `saveScheduleAction`        — Wochentage / Uhrzeit / Aufbewahrung pflegen
+ * - `triggerBackupNowAction`    — sofort ein Backup erstellen (mit optionalem Kommentar)
+ * - `getStoredBackupsAction`    — Liste aller im Storage liegenden Backup-Dateien
+ * - `deleteStoredBackupAction`  — einzelnes Backup löschen
+ *
+ * Storage-Layer: `lib/backup/writer.ts` — bedient sowohl Filesystem
+ * (lokal) als auch Vercel Blob (production), je nach Env. Diese Schicht
+ * ist provider-agnostisch.
+ *
+ * Schreibt in: `BackupSchedule`-Tabelle (Singleton id=1) plus die
+ * konfigurierte Storage. Auf Vercel (Hobby-Plan) ist die Stundenwahl
+ * informativ — der Cron läuft einmal täglich um 01:00 UTC, prüft aber
+ * die Wochentag-Einstellung.
+ *
+ * Auth: alle Actions erfordern eine gültige Session.
+ */
 "use server";
 
 import { auth } from "@/lib/auth";

@@ -1,3 +1,10 @@
+/**
+ * Server-Actions: Auth-Hilfen, die nicht direkt zum NextAuth-Flow gehören.
+ *
+ * Aktuell nur `changePasswordAction` (alt) — bleibt als Backward-Compat-
+ * Alias für UI, die noch dagegen importiert. Neuere Logik liegt in
+ * `lib/actions/account.ts`.
+ */
 "use server";
 
 import { db } from "@/lib/db/client";

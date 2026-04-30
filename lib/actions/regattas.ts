@@ -1,3 +1,25 @@
+/**
+ * Server-Actions: Regatta-CRUD + M2S-Bulk-Import.
+ *
+ * Was hier lebt:
+ * - `createRegatta`        — neue Regatta aus FormData
+ * - `updateRegatta`        — bestehende Regatta editieren (Faktor,
+ *                             totalStarters, completedRaces, …)
+ * - `deleteRegatta`        — Regatta + zugehörige TeamEntries / Results
+ *                             löschen (ON DELETE CASCADE)
+ * - `importRegattenAction` — Bulk-Import von Regatta-Stammdaten aus
+ *                             einer M2S-Class-Association-Liste oder
+ *                             Paste (kein Ergebnis-Import — nur die
+ *                             Metadaten der Regatten)
+ * - `fetchM2SCalendarAction` / `checkM2SUrlAction` — Hilfen für die
+ *                             Regatta-Liste-Import-UI
+ *
+ * Validierung: alle Form-Inputs gehen durch `regattaSchema` (Zod).
+ *
+ * Schreibt in: `Regatta`-Tabelle.
+ *
+ * Auth: alle Actions erfordern eine gültige Session.
+ */
 "use server";
 
 import { db } from "@/lib/db/client";

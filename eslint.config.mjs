@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Claude Code Worktrees enthalten eigene .next/-Build-Artefakte —
+    // ESLint soll dort gar nicht erst hinschauen, sonst kommen Tausende
+    // false-positives aus den Build-Outputs.
+    ".claude/**",
   ]),
 ]);
 

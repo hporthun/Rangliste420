@@ -11,6 +11,8 @@
 > - **420er-Klassenvereinigung**, [Quali-Ordnung](https://420class.de/index.php/sport/quali) — JWM/JEM
 > - **CLAUDE.md** im Repo-Root für Tech-Stack, Code-Konventionen und
 >   Issue-Workflow (Gitea via `scripts/gitea-issue.mjs`)
+> - [`architecture.md`](architecture.md) — technischer Überblick:
+>   File-Map, Schichten, Datenfluss, Server-Action-Konvention
 
 ---
 

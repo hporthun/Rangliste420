@@ -1,3 +1,56 @@
+/**
+ * Server-Actions: Ergebnis-Import-Wizard.
+ *
+ * Orchestriert den 5-Schritte-Wizard (source → metadata → matching →
+ * preview → commit). Pure-Function-Parser und Fuzzy-Matching liegen in
+ * `lib/import/` — diese Datei ist die Glue-Schicht zwischen UI-Components
+ * und der DB.
+ *
+ * Workflow:
+ *
+ *   ┌────────────────────────────┐
+ *   │  source-step (Tab-Auswahl) │
+ *   └────────────┬───────────────┘
+ *                │  parseTextAction      (Paste)
+ *                │  parsePdfAction       (PDF, Auto-Format-Erkennung)
+ *                │  fetchM2SResultsAction(API mit germanOnly-Filter)
+ *                │  fetchM2SClassesAction(Klassen-Liste vor classId-Wahl)
+ *                ▼
+ *   ┌────────────────────────────┐
+ *   │  metadata-step             │
+ *   └────────────┬───────────────┘
+ *                │  getMatchSuggestionsAction (fuzzy match je Helm/Crew)
+ *                ▼
+ *   ┌────────────────────────────┐
+ *   │  matching-step + preview   │
+ *   └────────────┬───────────────┘
+ *                │  fetchM2STotalStartersAction (optional: echte
+ *                │     Gesamtteilnehmerzahl aus M2S-API für s)
+ *                ▼
+ *   ┌────────────────────────────┐
+ *   │  commit                    │  commitImportAction
+ *   │                            │   ├── Regatta.update (numRaces, totalStarters)
+ *   │                            │   ├── ImportSession.create (Audit)
+ *   │                            │   ├── pro Decision:
+ *   │                            │   │     Sailor.upsert (Helm/Crew)
+ *   │                            │   │     TeamEntry.upsert
+ *   │                            │   │     Result.upsert
+ *   └────────────────────────────┘
+ *
+ * Schreibt in: `Sailor`, `TeamEntry`, `Result`, `Regatta` (totalStarters
+ * + completedRaces), `ImportSession`.
+ *
+ * Auth: alle Actions erfordern eine gültige Session.
+ *
+ * Wichtige Invarianten:
+ * - `germanOnly: true` (default in `fetchM2SResults`) — Sailor-DB bleibt
+ *   schlank; aber `totalStarters` wird VOR dem Filter berechnet, damit
+ *   `s` für die R_A-Formel korrekt bleibt
+ * - Re-Import einer Regatta: TeamEntry/Result werden upserted (nicht
+ *   dupliziert) dank `@@unique([regattaId, helmId])`
+ * - `totalStarters` wird nur überschrieben, wenn der Wizard einen Wert
+ *   übergibt; das verhindert das stille Zurücksetzen bei Re-Import
+ */
 "use server";
 
 import { db } from "@/lib/db/client";

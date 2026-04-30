@@ -8,6 +8,30 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.27] — 2026-04-30
+
+**Code-Dokumentation deutlich ausgebaut.**
+
+### Neu
+
+- **`docs/architecture.md`**: technischer Überblick — File-Map des
+  gesamten Projekts, Schichten + Abhängigkeitsregeln, Datenfluss-
+  Diagramme für Import-Wizard und Ranglisten-Berechnung,
+  Server-Action-Konvention als kanonisches Template, Liste der
+  globalen Invarianten. CLAUDE.md verlinkt darauf.
+- **JSDoc-Header für alle 12 Server-Action-Dateien** in `lib/actions/`:
+  pro Datei eine 10–30-zeilige Beschreibung — was lebt hier, welche
+  Tabellen werden geschrieben, welche Auth-Anforderungen, welche
+  Invarianten gelten.
+
+### Aufräum
+
+- **ESLint ignoriert `.claude/`-Verzeichnis** (Claude-Worktrees mit
+  eigenen `.next/`-Build-Artefakten produzierten 20.000+ false-positive-
+  Warnings). Lint ist wieder schnell und sauber.
+
+---
+
 ## [2026.04.26] — 2026-04-30
 
 **App-Symbol-Plakette für neue Inhalte (Issue #35).**

@@ -1,3 +1,27 @@
+/**
+ * Server-Actions: JWM/JEM-Qualifikationsrangliste.
+ *
+ * Klassen-spezifische Sonderregel der 420er-KV (siehe
+ * `docs/business-rules.md` §2.4 + §2.5). Anders als die DSV-Rangliste:
+ * - 3 Regatten ausgewählt, beste 2 zählen
+ * - Gewichteter Score: `finalRank × (maxStarters / startersThisRegatta)`
+ * - `germanOnly: true` (nur GER-Helms)
+ * - **Schottenwechsel-Regel**: pro Helm 1× genehmigter Wechsel; sonst
+ *   Helm/Crew-Kombination = neues Team (siehe Scoring-Engine)
+ *
+ * Was hier lebt:
+ * - `computeJwmJemAction` — live-Berechnung; gibt Display-Rows zurück
+ *   inkl. Crew-Namen, teamKey (für React-Keys, da ein Helm mehrere Zeilen
+ *   haben kann) und splitFromSwap-Flag
+ * - `saveJwmJemAction` — persistiert die Quali als `Ranking` mit Type
+ *   `JWM_QUALI` oder `JEM_QUALI` (s. `Ranking.type` in Schema)
+ *
+ * Schreibt in: `Ranking` + `RankingRegatta` (nur saveJwmJemAction).
+ * Compute liest pure aus `Regatta`/`Result`/`TeamEntry`.
+ *
+ * Auth: `saveJwmJemAction` braucht Session, `computeJwmJemAction` ist
+ * read-only (auch von public pages aufrufbar).
+ */
 "use server";
 
 import { db } from "@/lib/db/client";

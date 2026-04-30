@@ -1,3 +1,34 @@
+/**
+ * Server-Actions: Segler-CRUD, Merge und Stammdaten-Import.
+ *
+ * Was hier lebt:
+ * - `createSailor`, `updateSailor`, `deleteSailor` — CRUD aus FormData,
+ *   delete blockiert wenn TeamEntries existieren
+ * - `previewMergeSailorsAction` — Vorschau eines Helm-Merge: Anzahl
+ *   betroffener TeamEntries, neue Alt-Namen, Konflikt-Erkennung wenn
+ *   beide Helms in derselben Regatta gestartet sind
+ * - `mergeSailorsAction` — primary übernimmt alle Einträge des secondary,
+ *   secondary wird gelöscht. Audit-Log + Transaction
+ * - `previewStammdatenAction` — Tab-getrenntes Bulk-Update von
+ *   Geburtsjahr/Geschlecht. Erkennt Postgres-COPY-Format mit `\N`
+ *   (Issue #23). Pure Vorschau, schreibt nichts
+ * - `applyStammdatenAction` — User wählt pro Zeile, ob Geburtsjahr und/
+ *   oder Geschlecht übernommen werden soll. Schreibt nur die freigegebenen
+ *   Werte
+ *
+ * Schreibt in: `Sailor`, `TeamEntry` (beim Merge), `AuditLog`
+ * (`SAILOR_MERGED`).
+ *
+ * Auth: alle Actions erfordern eine gültige Session.
+ *
+ * Wichtige Invarianten:
+ * - Geburtsjahr/Geschlecht werden nie geraten — bei Update werden leer-
+ *   bleibende Felder als Override-mit-null nicht akzeptiert (s.
+ *   Schema-Validierung)
+ * - Merge-Konflikt: wenn beide Helms in der gleichen Regatta starten,
+ *   würde das `@@unique([regattaId, helmId])` verletzen → Merge wird
+ *   geblockt mit Liste der konflikten Regatten
+ */
 "use server";
 
 import { db } from "@/lib/db/client";

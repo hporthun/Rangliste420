@@ -1,3 +1,31 @@
+/**
+ * Server-Actions: Wartung — Daten löschen, prunen, Backups einspielen.
+ *
+ * Was hier lebt:
+ * - `deleteAllDataAction`         — alles löschen (Sailor/Regatta/Ranking/…),
+ *                                    Admin-Accounts bleiben. Erstellt vorher
+ *                                    automatisch ein Sicherheits-Backup.
+ * - `pruneOldDataAction`          — Regatten + Ergebnisse vor Jahr X löschen
+ * - `pruneOrphanSailorsAction`    — Segler ohne TeamEntries entfernen
+ * - `pruneOrphanTeamEntriesAction`— TeamEntries ohne Result entfernen
+ * - `pruneEmptyRankingsAction`    — Ranglisten ohne RankingRegattas entfernen
+ * - `restoreBackupAction`         — Backup-File aus Upload einspielen
+ * - `restoreStoredBackupAction`   — Backup aus dem Storage einspielen
+ *
+ * Restore-Pfad ist atomar in einer Transaktion: Phase 1 (delete bestehende
+ * Daten in scope) + Phase 2 (insert backup-Daten) — bei Fehler wird
+ * komplett rollback'ed. Vor jeder Rücksicherung wird automatisch ein
+ * Sicherheits-Backup mit Kommentar „Backup vor Rücksicherung" erzeugt.
+ *
+ * `RestoreScope` (`"all" | "sailors" | "regattas"`) erlaubt teilweise
+ * Wiederherstellung — z.B. nur Stammdaten ohne die laufenden Regatten zu
+ * verlieren.
+ *
+ * Schreibt in: alle Daten-Tabellen + `AuditLog` für jede destruktive
+ * Aktion.
+ *
+ * Auth: alle Actions erfordern eine gültige Session.
+ */
 "use server";
 
 import { db } from "@/lib/db/client";

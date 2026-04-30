@@ -1,3 +1,40 @@
+/**
+ * Server-Actions: DSV-Ranglisten (Jahres / Aktuelle / IDJM).
+ *
+ * Glue-Schicht zwischen UI-Pages und der Pure-Function-Scoring-Engine
+ * (`lib/scoring/dsv.ts`, `lib/scoring/idjm-quali.ts`). Macht zwei Dinge:
+ * 1. DB-Daten in das Scoring-Format mappen (`fetchRegattaData`)
+ * 2. Berechnungs-Ergebnisse für die UI aufbereiten (Crew-Aggregation,
+ *    Verein-/Sailor-Names, regatta-Metas mit `s` und Override-Marker)
+ *
+ * Was hier lebt:
+ * - `computeRankingAction`    — live-Berechnung für JAHRESRANGLISTE /
+ *                                AKTUELLE / IDJM. Dispatcht an
+ *                                `calculateDsvRanking` oder
+ *                                `calculateIdjmQuali`.
+ * - `computeHelmDetailAction` — alle 9 R_A-Werte + Crew-Historie eines
+ *                                einzelnen Helms (Transparenz-Detail-Seite)
+ * - `saveRanklisteAction`     — JAHRESRANGLISTE oder IDJM persistieren
+ * - `updateRanklisteAction`   — Edit-Flow für gespeicherte Ranglisten
+ *                                (replace rankingRegattas in transaction)
+ * - `getRankingForEditAction` — saved Ranking → ComputeParams für vorschau
+ * - `deleteRankingAction`, `renameRankingAction`, `publishRankingAction`
+ * - `saveJahresranklisteAction` — Backward-Compat-Alias für
+ *                                  `saveRanklisteAction` (alte UI-Pfade)
+ *
+ * Wichtige Invarianten:
+ * - **AKTUELLE** wird nie persistiert (Whitelist `SAVEABLE_TYPES`)
+ * - `s` in der Formel = `regatta.totalStarters ?? regatta.results.length`
+ *   (siehe Engine; hier nur durchgereicht)
+ * - **Foreign Boats**: kein Nationalitäts-Filter auf Helm-Seite —
+ *   ausländische Helms erscheinen, wenn sie ≥ 9 Wertungen haben
+ *
+ * Schreibt in: `Ranking` + `RankingRegatta`. Compute liest pure aus
+ * Regatten/Results.
+ *
+ * Auth: Save/Update/Delete/Rename/Publish brauchen Session;
+ * Compute-Actions sind read-only (auch von public pages benutzbar).
+ */
 "use server";
 
 import { db } from "@/lib/db/client";

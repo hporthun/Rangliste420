@@ -1,3 +1,23 @@
+/**
+ * Server-Actions: SMTP-Konfiguration über das Web-Interface.
+ *
+ * Was hier lebt:
+ * - `getMailConfigAction` — Konfig lesen (Passwort wird NIE zurückgegeben,
+ *   nur `hasPassword: boolean` zur Anzeige)
+ * - `saveMailConfigAction` — Konfig schreiben. Leeres Passwort-Feld =
+ *   bestehender Wert wird behalten (Sicherheits-Konvention)
+ * - `testMailConfigAction` — Test-Mail verschicken; akzeptiert auch
+ *   nicht-gespeicherte Form-Werte, sodass der Admin vor dem Save
+ *   prüfen kann
+ *
+ * Schreibt in: `MailConfig`-Tabelle (Singleton id=1).
+ *
+ * Auth: alle Actions erfordern eine gültige Session.
+ *
+ * Anwendung: `lib/mail/send.ts:resolveConfig()` liest erst aus dieser
+ * Tabelle (wenn `enabled=true`), fällt sonst auf `SMTP_*`-Env-Vars
+ * zurück. So lassen sich SMTP-Credentials ändern ohne Re-Deploy.
+ */
 "use server";
 
 import { z } from "zod";

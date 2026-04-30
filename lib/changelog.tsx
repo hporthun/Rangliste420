@@ -77,6 +77,36 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.27",
+    date: "2026-04-30",
+    title: "Code-Dokumentation ausgebaut",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            <strong>docs/architecture.md</strong>: File-Map des gesamten
+            Projekts, Schichten-Architektur, Datenfluss-Diagramme für
+            Import-Wizard und Ranglisten-Berechnung, Server-Action-Konvention,
+            globale Invarianten.
+          </>,
+          <>
+            <strong>JSDoc-Header für alle 12 Server-Action-Dateien</strong>{" "}
+            in <code className="font-mono text-xs">lib/actions/</code> —
+            beschreiben pro Datei was lebt hier, welche Tabellen geschrieben
+            werden, Auth-Anforderungen, Invarianten.
+          </>,
+          <>
+            <strong>ESLint ignoriert .claude/</strong>: Claude-Worktrees
+            produzierten 20k+ false-positive-Warnings aus eigenen
+            <code className="ml-1 font-mono text-xs">.next/</code>-Build-
+            Artefakten.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.26",
     date: "2026-04-30",
     title: "App-Symbol-Plakette",

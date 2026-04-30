@@ -13,10 +13,12 @@ Next.js-Webanwendung zur Erstellung von Ranglisten für die **420er-Klasse**. Im
 - **Kategorie-Matrix**: 4 Altersklassen (U15/U16/U17/U19/Open) × 4 Gender-Kategorien (Open/Männer/Mix/Girls)
 - **Optionale Stammdaten**: Geburtsdatum und Geschlecht sind optional — fehlt eines, wird der Segler aus entsprechenden gefilterten Ranglisten ausgeschlossen
 
-**Wichtigste Doku-Quelle: [`docs/business-rules.md`](docs/business-rules.md)** —
-single source of truth für alle Geschäftsregeln (DSV-Formel, Filter-Verhalten,
-Schottenwechsel, Import-Flow, Häufige Fehlerquellen). Bei jeder fachlichen
-Frage zuerst dort nachschlagen.
+**Wichtigste Doku-Quellen** (immer zuerst lesen):
+- [`docs/business-rules.md`](docs/business-rules.md) — fachliche Regeln
+  (DSV-Formel, Filter, Schottenwechsel, Import-Flow, häufige Fehlerquellen)
+- [`docs/architecture.md`](docs/architecture.md) — File-Map, Schichten,
+  Datenfluss-Diagramme (Import-Wizard, Ranglisten-Berechnung), Server-Action-
+  Konvention, globale Invarianten
 
 Ergänzend `PLAN_1.md` für die ursprüngliche Spezifikation:
 - "DSV-Scoring-Engine" (Formel + Algorithmus)
