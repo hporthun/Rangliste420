@@ -8,6 +8,27 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.31] — 2026-04-30
+
+**Velaware-PDF: Nationen werden geparst.**
+
+### Korrigiert
+
+- Beim Import von Velaware-Ergebnislisten (Italien, z. B. Imperia
+  Winter Regatta) hat der Parser bisher die Nationenkürzel verloren:
+  Die Spalte „Numero velico" enthält visuell zwei Sub-Zellen (3-Letter-
+  NAT-Code links, Segelnummer rechts), liegt aber unter einer
+  einzelnen Headerschrift. Die Spaltengrenzen aus der Header-Mitte
+  haben den NAT-Code in die Rang-Spalte rutschen und kurze
+  Segelnummern in die Namens-Spalte fallen lassen. Beide Sub-Zellen
+  werden jetzt korrekt erfasst, `sailNumber` enthält den Präfix
+  („ESP 55249"), und `nationality` ist auf der `ParsedEntry` gesetzt.
+- Der Filter „nur deutsche Crews" beim PDF-Import nutzt jetzt das
+  explizite `nationality`-Feld und entfernt damit ausländische Crews
+  zuverlässig — auch wenn die Segelnummer keinen Präfix trägt.
+
+---
+
 ## [2026.04.30] — 2026-04-30
 
 **Suchfelder ignorieren Groß-/Kleinschreibung (Issue #38).**

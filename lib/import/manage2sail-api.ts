@@ -335,6 +335,13 @@ export async function fetchM2SResults(
       });
     }
 
+    const nationalityRaw = (er.SailNumberCountry ?? er.Country ?? "")
+      .toUpperCase()
+      .trim();
+    const nationality = /^[A-Z]{2,3}$/.test(nationalityRaw)
+      ? nationalityRaw
+      : undefined;
+
     entries.push({
       rank: er.Rank,
       sailNumber: er.SailNumber?.trim() || null,
@@ -347,6 +354,7 @@ export async function fetchM2SResults(
       netPoints: er.NetPoints ? parseFloat(er.NetPoints) : null,
       raceScores,
       inStartAreaSuggestion: detectInStartArea(raceScores),
+      ...(nationality && { nationality }),
     });
   }
 

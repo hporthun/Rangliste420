@@ -17,14 +17,13 @@ import type { RawItem } from "./pdf-utils";
  * Returns true for German entries.
  *
  * Logic:
- *  - Sail number starts with a 2-3 letter NAT code followed by a digit → only
- *    keep "GER …" entries.
- *  - No NAT prefix (pure digits, e.g. domestic regatta) → keep (assume German).
- *
- * Examples that pass:  "GER 12345", "12345", null
- * Examples that fail:  "ESP 55249", "GRE 1234"
+ *  - Prefer the explicit `nationality` field (set by parsers when they can
+ *    identify the NAT code); accept GER, reject anything else.
+ *  - Fall back to scanning the sail number for a NAT prefix.
+ *  - No NAT signal at all (pure digits, null) → keep (assume German).
  */
 function isGermanEntry(entry: ParsedEntry): boolean {
+  if (entry.nationality) return entry.nationality === "GER";
   const sn = (entry.sailNumber ?? "").trim();
   const m = sn.match(/^([A-Z]{2,3})\s+\d/);
   if (!m) return true; // no NAT prefix → domestic regatta → include

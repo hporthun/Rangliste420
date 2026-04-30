@@ -126,6 +126,7 @@ function parsePage(pageItems: RawItem[]): ParsedEntry[] {
         ? `${nat} ${sailno}`
         : sailno
       : null;
+    const nationality = /^[A-Z]{2,3}$/.test(nat) ? nat : undefined;
 
     const helmText = colText(items, "helm", cols);
     const helm = parseSailingName(helmText);
@@ -167,6 +168,7 @@ function parsePage(pageItems: RawItem[]): ParsedEntry[] {
       netPoints,
       raceScores,
       inStartAreaSuggestion: detectInStartArea(raceScores),
+      ...(nationality && { nationality }),
     });
   }
 
