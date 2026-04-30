@@ -79,7 +79,7 @@ export const ENTRIES: ChangelogEntry[] = [
   {
     version: "2026.04.29",
     date: "2026-04-30",
-    title: "„Inoffizielle Ranglisten" auf der öffentlichen Seite",
+    title: "Inoffizielle Ranglisten auf der öffentlichen Seite",
     changes: [
       {
         kind: "geändert",
