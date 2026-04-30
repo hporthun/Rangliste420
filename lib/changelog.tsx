@@ -77,6 +77,26 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.35",
+    date: "2026-04-30",
+    title: "CSV-Stammdatenimport",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Neues CSV-Importformat auf der Stammdaten-Import-Seite:
+            Datei <code>Seglerdaten_JJJJ.csv</code> hochladen
+            (Spalten Name · Vorname · Geburtsjahr). Bekannte Segler werden
+            per Fuzzy-Matching zugeordnet; neue Segler können in einem
+            Schritt direkt angelegt werden. Konflikte (unterschiedliches
+            Geburtsjahr) werden farblich hervorgehoben.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.34",
     date: "2026-04-30",
     title: "Ergebnisliste: Einträge manuell hinzufügen",
