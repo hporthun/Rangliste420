@@ -350,12 +350,11 @@ describe("calculateJwmJemQuali", () => {
     });
   });
 
-  describe("age filter per-regatta", () => {
-    it("sailor too old at one regatta → that slot not counted", () => {
+  describe("age filter per Stichtag", () => {
+    it("sailor within age at Stichtag → both regattas valid, even if regatta falls in next year", () => {
       const helmId = uid();
-      // U16 = max age 15, refYear from regatta.startDate
-      // reg1 at 2025-06-01 → refYear=2025. helmBirthYear=2010 → age=15 (ok for U16)
-      // reg2 at 2026-01-01 → refYear=2026. helmBirthYear=2010 → age=16 (too old for U16)
+      // U16 = max age 15; Stichtag 2025-12-31 → birthYear=2010 → age=15 (ok)
+      // reg2 is in Jan 2026, but the Stichtag is the authority, not the regatta date
       const reg1 = mkRegatta("2025-06-01", [
         mkResult(helmId, 1, { helmBirthYear: 2010, helmGender: "M", crewBirthYear: 2010, crewGender: "F" }),
         mkResult(uid(), 2, { helmBirthYear: 2010, helmGender: "M", crewBirthYear: 2010, crewGender: "F" }),
@@ -365,7 +364,7 @@ describe("calculateJwmJemQuali", () => {
         mkResult(uid(), 2, { helmBirthYear: 2010, helmGender: "M", crewBirthYear: 2010, crewGender: "F" }),
       ]);
 
-      const { ranked, preliminary } = calculateJwmJemQuali(
+      const { ranked } = calculateJwmJemQuali(
         mkInput({
           regattas: [reg1, reg2],
           ageCategory: "U16",
@@ -373,16 +372,34 @@ describe("calculateJwmJemQuali", () => {
         })
       );
 
-      // Only reg1 slot is valid → preliminary
-      expect(ranked.find((r) => r.helmId === helmId)).toBeUndefined();
-      const row = preliminary.find((r) => r.helmId === helmId)!;
+      // Both slots valid → ranked
+      const row = ranked.find((r) => r.helmId === helmId)!;
       expect(row).toBeDefined();
-      expect(row.validCount).toBe(1);
+      expect(row.validCount).toBe(2);
+    });
 
-      const slot1 = row.regattaSlots.find((s) => s.regattaId === reg1.id)!;
-      const slot2 = row.regattaSlots.find((s) => s.regattaId === reg2.id)!;
-      expect(slot1.weightedScore).not.toBeNull();
-      expect(slot2.weightedScore).toBeNull();
+    it("sailor too old at Stichtag → no slots counted", () => {
+      const helmId = uid();
+      // U16 = max age 15; Stichtag 2026-12-31 → birthYear=2010 → age=16 (too old)
+      const reg1 = mkRegatta("2026-03-01", [
+        mkResult(helmId, 1, { helmBirthYear: 2010, helmGender: "M", crewBirthYear: 2010, crewGender: "F" }),
+        mkResult(uid(), 2, { helmBirthYear: 2010, helmGender: "M", crewBirthYear: 2010, crewGender: "F" }),
+      ]);
+      const reg2 = mkRegatta("2026-05-01", [
+        mkResult(helmId, 1, { helmBirthYear: 2010, helmGender: "M", crewBirthYear: 2010, crewGender: "F" }),
+        mkResult(uid(), 2, { helmBirthYear: 2010, helmGender: "M", crewBirthYear: 2010, crewGender: "F" }),
+      ]);
+
+      const { ranked, preliminary } = calculateJwmJemQuali(
+        mkInput({
+          regattas: [reg1, reg2],
+          ageCategory: "U16",
+          referenceDate: new Date("2026-12-31"),
+        })
+      );
+
+      expect(ranked.find((r) => r.helmId === helmId)).toBeUndefined();
+      expect(preliminary.find((r) => r.helmId === helmId)).toBeUndefined();
     });
 
     it("gender filter: female-only team excluded from MEN category", () => {

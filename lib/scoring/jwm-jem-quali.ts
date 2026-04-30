@@ -258,13 +258,11 @@ export function calculateJwmJemQuali(input: JwmJemInput): JwmJemOutput {
           continue;
         }
 
-        // Age and gender check uses per-regatta startDate as reference
-        const ageRef =
-          ageCategory === "OPEN" ? referenceDate : regatta.startDate;
+        // Age check uses the season's Stichtag (referenceDate), not the regatta date.
         const passesAge = matchesAgeCategory(
           teamEntry.result.teamEntry,
           ageCategory,
-          ageRef
+          referenceDate
         );
         const passesGender = matchesGenderCategory(
           teamEntry.result.teamEntry,

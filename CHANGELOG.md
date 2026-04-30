@@ -8,6 +8,19 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.39] — 2026-04-30
+
+**JWM/JEM-Quali: Altersfilter nach Stichtag statt Regattadatum.**
+
+### Geändert
+
+- Die Altersklassenprüfung bei der JWM/JEM-Qualifikationsberechnung
+  verwendet jetzt den Stichtag der Saison, nicht mehr das Startdatum
+  der jeweiligen Regatta. Eine Regatta im Folgejahr wird dadurch nicht
+  mehr fälschlicherweise ausgeschlossen.
+
+---
+
 ## [2026.04.38] — 2026-04-30
 
 **U22 als neue Altersklasse für JWM/JEM-Quali.**
