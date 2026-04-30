@@ -56,3 +56,9 @@ yarn-error.log*
 next-env.d.ts
 
 /app/generated/prisma
+
+# scratch / paste-test files in repo root that are not meant to be tracked
+# (z.B. wenn man M2S-Pastes lokal in eine .txt zur Diagnose ablegt)
+/Sailors.txt
+/*.scratch.*
+/scratch-*

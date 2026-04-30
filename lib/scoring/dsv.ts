@@ -114,6 +114,30 @@ export function calculateRA({ f, s, x }: { f: number; s: number; x: number }): n
 }
 
 /**
+ * Computes R_A for an imported result, honouring the "in start area" rule.
+ *
+ * - `inStartArea && finalRank == null` (Boot kam ins Startgebiet, hat aber
+ *   nicht beendet — DNS/BFD/OCS) → R_A = 0 (zählt aber m-fach in s).
+ * - `finalRank != null` → R_A nach DSV-Formel.
+ * - `finalRank == null && !inStartArea` (Boot ist nicht gestartet, DNC) →
+ *   `null` zurückgeben; der Caller filtert dieses Ergebnis aus seiner
+ *   Werteliste raus.
+ *
+ * Single source of truth für diese Logik — wird sowohl von der
+ * Scoring-Engine (calculateDsvRanking) als auch von der öffentlichen
+ * Regatta-Detail-Anzeige genutzt, damit beide Pfade nicht auseinanderdriften.
+ */
+export function calculateRAForResult(
+  f: number,
+  s: number,
+  result: { finalRank: number | null; inStartArea: boolean }
+): number | null {
+  if (result.inStartArea && result.finalRank == null) return 0;
+  if (result.finalRank == null) return null;
+  return calculateRA({ f, s, x: result.finalRank });
+}
+
+/**
  * Pure scoring function — no DB calls.
  * Pass pre-fetched regattas with their results.
  */
@@ -147,11 +171,12 @@ export function calculateDsvRanking(input: DsvRankingInput): DsvRankingResult {
       if (!matchesAgeCategory(teamEntry, ageCategory, ageRef)) continue;
       if (!matchesGenderCategory(teamEntry, genderCategory)) continue;
 
-      // Boats in start area without a finish rank get R_A = 0
-      const rA =
-        result.inStartArea && result.finalRank == null
-          ? 0
-          : calculateRA({ f, s, x: result.finalRank! });
+      // Single source of truth für die "inStartArea = R_A 0"-Logik.
+      // Boote ohne finalRank UND ohne inStartArea (= DNC) liefern null
+      // zurück → werden hier mit `continue` übersprungen, damit sie
+      // weder in der Werteliste auftauchen noch s verfälschen.
+      const rA = calculateRAForResult(f, s, result);
+      if (rA == null) continue;
 
       const helmId = teamEntry.helmId;
       if (!sailorValues.has(helmId)) sailorValues.set(helmId, []);

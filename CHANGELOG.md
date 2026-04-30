@@ -8,6 +8,34 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.25] — 2026-04-30
+
+**Codebase-Aufräumarbeiten — keine Verhaltensänderungen für End-User.**
+
+### Neu
+
+- **`docs/business-rules.md`**: Single source of truth für die Geschäftsregeln
+  (DSV-Formel, Filter-Verhalten, Schottenwechsel-Regel, Import-Flow,
+  häufige Fehlerquellen). CLAUDE.md verlinkt darauf — damit kann eine
+  neue Session sofort den fachlichen Kontext laden.
+- **`calculateRAForResult(f, s, result)`** in `lib/scoring/dsv.ts`:
+  zentrale Funktion für die "inStartArea → R_A 0 / DNC → null"-Logik.
+  Sowohl die Scoring-Engine als auch die öffentliche Regatta-Detail-
+  Anzeige nutzen sie jetzt — kein Drift mehr zwischen den beiden Pfaden.
+  4 neue Tests in `dsv.test.ts`.
+- **Schema-Sync-Lint**: `npm run db:sync-prod` prüft jetzt vor dem Sync,
+  ob JSDoc-Kommentare (`/** … */`) innerhalb von Prisma-Model-Bodies
+  stehen — die werden vom Prisma-Parser nicht akzeptiert. Lint blockt
+  den Sync mit klarer Fehlermeldung und Schnellfix-Hinweis.
+
+### Aufräum
+
+- **`.gitignore`** ignoriert jetzt `Sailors.txt`, `*.scratch.*` und
+  `scratch-*`-Dateien im Repo-Root, die als Diagnose-Artefakte landen
+  konnten.
+
+---
+
 ## [2026.04.24] — 2026-04-30
 
 **Auto-Fetch der Gesamtteilnehmerzahl aus Manage2Sail.**

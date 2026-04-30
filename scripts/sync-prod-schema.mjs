@@ -44,6 +44,45 @@ datasource db {
 
 const src = readFileSync(SRC, "utf-8");
 
+// ── Lint: catch JSDoc-style comments inside model bodies ─────────────────────
+//
+// Prisma's schema language only accepts `//` (regular) and `///` (doc)
+// comments — `/** ... */` blocks are rejected with "This line is not a valid
+// field or attribute definition." We've hit this trap once already
+// (totalStarters comment on Regatta), and the error message points at the
+// `*/` line which makes it confusing to debug. So we validate up-front.
+{
+  const lines = src.split("\n");
+  const errors = [];
+  let depth = 0;          // brace depth — 0 = top level, 1+ = inside model/enum/etc.
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    // Count braces, ignoring those inside line comments (good enough here).
+    const stripped = line.replace(/\/\/.*$/, "");
+    for (const ch of stripped) {
+      if (ch === "{") depth++;
+      else if (ch === "}") depth = Math.max(0, depth - 1);
+    }
+    if (depth >= 1 && /^\s*\/\*\*/.test(line)) {
+      errors.push(
+        `  ${SRC}:${i + 1}: JSDoc-style /** comment inside a model body — Prisma rejects this. ` +
+          `Use /// (triple-slash) or // (double-slash) instead.`
+      );
+    }
+  }
+  if (errors.length > 0) {
+    console.error(
+      "Schema-Lint failed: Prisma model bodies do not accept /** … */ comments."
+    );
+    for (const err of errors) console.error(err);
+    console.error(
+      "\nSchnellfix: jede `/**`-Zeile durch `//` (normaler Kommentar) oder " +
+        "`///` (Doc-Kommentar) ersetzen, schließenden `*/`-Block entfernen."
+    );
+    process.exit(1);
+  }
+}
+
 // Split off the leading "generator { ... } datasource { ... }" block by
 // finding the first model/enum/view declaration. Everything before it is
 // the SQLite-specific header that we replace.

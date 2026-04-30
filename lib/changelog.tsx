@@ -77,6 +77,34 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.25",
+    date: "2026-04-30",
+    title: "Codebase-Aufräumarbeiten",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            <strong>docs/business-rules.md</strong>: Single source of truth für
+            alle Geschäftsregeln (DSV-Formel, Filter-Verhalten,
+            Schottenwechsel, Import-Flow, häufige Fehlerquellen).
+          </>,
+          <>
+            <strong>calculateRAForResult-Helper</strong>: zentrale
+            inStartArea-Logik, sodass Scoring-Engine und Regatta-Detail-
+            Anzeige nicht mehr auseinanderdriften können (verhindert
+            Wiederholung des s-Bugs vom 30.04.).
+          </>,
+          <>
+            <strong>Schema-Sync-Lint</strong>: erkennt JSDoc-Kommentare in
+            Prisma-Model-Bodies und blockt den Sync mit klarer
+            Fehlermeldung.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.24",
     date: "2026-04-30",
     title: "Auto-Fetch Gesamtzahl von M2S",

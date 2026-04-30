@@ -1,6 +1,34 @@
 import { describe, it, expect } from "vitest";
-import { calculateRA, calculateDsvRanking } from "../dsv";
+import { calculateRA, calculateRAForResult, calculateDsvRanking } from "../dsv";
 import type { RegattaData, ResultData, DsvRankingInput } from "../dsv";
+
+// ── calculateRAForResult ──────────────────────────────────────────────────────
+
+describe("calculateRAForResult", () => {
+  it("finalRank gesetzt → calculateRA-Wert", () => {
+    expect(calculateRAForResult(1.2, 100, { finalRank: 1, inStartArea: false }))
+      .toBeCloseTo(120, 5);
+    expect(calculateRAForResult(1.0, 10, { finalRank: 5, inStartArea: false }))
+      .toBeCloseTo(60, 5);
+  });
+
+  it("inStartArea && finalRank null → 0 (Startgebiet, nicht beendet)", () => {
+    expect(calculateRAForResult(1.5, 50, { finalRank: null, inStartArea: true }))
+      .toBe(0);
+  });
+
+  it("finalRank null && !inStartArea → null (DNC, Boot ist nicht gestartet)", () => {
+    expect(calculateRAForResult(1.0, 20, { finalRank: null, inStartArea: false }))
+      .toBeNull();
+  });
+
+  it("inStartArea && finalRank gesetzt → R_A normal (Boot kam ins Startgebiet UND beendet)", () => {
+    // Edge-Case: ein Boot kann sowohl 'inStartArea' als auch 'finalRank'
+    // haben (z.B. nach Protest-Entscheidung). In dem Fall zählt der Rang.
+    expect(calculateRAForResult(1.0, 10, { finalRank: 3, inStartArea: true }))
+      .toBeCloseTo(80, 5);
+  });
+});
 
 // ── calculateRA ───────────────────────────────────────────────────────────────
 

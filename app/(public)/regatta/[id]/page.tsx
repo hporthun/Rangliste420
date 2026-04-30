@@ -1,7 +1,7 @@
 import { db } from "@/lib/db/client";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { calculateRA } from "@/lib/scoring/dsv";
+import { calculateRAForResult } from "@/lib/scoring/dsv";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -110,12 +110,7 @@ export default async function RegattaDetailPage({ params }: Props) {
           </thead>
           <tbody className="divide-y divide-border/60 bg-card">
             {regatta.results.map((r) => {
-              const rA =
-                r.inStartArea && r.finalRank == null
-                  ? 0
-                  : r.finalRank != null
-                  ? calculateRA({ f, s, x: r.finalRank })
-                  : null;
+              const rA = calculateRAForResult(f, s, r);
               return (
                 <tr
                   key={r.id}
