@@ -53,7 +53,7 @@ export default async function JwmJemPage({ searchParams }: Props) {
     ? [rawRegattas]
     : (editingData?.params.regattaIds ?? []);
 
-  const defaultRef = new Date().toISOString().slice(0, 10);
+  const defaultRef = `${new Date().getFullYear()}-12-31`;
   const ref = sp.ref ?? editingData?.params.referenceDate ?? defaultRef;
 
   const hasParams = regattaIds.length > 0;
