@@ -9,7 +9,8 @@
 > - **DSV-Ranglistenordnung (RO)**, Anlage 1, gültig ab 01.01.2026
 > - **DSV-Meldeordnung (MO)**, Anlage Jugend (MO 10) — IDJM
 > - **420er-Klassenvereinigung**, [Quali-Ordnung](https://420class.de/index.php/sport/quali) — JWM/JEM
-> - **CLAUDE.md** im Repo-Root für Tech-Stack und Code-Konventionen
+> - **CLAUDE.md** im Repo-Root für Tech-Stack, Code-Konventionen und
+>   Issue-Workflow (Gitea via `scripts/gitea-issue.mjs`)
 
 ---
 

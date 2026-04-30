@@ -79,6 +79,34 @@ Ergänzend `PLAN_1.md` für die ursprüngliche Spezifikation:
 - Präfixe: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`
 - Vor Commit: `npm run lint` und `npm run test`
 - Branches: `main` immer deploybar, Features in `feature/kurzname`
+- **Push auf Gitea**: das `origin`-Remote ist Gitea, der Push braucht
+  Token-Auth via URL:
+  ```bash
+  git push https://HPorthun:$GITEA_TOKEN@git.pt-systemhaus.de/HPorthun/Rangliste420.git master
+  ```
+
+## Issue-Workflow (Gitea)
+
+Issues leben in [git.pt-systemhaus.de/HPorthun/Rangliste420/issues](https://git.pt-systemhaus.de/HPorthun/Rangliste420/issues).
+Token aus `.env` (`GITEA_TOKEN`). Helper-Script:
+
+```bash
+node scripts/gitea-issue.mjs list           # offene Issues
+node scripts/gitea-issue.mjs list --all     # auch geschlossene
+node scripts/gitea-issue.mjs view 33        # Details zu Issue #33
+node scripts/gitea-issue.mjs close 33       # nach Fix schließen
+node scripts/gitea-issue.mjs reopen 33      # falls doch nicht erledigt
+```
+
+Ablauf bei einer Bug-/Feature-Anfrage mit Issue-Nummer:
+
+1. `node scripts/gitea-issue.mjs view <n>` — Beschreibung lesen
+2. Fix implementieren, Tests grün ziehen
+3. `git commit -m "fix(...): ... (Issue #<n>)"` — Issue-Nummer im Commit
+4. `git push …` (siehe Git-Workflow oben)
+5. `node scripts/gitea-issue.mjs close <n>` — Issue schließen
+6. CHANGELOG-Eintrag + Version-Bump in `package.json` und
+   `lib/changelog.tsx` (Format CalVer `JJJJ.MM.N`)
 
 ## Was Claude nicht tun soll
 
