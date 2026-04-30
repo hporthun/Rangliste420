@@ -77,6 +77,19 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.38",
+    date: "2026-04-30",
+    title: "Altersklasse U22 für JWM/JEM-Quali",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>Altersklasse U22 (max. 21 Jahre) steht jetzt in der JWM/JEM-Qualifikationsberechnung zur Verfügung.</>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.37",
     date: "2026-04-30",
     title: "JWM/JEM-Quali: Neu-Platzierung nur unter Deutschen",

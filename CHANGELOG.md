@@ -8,6 +8,16 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.38] — 2026-04-30
+
+**U22 als neue Altersklasse für JWM/JEM-Quali.**
+
+### Neu
+
+- Altersklasse U22 (max. 21 Jahre) steht in der JWM/JEM-Qualifikationsberechnung zur Verfügung.
+
+---
+
 ## [2026.04.37] — 2026-04-30
 
 **JWM/JEM-Quali: Neu-Platzierung nur unter Deutschen.**

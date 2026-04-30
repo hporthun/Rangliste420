@@ -9,7 +9,7 @@ import { JwmJemSaveForm } from "./save-form";
 import { RegattaFilterList } from "./regatta-filter-list";
 import type { AgeCategory, GenderCategory } from "@/lib/scoring/filters";
 
-const AGE_CATEGORIES: AgeCategory[] = ["U19", "U17", "U16", "U15", "OPEN"];
+const AGE_CATEGORIES: AgeCategory[] = ["U22", "U19", "U17", "U16", "U15", "OPEN"];
 const GENDER_CATEGORIES: GenderCategory[] = ["OPEN", "MEN", "MIX", "GIRLS"];
 
 type Props = {

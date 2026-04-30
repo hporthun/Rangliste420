@@ -7,7 +7,7 @@
  * (year-based; birth month/day not available)
  */
 
-export type AgeCategory = "U15" | "U16" | "U17" | "U19" | "OPEN";
+export type AgeCategory = "U15" | "U16" | "U17" | "U19" | "U22" | "OPEN";
 export type GenderCategory = "OPEN" | "MEN" | "MIX" | "GIRLS";
 
 type PersonData = { birthYear: number | null; gender: string | null };
@@ -18,6 +18,7 @@ const MAX_AGE: Record<Exclude<AgeCategory, "OPEN">, number> = {
   U16: 15,
   U17: 16,
   U19: 18,
+  U22: 21,
 };
 
 /**
