@@ -359,12 +359,12 @@ export async function saveJwmJemAction(
     const ranking = await db.ranking.create({
       data: {
         name: trimmedName,
-        type,
+        type: "JWM_QUALI",
         seasonStart,
         seasonEnd,
         ageCategory,
         genderCategory,
-        scoringRule: JSON.stringify({ kind: "jwm_jem_quali", type }),
+        scoringRule: JSON.stringify({ kind: "jwm_jem_quali" }),
         isPublic: false,
         rankingRegattas: {
           create: regattaIds.map((id) => ({ regattaId: id })),
