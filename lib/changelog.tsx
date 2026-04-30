@@ -77,6 +77,23 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.40",
+    date: "2026-04-30",
+    title: "IDJM: Altersfilter nach Saisonstichtag",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            IDJM-Qualifikation prüft Altersklassen jetzt gegen den
+            Saisonstichtag (ganzes Saisonjahr), identisch zu
+            Jahresrangliste und JWM/JEM-Quali.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.39",
     date: "2026-04-30",
     title: "JWM/JEM-Quali: Altersfilter nach Stichtag",

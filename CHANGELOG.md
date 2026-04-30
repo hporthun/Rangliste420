@@ -8,6 +8,20 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.40] — 2026-04-30
+
+**IDJM: Altersfilter nach Saisonstichtag statt Regattadatum.**
+
+### Geändert
+
+- IDJM-Quali prüft Altersklassen jetzt gegen den Saisonstichtag (ganzes
+  Saisonjahr), identisch zu Jahresrangliste und JWM/JEM-Quali.
+  `useRegattaDateForAge` entfernt, `referenceDate` wird übergeben.
+- Dokumentation in `docs/business-rules.md` und `CLAUDE.md` aktualisiert:
+  Altersregel explizit dokumentiert, U22 ergänzt.
+
+---
+
 ## [2026.04.39] — 2026-04-30
 
 **JWM/JEM-Quali: Altersfilter nach Stichtag statt Regattadatum.**

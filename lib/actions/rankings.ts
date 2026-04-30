@@ -185,6 +185,7 @@ export async function computeRankingAction(
         ageCategory: ageCategory as "U19" | "U16",
         genderCategory,
         regattas,
+        referenceDate: refDate,
       });
       rankings = result.rankings;
     } else {
@@ -384,7 +385,7 @@ export async function computeHelmDetailAction(
       if (ageCategory !== "U19" && ageCategory !== "U16") {
         return { ok: false, error: "IDJM nur für U19/U16." };
       }
-      rankings = calculateIdjmQuali({ ageCategory: ageCategory as "U19" | "U16", genderCategory, regattas }).rankings;
+      rankings = calculateIdjmQuali({ ageCategory: ageCategory as "U19" | "U16", genderCategory, regattas, referenceDate: refDate }).rankings;
     } else {
       rankings = calculateDsvRanking({ seasonYear, ageCategory, genderCategory, referenceDate: refDate, regattas }).rankings;
     }

@@ -1,14 +1,12 @@
 /**
  * IDJM-Quali filter (DSV-MO Anlage Jugend, MO 10).
  *
- * Key difference from calculateDsvRanking (Jahresrangliste):
- * - Age check is per-regatta using regatta.startDate (not a global referenceDate).
- *   A result is excluded if helm or crew was too old AT THAT REGATTA's start.
- * - R ≥ 25 threshold is applied to the result.
+ * Altersregel: Das gesamte Saisonjahr gilt — ein Segler darf im
+ * Saisonjahr (gemäß Stichtag) max. 18 Jahre alt sein (U19) bzw. 15 Jahre
+ * (U16). Referenz ist der Saisonstichtag (referenceDate), nicht das
+ * Startdatum einzelner Regatten.
  *
- * This means a sailor who qualifies by age at Dec 31 (Jahresrangliste) may
- * lose individual regatta results in IDJM if their crew turned too old
- * before a specific regatta's startDate.
+ * R ≥ 25 threshold is applied to the result.
  *
  * **Wichtig** (User-Klarstellung 2026-04-29):
  * Die Gesamtteilnehmerzahl `s` einer Regatta wird IMMER ungefiltert
@@ -17,12 +15,6 @@
  * die Anzahl der gestarteten Boote der Regatta wieder, das Filtern
  * passiert nur auf der Helm-Seite (welche Helm-Reihen tauchen in der
  * IDJM-Rangliste auf).
- *
- * Vorher hat dieses Modul die Regatta-Ergebnisse pre-gefiltert und damit
- * `s` reduziert — das hat die R_A-Werte für IDJM verzerrt. Jetzt
- * delegieren wir die per-Regatta Altersprüfung über das
- * `useRegattaDateForAge`-Flag direkt an `calculateDsvRanking`, sodass `s`
- * unverändert die Gesamtanzahl bleibt.
  */
 
 import { calculateDsvRanking } from "./dsv";
@@ -33,20 +25,18 @@ export type IdjmQualiInput = {
   ageCategory: Extract<AgeCategory, "U19" | "U16">;
   genderCategory: GenderCategory;
   regattas: RegattaData[];
+  referenceDate: Date;
 };
 
 export const IDJM_MIN_R = 25;
 
 export function calculateIdjmQuali(input: IdjmQualiInput): DsvRankingResult {
   const dsvInput: DsvRankingInput = {
-    seasonYear: 0,             // unused — wir nutzen useRegattaDateForAge
+    seasonYear: input.referenceDate.getFullYear(),
     ageCategory: input.ageCategory,
     genderCategory: input.genderCategory,
-    referenceDate: new Date(0), // unused
+    referenceDate: input.referenceDate,
     regattas: input.regattas,
-    // IDJM-Modus: pro Regatta startDate als Alters-Referenz; Filter wirkt
-    // nur auf die Reihen, nicht auf s/x.
-    useRegattaDateForAge: true,
   };
 
   const result = calculateDsvRanking(dsvInput);

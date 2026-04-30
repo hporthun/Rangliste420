@@ -10,7 +10,7 @@ Next.js-Webanwendung zur Erstellung von Ranglisten für die **420er-Klasse**. Im
 - **DSV-Ranglistenordnung (RO)** vom 01.01.2026 — verbindlich für Jahresrangliste, Aktuelle Rangliste, IDJM-Quali
 - **Klassenspezifische Regeln** der 420er-Klassenvereinigung — ergänzend für JWM/JEM-Quali ([420class.de/sport/quali](https://420class.de/index.php/sport/quali))
 - **Schottenwechsel**: Steuermann ist Ranglisten-Einheit, Crew kann wechseln
-- **Kategorie-Matrix**: 4 Altersklassen (U15/U16/U17/U19/Open) × 4 Gender-Kategorien (Open/Männer/Mix/Girls)
+- **Kategorie-Matrix**: 5 Altersklassen (U15/U16/U17/U19/U22/Open) × 4 Gender-Kategorien (Open/Männer/Mix/Girls)
 - **Optionale Stammdaten**: Geburtsdatum und Geschlecht sind optional — fehlt eines, wird der Segler aus entsprechenden gefilterten Ranglisten ausgeschlossen
 
 **Wichtigste Doku-Quellen** (immer zuerst lesen):
@@ -69,7 +69,7 @@ Ergänzend `PLAN_1.md` für die ursprüngliche Spezifikation:
 
 - **DSV-Formel**: Zahlenbeispiel + Grenzfälle (f=0.8/2.6, s=1, x=1, x=s, =9/<9/>9 Wertungen, Startgebiet-R_A=0)
 - **Multiplikator**: alle Staffeln
-- **Filter**: 4 Altersklassen × 4 Gender × fehlendes Geburtsdatum/Geschlecht
+- **Filter**: 5 Altersklassen × 4 Gender × fehlendes Geburtsdatum/Geschlecht
 - **Fuzzy-Matching**: Fixture mit Varianten (Umlaute, Doppelnamen, Tippfehler, Vertauschungen)
 - **JWM/JEM-Quali**: Zahlenbeispiel + Edge Cases
 - **Import-Parser**: mindestens 3 echte Fixtures pro Parser + Startgebiet-Fälle
@@ -161,8 +161,11 @@ R_A = f × 100 × ((s + 1 − x) / s)
 **Ranglistenpunktzahl R**: arithmetisches Mittel der 9 besten R_A-Werte. <9 Wertungen → nicht in Rangliste.
 
 ### Kategorie-Matrix
-- Altersklassen: U15 (max. 14), U16 (max. 15), U17 (max. 16), U19 (max. 18), Open
-- Stichtag: 31.12. des Saisonjahrs
+- Altersklassen: U15 (max. 14), U16 (max. 15), U17 (max. 16), U19 (max. 18), U22 (max. 21), Open
+- Stichtag: das **gesamte Saisonjahr** gilt — Formel `Saisonjahr − Geburtsjahr ≤ MaxAlter`
+  (nur der Jahr-Teil des Stichtags wird ausgewertet, nicht der genaue Tag)
+- Stichtag-Referenz: Jahresrangliste = 30.11., Aktuelle = heute, IDJM = Saisonstichtag,
+  JWM/JEM-Quali = konfigurierbarer Stichtag (Default 31.12.)
 - Gender: Open, Männer, Mix, Girls
 - Alters-/Gender-Filter gilt für **beide** Mannschaftsmitglieder
 - **Fehlendes Geburtsdatum/Geschlecht** → kein Match in gefilterter Kategorie

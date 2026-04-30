@@ -84,12 +84,9 @@ Eine Regatta geht m-fach in die Werteliste eines Helms ein.
 ### 2.3 IDJM-Quali (DSV MO Anlage Jugend, MO 10)
 
 - Gleicher Algorithmus wie Jahresrangliste, aber:
-- Altersprüfung **pro Regatta** gegen `regatta.startDate` (nicht gegen
-  einen globalen Stichtag). Eine Crew, die im Saisonverlauf zu alt
-  geworden ist, fällt für spätere Regatten raus
-- Implementierung über `useRegattaDateForAge: true` in
-  `calculateDsvRanking` — keine Pre-Filterung der Regatta-Ergebnisse,
-  damit `s` ungefiltert bleibt
+- Altersprüfung gegen den **Saisonstichtag** (`referenceDate`) — das
+  gesamte Saisonjahr gilt (identisch zu Jahresrangliste und JWM/JEM-Quali)
+- Keine Pre-Filterung der Regatta-Ergebnisse, damit `s` ungefiltert bleibt
 - Schwelle: `R ≥ 25` (Helms unterhalb fallen raus)
 - Nur U19 oder U16
 - Wird optional persistiert
@@ -131,7 +128,7 @@ Flag vollständig.
 
 ## 3. Kategorien und Filter
 
-### 3.1 Altersklassen (Stichtag-basiert)
+### 3.1 Altersklassen (Saisonstichtag-basiert)
 
 | Kategorie | Maximales Alter |
 |---|---|
@@ -139,12 +136,19 @@ Flag vollständig.
 | U16 | 15 |
 | U17 | 16 |
 | U19 | 18 |
+| U22 | 21 |
 | Open | — |
 
-**Stichtag**:
-- Jahresrangliste / Aktuelle Rangliste: `seasonStart-Jahr.12.31`
-- IDJM-Quali: pro Regatta `regatta.startDate` (siehe §2.3)
-- JWM/JEM-Quali: pro Regatta `regatta.startDate`
+**Regel: Das gesamte Saisonjahr gilt.**
+Ein Segler qualifiziert sich für eine U-Klasse, wenn er im Saisonjahr das
+Maximalalter nicht überschreitet — unabhängig davon, wann im Jahr eine
+Regatta stattfindet. Formel: `Saisonjahr − Geburtsjahr ≤ Maximalalter`.
+
+**Stichtag** (legt das Saisonjahr fest, nur Jahr-Teil wird ausgewertet):
+- Jahresrangliste: `{Jahr}-11-30` (30.11. des Saisonjahrs)
+- Aktuelle Rangliste: heutiges Datum (Saisonjahr = laufendes Jahr)
+- IDJM-Quali: Saisonstichtag (`referenceDate`)
+- JWM/JEM-Quali: konfigurierbarer Stichtag, Default `{Jahr}-12-31`
 
 ### 3.2 Gender-Kategorien
 

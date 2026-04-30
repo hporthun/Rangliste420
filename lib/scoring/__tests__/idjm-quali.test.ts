@@ -45,7 +45,7 @@ describe("calculateIdjmQuali", () => {
         const filler = Array.from({ length: 99 }, (_, i) => mkResult(uid(), i + 1, 2007, "M", 2007, "F"));
         return mkRegatta("2025-06-01", [r, ...filler]);
       });
-      const { rankings } = calculateIdjmQuali({ ageCategory: "U19", genderCategory: "OPEN", regattas: regs });
+      const { rankings } = calculateIdjmQuali({ ageCategory: "U19", genderCategory: "OPEN", regattas: regs, referenceDate: new Date("2025-12-31") });
       expect(rankings.find((r) => r.helmId === helmId)).toBeUndefined();
     });
 
@@ -56,30 +56,30 @@ describe("calculateIdjmQuali", () => {
         const r = mkResult(helmId, 1, 2007, "M", 2007, "F");
         return mkRegatta("2025-06-01", [r, mkResult(uid(), 2, 2007, "M", 2007, "F")]);
       });
-      const { rankings } = calculateIdjmQuali({ ageCategory: "U19", genderCategory: "OPEN", regattas: regs });
+      const { rankings } = calculateIdjmQuali({ ageCategory: "U19", genderCategory: "OPEN", regattas: regs, referenceDate: new Date("2025-12-31") });
       expect(rankings.find((r) => r.helmId === helmId)).toBeDefined();
     });
   });
 
-  describe("per-regatta age check (year-based)", () => {
-    it("crew born 2006 (refYear 2025 → age 19): excluded from all 2025 regattas", () => {
+  describe("season-year age check (Saisonstichtag)", () => {
+    it("crew born 2006 (Saisonstichtag 2025 → age 19): excluded", () => {
       const helmId = uid();
       const regs: RegattaData[] = Array.from({ length: 9 }, () => {
         const r = mkResult(helmId, 1, 2007, "M", 2006, "F");
         return mkRegatta("2025-06-01", [r, mkResult(uid(), 2, 2007, "M", 2007, "F")]);
       });
-      const { rankings } = calculateIdjmQuali({ ageCategory: "U19", genderCategory: "OPEN", regattas: regs });
+      const { rankings } = calculateIdjmQuali({ ageCategory: "U19", genderCategory: "OPEN", regattas: regs, referenceDate: new Date("2025-12-31") });
       // No qualifying values → not listed
       expect(rankings.find((r) => r.helmId === helmId)).toBeUndefined();
     });
 
-    it("crew born 2007 (refYear 2025 → age 18): included in all 2025 regattas", () => {
+    it("crew born 2007 (Saisonstichtag 2025 → age 18): included", () => {
       const helmId = uid();
       const regs: RegattaData[] = Array.from({ length: 9 }, () => {
         const r = mkResult(helmId, 1, 2007, "M", 2007, "F");
         return mkRegatta("2025-06-01", [r, mkResult(uid(), 2, 2007, "M", 2007, "F")]);
       });
-      const { rankings } = calculateIdjmQuali({ ageCategory: "U19", genderCategory: "OPEN", regattas: regs });
+      const { rankings } = calculateIdjmQuali({ ageCategory: "U19", genderCategory: "OPEN", regattas: regs, referenceDate: new Date("2025-12-31") });
       const entry = rankings.find((r) => r.helmId === helmId);
       expect(entry).toBeDefined();
       expect(entry!.allValues.length).toBe(9);
@@ -91,7 +91,7 @@ describe("calculateIdjmQuali", () => {
         const r = mkResult(helmId, 1, 2000, "M", 2007, "F");
         return mkRegatta("2025-06-01", [r, mkResult(uid(), 2, 2007, "M", 2007, "F")]);
       });
-      const { rankings } = calculateIdjmQuali({ ageCategory: "U19", genderCategory: "OPEN", regattas: regs });
+      const { rankings } = calculateIdjmQuali({ ageCategory: "U19", genderCategory: "OPEN", regattas: regs, referenceDate: new Date("2025-12-31") });
       expect(rankings.find((r) => r.helmId === helmId)).toBeUndefined();
     });
   });
@@ -103,7 +103,7 @@ describe("calculateIdjmQuali", () => {
         const r = mkResult(helmId, 1, 2010, "M", 2010, "F");
         return mkRegatta("2025-06-01", [r, mkResult(uid(), 2, 2010, "M", 2010, "F")]);
       });
-      const { rankings } = calculateIdjmQuali({ ageCategory: "U16", genderCategory: "OPEN", regattas: regs });
+      const { rankings } = calculateIdjmQuali({ ageCategory: "U16", genderCategory: "OPEN", regattas: regs, referenceDate: new Date("2025-12-31") });
       expect(rankings.find((r) => r.helmId === helmId)).toBeDefined();
     });
 
@@ -113,7 +113,7 @@ describe("calculateIdjmQuali", () => {
         const r = mkResult(helmId, 1, 2009, "M", 2010, "F");
         return mkRegatta("2025-06-01", [r, mkResult(uid(), 2, 2009, "M", 2009, "F")]);
       });
-      const { rankings } = calculateIdjmQuali({ ageCategory: "U16", genderCategory: "OPEN", regattas: regs });
+      const { rankings } = calculateIdjmQuali({ ageCategory: "U16", genderCategory: "OPEN", regattas: regs, referenceDate: new Date("2025-12-31") });
       expect(rankings.find((r) => r.helmId === helmId)).toBeUndefined();
     });
   });
@@ -125,7 +125,7 @@ describe("calculateIdjmQuali", () => {
         const r = mkResult(helmId, 1, 2007, "M", 2007, "F");
         return mkRegatta("2025-06-01", [r, mkResult(uid(), 2, 2007, "F", 2007, "F")]);
       });
-      const { rankings } = calculateIdjmQuali({ ageCategory: "U19", genderCategory: "GIRLS", regattas: regs });
+      const { rankings } = calculateIdjmQuali({ ageCategory: "U19", genderCategory: "GIRLS", regattas: regs, referenceDate: new Date("2025-12-31") });
       expect(rankings.find((r) => r.helmId === helmId)).toBeUndefined();
     });
   });
@@ -160,6 +160,7 @@ describe("calculateIdjmQuali", () => {
         ageCategory: "U19",
         genderCategory: "OPEN",
         regattas: regs,
+        referenceDate: new Date("2025-12-31"),
       });
 
       const entry = rankings.find((r) => r.helmId === helmId);
@@ -197,6 +198,7 @@ describe("calculateIdjmQuali", () => {
         ageCategory: "U19",
         genderCategory: "OPEN",
         regattas: regs,
+        referenceDate: new Date("2025-12-31"),
       });
       const entry = rankings.find((r) => r.helmId === helmId);
       expect(entry).toBeDefined();
