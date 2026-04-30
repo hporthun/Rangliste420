@@ -77,6 +77,19 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.42",
+    date: "2026-04-30",
+    title: "JWM/JEM-Quali: Typ-Auswahl entfernt",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>JWM und JEM teilen eine gemeinsame Qualifikationsrangliste. Der Typ-Selektor im Formular entfällt.</>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.41",
     date: "2026-04-30",
     title: "Mitglied 420er-Klassenvereinigung",

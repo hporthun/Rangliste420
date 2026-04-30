@@ -14,7 +14,6 @@ const GENDER_CATEGORIES: GenderCategory[] = ["OPEN", "MEN", "MIX", "GIRLS"];
 
 type Props = {
   searchParams: Promise<{
-    type?: string;
     age?: string;
     gender?: string;
     regattas?: string | string[];
@@ -31,12 +30,6 @@ export default async function JwmJemPage({ searchParams }: Props) {
     ? await getJwmJemRankingForEditAction(sp.editId)
     : null;
   const editingData = editing?.ok ? editing.data : null;
-
-  const type = (
-    sp.type
-      ? sp.type === "JEM_QUALI" ? "JEM_QUALI" : "JWM_QUALI"
-      : editingData?.params.type ?? "JWM_QUALI"
-  ) as "JWM_QUALI" | "JEM_QUALI";
 
   const age = (AGE_CATEGORIES.includes(sp.age as AgeCategory)
     ? sp.age
@@ -81,7 +74,6 @@ export default async function JwmJemPage({ searchParams }: Props) {
 
   // Compute results if params are provided
   const params: JwmJemParams = {
-    type,
     regattaIds,
     ageCategory: age,
     genderCategory: gender,
@@ -90,8 +82,7 @@ export default async function JwmJemPage({ searchParams }: Props) {
 
   const result = hasParams ? await computeJwmJemAction(params) : null;
 
-  const typeLabel = type === "JWM_QUALI" ? "JWM-Quali" : "JEM-Quali";
-  const defaultName = editingData?.name ?? `${typeLabel} ${new Date(ref).getFullYear()} ${age}/${gender}`;
+  const defaultName = editingData?.name ?? `JWM/JEM-Quali ${new Date(ref).getFullYear()} ${age}/${gender}`;
 
   return (
     <div className="space-y-6">
@@ -117,17 +108,7 @@ export default async function JwmJemPage({ searchParams }: Props) {
 
       {/* Parameter form — GET-based */}
       <form method="GET" className="rounded-md border p-4 space-y-4 bg-gray-50">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-muted-foreground uppercase">
-              Typ
-            </label>
-            <select name="type" defaultValue={type} className="input text-sm">
-              <option value="JWM_QUALI">JWM-Quali</option>
-              <option value="JEM_QUALI">JEM-Quali</option>
-            </select>
-          </div>
-
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground uppercase">
               Altersklasse

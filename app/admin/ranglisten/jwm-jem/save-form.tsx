@@ -40,7 +40,7 @@ export function JwmJemSaveForm({ params, defaultName, editId }: Props) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="input text-sm w-full"
-          placeholder="z.B. JWM-Quali 2025 U19/Open"
+          placeholder="z.B. JWM/JEM-Quali 2025 U19/Open"
         />
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}

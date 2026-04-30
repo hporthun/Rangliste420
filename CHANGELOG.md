@@ -8,6 +8,19 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.42] — 2026-04-30
+
+**JWM/JEM-Quali: Typ-Auswahl entfernt.**
+
+### Geändert
+
+- JWM- und JEM-Qualifikation sind eine gemeinsame Rangliste. Der
+  Typ-Selektor (JWM-Quali / JEM-Quali) wurde aus dem Formular entfernt.
+  Alle neuen Ranglisten werden als `JWM_QUALI` gespeichert. Bestehende
+  `JEM_QUALI`-Einträge bleiben editierbar.
+
+---
+
 ## [2026.04.41] — 2026-04-30
 
 **Segler: Flag „Mitglied 420er-Klassenvereinigung".**

@@ -35,7 +35,6 @@ import { revalidatePath } from "next/cache";
 // ── Params & result types ─────────────────────────────────────────────────────
 
 export type JwmJemParams = {
-  type: "JWM_QUALI" | "JEM_QUALI";
   regattaIds: string[];
   ageCategory: AgeCategory;
   genderCategory: GenderCategory;
@@ -311,7 +310,7 @@ export async function saveJwmJemAction(
   if (!trimmedName) return { ok: false, error: "Name darf nicht leer sein." };
 
   try {
-    const { type, regattaIds, ageCategory, genderCategory, referenceDate } = params;
+    const { regattaIds, ageCategory, genderCategory, referenceDate } = params;
 
     if (regattaIds.length === 0) {
       return { ok: false, error: "Mindestens eine Regatta muss ausgewählt sein." };
@@ -340,12 +339,12 @@ export async function saveJwmJemAction(
           where: { id: editId },
           data: {
             name: trimmedName,
-            type,
+            type: "JWM_QUALI",
             seasonStart,
             seasonEnd,
             ageCategory,
             genderCategory,
-            scoringRule: JSON.stringify({ kind: "jwm_jem_quali", type }),
+            scoringRule: JSON.stringify({ kind: "jwm_jem_quali" }),
           },
         }),
         db.rankingRegatta.deleteMany({ where: { rankingId: editId } }),
@@ -418,7 +417,6 @@ export async function getJwmJemRankingForEditAction(
       id: r.id,
       name: r.name,
       params: {
-        type: r.type as "JWM_QUALI" | "JEM_QUALI",
         regattaIds: r.rankingRegattas.map((rr) => rr.regattaId),
         ageCategory: r.ageCategory as JwmJemParams["ageCategory"],
         genderCategory: r.genderCategory as JwmJemParams["genderCategory"],
