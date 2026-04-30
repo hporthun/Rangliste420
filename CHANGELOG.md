@@ -8,6 +8,24 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.24] — 2026-04-30
+
+**Auto-Fetch der Gesamtteilnehmerzahl aus Manage2Sail.**
+
+### Neu
+
+- **„Aus Manage2Sail abrufen"-Button** im Preview-Schritt des
+  Import-Wizards. Auch wenn ein Paste/PDF nur einen Teil der Crews
+  enthält (z.B. nur die deutschen einer Auslandsregatta), kann hier
+  die echte Anzahl gestarteter Boote direkt aus der M2S-API geholt
+  werden — und zwar VOR dem germanOnly-Filter, also die volle Klassen-
+  Teilnehmerzahl. URL-Feld wird mit der `sourceUrl` der Regatta
+  vorbelegt, falls dort eine M2S-URL steht.
+- Neue Server-Action `fetchM2STotalStartersAction(url)` liefert nur
+  den Gesamt-Count ohne die Ergebnisse zu re-importieren.
+
+---
+
 ## [2026.04.23] — 2026-04-30
 
 **Gesamtteilnehmerzahl im Import-Wizard editierbar.**

@@ -80,6 +80,53 @@ export async function fetchM2SClassesAction(
   }
 }
 
+/**
+ * Fragt nur die Gesamtteilnehmerzahl einer M2S-Regatta-Klasse ab — ohne
+ * die Ergebnisse zu parsen oder zu importieren. Wird vom Import-Wizard
+ * benutzt, um nach einem Paste-Import die echte Anzahl gestarteter Boote
+ * von Manage2Sail zu holen, falls der Paste nur einen Teil enthält
+ * (z.B. nur die deutschen Crews einer Auslandsregatta).
+ *
+ * Akzeptiert die gleichen URLs wie der API-Import (event-UUID/Alias
+ * + optional classId).
+ */
+export async function fetchM2STotalStartersAction(
+  url: string
+): Promise<
+  | { ok: true; total: number; classCount: number | null }
+  | { ok: false; error: string }
+> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
+  try {
+    const ids = parseM2SUrl(url);
+    if (!ids) {
+      return {
+        ok: false,
+        error: "Keine gültige Manage2Sail-URL erkannt.",
+      };
+    }
+    if (!ids.classId) {
+      return {
+        ok: false,
+        error:
+          "URL enthält keine Klassen-ID. Bitte zur 420er-Klasse → Ergebnisse navigieren und URL kopieren.",
+      };
+    }
+    // germanOnly weiter true, damit nur die deutschen Crews als entries
+    // zurückkommen — wir interessieren uns aber für die VOR-Filter-Anzahl,
+    // die der Parser sowieso als totalStarters mit zurückliefert.
+    const { result } = await fetchM2SResults(ids.eventId, ids.classId);
+    return {
+      ok: true,
+      total: result.totalStarters ?? result.entries.length,
+      classCount: result.entries.length,
+    };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
 export async function parseTextAction(
   text: string
 ): Promise<{ ok: true; data: ParsedRegatta } | { ok: false; error: string }> {

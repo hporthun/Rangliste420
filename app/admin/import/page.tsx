@@ -19,6 +19,7 @@ export default async function ImportPage({ searchParams }: Props) {
       completedRaces: true,
       ranglistenFaktor: true,
       totalStarters: true,
+      sourceUrl: true,
     },
   });
 
@@ -29,6 +30,7 @@ export default async function ImportPage({ searchParams }: Props) {
     completedRaces: r.completedRaces,
     ranglistenFaktor: Number(r.ranglistenFaktor),
     totalStarters: r.totalStarters,
+    sourceUrl: r.sourceUrl,
   }));
 
   return (

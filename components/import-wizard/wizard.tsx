@@ -19,6 +19,9 @@ export type RegattaOption = {
   ranglistenFaktor: number;
   /** Bereits gespeicherter Wert für Gesamtteilnehmerzahl, wenn vorhanden. */
   totalStarters: number | null;
+  /** M2S-URL, falls die Regatta von dort verlinkt ist — vom Import-Wizard
+   *  als Vorbelegung für den „aus M2S abrufen"-Button benutzt. */
+  sourceUrl: string | null;
 };
 
 type WizardState =

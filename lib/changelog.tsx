@@ -77,6 +77,28 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.24",
+    date: "2026-04-30",
+    title: "Auto-Fetch Gesamtzahl von M2S",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            <strong>„Aus Manage2Sail abrufen"-Button</strong> im
+            Preview-Schritt des Import-Wizards. Wenn der Paste/PDF nur
+            einen Teil der Crews enthält (z.B. nur die deutschen einer
+            Auslandsregatta), holt der Button die echte Gesamtzahl direkt
+            aus der M2S-API — und zwar <em>vor</em> dem germanOnly-Filter.
+            URL-Feld wird mit der{" "}
+            <code className="font-mono text-xs">sourceUrl</code> der
+            Regatta vorbelegt, sofern bekannt.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.23",
     date: "2026-04-30",
     title: "Gesamtteilnehmerzahl im Import-Wizard",

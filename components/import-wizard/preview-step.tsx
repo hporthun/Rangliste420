@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { commitImportAction } from "@/lib/actions/import";
+import { commitImportAction, fetchM2STotalStartersAction } from "@/lib/actions/import";
 import type { ParsedRegatta } from "@/lib/import/manage2sail-paste";
 import type { EntryDecision } from "@/lib/import/types";
 import type { RegattaOption } from "./wizard";
@@ -46,6 +46,31 @@ export function PreviewStep({
     regatta?.totalStarters != null
       ? `bereits auf Regatta gespeichert: ${regatta.totalStarters}`
       : `vom Parser ermittelt: ${parsedDefault}`;
+
+  // M2S-URL für Auto-Fetch der echten Gesamtzahl. Vorbelegung aus
+  // regatta.sourceUrl, falls die Regatta dort verlinkt ist.
+  const initialM2sUrl = regatta?.sourceUrl?.includes("manage2sail.com")
+    ? regatta.sourceUrl
+    : "";
+  const [m2sUrl, setM2sUrl] = useState(initialM2sUrl);
+  const [fetchingTotal, setFetchingTotal] = useState(false);
+  const [fetchedTotal, setFetchedTotal] = useState<number | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  async function handleFetchTotal() {
+    if (!m2sUrl) return;
+    setFetchingTotal(true);
+    setFetchError(null);
+    setFetchedTotal(null);
+    const res = await fetchM2STotalStartersAction(m2sUrl);
+    setFetchingTotal(false);
+    if (res.ok) {
+      setFetchedTotal(res.total);
+      setTotalStarters(res.total);
+    } else {
+      setFetchError(res.error);
+    }
+  }
   const newSailorsCount = entryDecisions.filter(
     (d) => d.helmDecision.type === "create"
   ).length;
@@ -148,10 +173,45 @@ export function PreviewStep({
         <p className="text-xs text-blue-800">
           Default ({sourceLabel}){overridden && (
             <>
-              {" "}— manuell auf <strong>{totalStarters}</strong> gesetzt.
+              {" "}— gesetzt auf <strong>{totalStarters}</strong>.
             </>
           )}
         </p>
+
+        {/* Auto-Fetch über M2S API: wenn nur ein Teil der Crews im Paste war
+            (z.B. nur die deutschen einer Auslandsregatta), kann hier die
+            volle Anzahl direkt aus der Manage2Sail-API geholt werden. */}
+        <div className="pt-2 border-t border-blue-200 space-y-2">
+          <p className="text-xs font-medium text-blue-900">
+            Aus Manage2Sail abrufen (vor Filterung)
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              type="url"
+              value={m2sUrl}
+              onChange={(e) => setM2sUrl(e.target.value)}
+              placeholder="https://www.manage2sail.com/de-DE/event/…#!/results?classId=…"
+              className="input flex-1 min-w-[200px] text-xs"
+            />
+            <button
+              type="button"
+              onClick={handleFetchTotal}
+              disabled={fetchingTotal || !m2sUrl}
+              className="px-3 py-1.5 text-xs bg-white border border-blue-300 text-blue-800 rounded-md hover:bg-blue-100 disabled:opacity-50"
+            >
+              {fetchingTotal ? "Lade…" : "Anzahl holen"}
+            </button>
+          </div>
+          {fetchedTotal !== null && (
+            <p className="text-xs text-emerald-700">
+              ✓ M2S meldet <strong>{fetchedTotal}</strong> gestartete Boote in
+              dieser Klasse — übernommen.
+            </p>
+          )}
+          {fetchError && (
+            <p className="text-xs text-red-600">{fetchError}</p>
+          )}
+        </div>
       </div>
 
       {/* Entry table */}
