@@ -6,6 +6,8 @@ import { updateRegatta } from "@/lib/actions/regattas";
 import { DeleteRegattaButton } from "@/components/delete-regatta-button";
 import { PageTour } from "@/components/tour/page-tour";
 import { CrewSwapToggle } from "@/components/admin/crew-swap-toggle";
+import { EditTeamEntry } from "@/components/admin/edit-team-entry";
+import { DeleteTeamEntryButton } from "@/components/admin/delete-team-entry-button";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { TourStep } from "@/components/tour/tour-context";
@@ -160,6 +162,7 @@ export default async function EditRegattaPage({ params }: Props) {
                       ))
                     : <th className="px-3 py-2 text-left">Wettfahrten</th>}
                   <th className="px-3 py-2 text-center w-10" title="Startgebiet">SG</th>
+                  <th className="px-3 py-2 w-16"></th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -242,6 +245,22 @@ export default async function EditRegattaPage({ params }: Props) {
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
+                    </td>
+                    <td className="px-2 py-1 text-right">
+                      <span className="inline-flex items-center gap-0.5">
+                        <EditTeamEntry
+                          teamEntryId={e.id}
+                          helmName={`${e.helm.firstName} ${e.helm.lastName}`}
+                          initialSailNumber={e.sailNumber ?? null}
+                          initialInStartArea={e.result?.inStartArea ?? false}
+                          numRaces={numRaces}
+                          initialRaceScores={e.racePoints}
+                        />
+                        <DeleteTeamEntryButton
+                          teamEntryId={e.id}
+                          helmName={`${e.helm.firstName} ${e.helm.lastName}`}
+                        />
+                      </span>
                     </td>
                   </tr>
                 ))}
