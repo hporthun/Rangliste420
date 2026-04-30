@@ -8,6 +8,7 @@ import { PageTour } from "@/components/tour/page-tour";
 import { CrewSwapToggle } from "@/components/admin/crew-swap-toggle";
 import { EditTeamEntry } from "@/components/admin/edit-team-entry";
 import { DeleteTeamEntryButton } from "@/components/admin/delete-team-entry-button";
+import { AddTeamEntry } from "@/components/admin/add-team-entry";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { TourStep } from "@/components/tour/tour-context";
@@ -59,7 +60,7 @@ type Props = { params: Promise<{ id: string }> };
 export default async function EditRegattaPage({ params }: Props) {
   const { id } = await params;
 
-  const [regatta, entries] = await Promise.all([
+  const [regatta, entries, allSailors] = await Promise.all([
     db.regatta.findUnique({ where: { id } }),
     db.teamEntry.findMany({
       where: { regattaId: id },
@@ -80,6 +81,10 @@ export default async function EditRegattaPage({ params }: Props) {
         // nulls last: entries without a result rank go to the bottom
         { result: { finalRank: "asc" } },
       ],
+    }),
+    db.sailor.findMany({
+      select: { id: true, firstName: true, lastName: true },
+      orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
     }),
   ]);
 
@@ -131,6 +136,11 @@ export default async function EditRegattaPage({ params }: Props) {
               </span>
             )}
           </h2>
+          <AddTeamEntry
+            regattaId={id}
+            numRaces={numRaces}
+            sailors={allSailors}
+          />
           <Link
             href={`/admin/import?regattaId=${id}`}
             data-tour="regatta-import"

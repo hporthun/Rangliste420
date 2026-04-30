@@ -4,6 +4,7 @@
  * - `setCrewSwapAction`       — Schottenwechsel-Toggle (Issue #11)
  * - `updateTeamEntryAction`   — Segelnummer, Startgebiet-Flag, Rennwertungen (Issue #39)
  * - `deleteTeamEntryAction`   — Eintrag inkl. Result löschen (Issue #39)
+ * - `addTeamEntryAction`      — Neuen Eintrag manuell anlegen (Issue #41)
  *
  * Auth: alle Actions erfordern eine gültige Session.
  */
@@ -154,6 +155,71 @@ export async function deleteTeamEntryAction(teamEntryId: string): Promise<Result
   const { regattaId } = entry;
 
   await db.teamEntry.delete({ where: { id: teamEntryId } });
+  await rerankRegatta(regattaId);
+
+  revalidatePath(`/admin/regatten/${regattaId}`);
+  return { ok: true };
+}
+
+// ── Issue #41: manuellen Eintrag hinzufügen ──────────────────────────────────
+
+const addTeamEntrySchema = z.object({
+  regattaId: z.string().min(1),
+  helmId: z.string().min(1),
+  crewId: z.string().min(1).nullable(),
+  sailNumber: z.string().max(30).nullable(),
+  inStartArea: z.boolean(),
+  raceScores: z.array(raceScoreSchema),
+});
+
+/**
+ * Legt manuell einen neuen TeamEntry mit Result für eine Regatta an und
+ * vergibt alle Platzierungen neu.
+ *
+ * Issue #41.
+ */
+export async function addTeamEntryAction(
+  input: z.infer<typeof addTeamEntrySchema>
+): Promise<Result> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
+
+  const parsed = addTeamEntrySchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: "Ungültige Eingabe: " + parsed.error.issues[0]?.message };
+  }
+  const { regattaId, helmId, crewId, sailNumber, inStartArea, raceScores } = parsed.data;
+
+  const existing = await db.teamEntry.findFirst({
+    where: { regattaId, helmId },
+  });
+  if (existing) {
+    return { ok: false, error: "Dieser Steuermann ist in der Regatta bereits eingetragen." };
+  }
+
+  const finalPoints = raceScores
+    .filter((s) => !s.isDiscard)
+    .reduce((sum, s) => sum + s.points, 0);
+
+  const entry = await db.teamEntry.create({
+    data: {
+      regattaId,
+      helmId,
+      crewId: crewId ?? null,
+      sailNumber: sailNumber ?? null,
+    },
+  });
+
+  await db.result.create({
+    data: {
+      regattaId,
+      teamEntryId: entry.id,
+      racePoints: JSON.stringify(raceScores),
+      finalPoints,
+      inStartArea,
+    },
+  });
+
   await rerankRegatta(regattaId);
 
   revalidatePath(`/admin/regatten/${regattaId}`);
