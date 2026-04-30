@@ -8,6 +8,20 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.36] — 2026-04-30
+
+**JWM/JEM-Quali bearbeiten.**
+
+### Neu
+
+- Gespeicherte JWM- und JEM-Qualifikationsranglisten lassen sich über das
+  ⚙️-Icon in der Ranglisten-Übersicht bearbeiten. Die JWM/JEM-Seite liest
+  `editId` aus den URL-Parametern, befüllt alle Felder (Typ, Altersklasse,
+  Gender, Stichtag, Regattaauswahl, Name) vor und überschreibt die
+  bestehende Rangliste beim Speichern anstatt eine neue anzulegen.
+
+---
+
 ## [2026.04.35] — 2026-04-30
 
 **CSV-Stammdatenimport.**
