@@ -17,6 +17,7 @@ type Props = {
   helmName: string;
   initialSailNumber: string | null;
   initialInStartArea: boolean;
+  initialFinalRank: number | null;
   numRaces: number;
   initialRaceScores: RaceScore[];
 };
@@ -28,12 +29,14 @@ export function EditTeamEntry({
   helmName,
   initialSailNumber,
   initialInStartArea,
+  initialFinalRank,
   numRaces,
   initialRaceScores,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [sailNumber, setSailNumber] = useState(initialSailNumber ?? "");
   const [inStartArea, setInStartArea] = useState(initialInStartArea);
+  const [rankInput, setRankInput] = useState(initialFinalRank != null ? String(initialFinalRank) : "");
   const [scores, setScores] = useState<RaceScore[]>(() => {
     // Ensure we have an entry for every race 1..numRaces
     return Array.from({ length: numRaces }, (_, i) => {
@@ -53,6 +56,11 @@ export function EditTeamEntry({
 
   function handleSave() {
     setError(null);
+    const rankVal = rankInput.trim() ? parseInt(rankInput.trim(), 10) : null;
+    if (rankInput.trim() && (isNaN(rankVal!) || rankVal! < 1)) {
+      setError("Platzierung muss eine positive ganze Zahl sein.");
+      return;
+    }
     startTransition(async () => {
       const res = await updateTeamEntryAction({
         teamEntryId,
@@ -64,6 +72,7 @@ export function EditTeamEntry({
           code: s.code || null,
           isDiscard: s.isDiscard,
         })),
+        manualRank: rankVal,
       });
       if (res.ok) {
         setOpen(false);
@@ -78,6 +87,7 @@ export function EditTeamEntry({
     setOpen(false);
     setSailNumber(initialSailNumber ?? "");
     setInStartArea(initialInStartArea);
+    setRankInput(initialFinalRank != null ? String(initialFinalRank) : "");
     setScores(
       Array.from({ length: numRaces }, (_, i) => {
         const existing = initialRaceScores.find((s) => s.race === i + 1);
@@ -135,6 +145,37 @@ export function EditTeamEntry({
                   placeholder="z.B. GER 1234"
                   className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+              </div>
+
+              {/* Rank */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Platzierung
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={rankInput}
+                    onChange={(e) => setRankInput(e.target.value)}
+                    min={1}
+                    step={1}
+                    placeholder="leer = automatisch"
+                    className="w-40 rounded-md border border-input bg-background px-2.5 py-1.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  {rankInput.trim() && (
+                    <button
+                      type="button"
+                      onClick={() => setRankInput("")}
+                      className="text-xs text-muted-foreground hover:underline"
+                    >
+                      zurücksetzen
+                    </button>
+                  )}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Leer lassen = Rang wird aus Nettopunkten berechnet.
+                  Wert eingeben = Rang wird manuell gesetzt und nicht überschrieben.
+                </p>
               </div>
 
               {/* inStartArea */}

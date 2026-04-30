@@ -263,6 +263,7 @@ export default async function EditRegattaPage({ params }: Props) {
                           helmName={`${e.helm.firstName} ${e.helm.lastName}`}
                           initialSailNumber={e.sailNumber ?? null}
                           initialInStartArea={e.result?.inStartArea ?? false}
+                          initialFinalRank={e.result?.finalRank ?? null}
                           numRaces={numRaces}
                           initialRaceScores={e.racePoints.map((rp) => ({
                             ...rp,
