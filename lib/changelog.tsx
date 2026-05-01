@@ -77,7 +77,7 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
-    version: "2026.05.44",
+    version: "2026.05.1",
     date: "2026-05-01",
     title: "Vorschoter-Ranglisten (Issue #47)",
     changes: [

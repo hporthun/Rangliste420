@@ -8,7 +8,7 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
-## [2026.05.44] — 2026-05-01
+## [2026.05.1] — 2026-05-01
 
 **Vorschoter-Ranglisten (Issue #47).**
 
