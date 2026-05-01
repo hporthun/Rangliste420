@@ -21,6 +21,7 @@ export default async function RanglistePage({ params }: Props) {
       seasonStart: true,
       seasonEnd: true,
       scoringRule: true,
+      scoringUnit: true,
       rankingRegattas: {
         select: { regattaId: true },
       },
@@ -123,12 +124,14 @@ export default async function RanglistePage({ params }: Props) {
   }
 
   // ── DSV / IDJM branch (existing) ──────────────────────────────────────────
+  const scoringUnit = (ranking.scoringUnit ?? "HELM") as "HELM" | "CREW";
   const computeParams: ComputeParams = {
     type: ranking.type as RankingType,
     seasonStart: ranking.seasonStart.toISOString().slice(0, 10),
     referenceDate: ranking.seasonEnd.toISOString().slice(0, 10),
     ageCategory: ranking.ageCategory as ComputeParams["ageCategory"],
     genderCategory: ranking.genderCategory as ComputeParams["genderCategory"],
+    scoringUnit,
   };
 
   const result = await computeRankingAction(computeParams);
@@ -226,7 +229,7 @@ export default async function RanglistePage({ params }: Props) {
                   >
                     {row.firstName} {row.lastName}
                   </Link>
-                  <CrewLabel crews={row.partners} />
+                  <CrewLabel crews={row.partners} prefix={scoringUnit === "CREW" ? "Steuermann" : "Crew"} />
                 </td>
                 <td className="px-4 py-3 text-muted-foreground text-xs hidden sm:table-cell">
                   {row.club ?? "—"}

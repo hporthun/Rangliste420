@@ -114,7 +114,7 @@ export default async function NeueRanglistePage({ searchParams }: Props) {
                       <td className="px-4 py-2 font-medium text-center">{row.rank}</td>
                       <td className="px-4 py-2">
                         {row.firstName} {row.lastName}
-                        <CrewLabel crews={row.partners} />
+                        <CrewLabel crews={row.partners} prefix={unit === "CREW" ? "Steuermann" : "Crew"} />
                       </td>
                       <td className="px-4 py-2 text-muted-foreground text-xs">{row.club ?? "—"}</td>
                       <td className="px-4 py-2 text-right font-mono font-medium">

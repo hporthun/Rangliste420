@@ -22,9 +22,12 @@ type Crew = {
 
 export function CrewLabel({
   crews,
+  prefix = "Crew",
   className = "",
 }: {
   crews: Crew[];
+  /** Label shown before the name(s). Use "Steuermann" in CREW-mode rankings. */
+  prefix?: string;
   className?: string;
 }) {
   if (!crews.length) return null;
@@ -44,7 +47,7 @@ export function CrewLabel({
       className={`block text-xs text-muted-foreground mt-0.5 ${className}`}
       title={crews.map(fmt).join(", ")}
     >
-      Crew: {label}
+      {prefix}: {label}
     </span>
   );
 }
