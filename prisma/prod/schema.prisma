@@ -153,6 +153,8 @@ model Ranking {
   scoringRule    String
   isPublic       Boolean   @default(false)
   publishedAt    DateTime?
+  // Display order in the public listing (lower = higher up); ties broken by publishedAt desc
+  sortOrder      Int       @default(0)
 
   rankingRegattas RankingRegatta[]
 

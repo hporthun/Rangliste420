@@ -77,6 +77,23 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.04.43",
+    date: "2026-04-30",
+    title: "Ranglistenreihenfolge per Drag & Drop",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Im Adminbereich können Ranglisten per Drag & Drop umsortiert werden.
+            Die Reihenfolge wird sofort gespeichert und gilt auch für die
+            öffentliche Ranglisten-Übersicht.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.42",
     date: "2026-04-30",
     title: "JWM/JEM-Quali: Typ-Auswahl entfernt",

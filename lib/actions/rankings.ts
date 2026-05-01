@@ -663,3 +663,22 @@ export async function publishRankingAction(
     return { ok: false, error: String(e) };
   }
 }
+
+export async function updateRankingsSortOrderAction(
+  updates: { id: string; sortOrder: number }[]
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
+  try {
+    await db.$transaction(
+      updates.map(({ id, sortOrder }) =>
+        db.ranking.update({ where: { id }, data: { sortOrder } })
+      )
+    );
+    revalidatePath("/admin/ranglisten");
+    revalidatePath("/rangliste");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}

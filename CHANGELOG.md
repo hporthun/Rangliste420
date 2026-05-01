@@ -8,6 +8,19 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.04.43] — 2026-04-30
+
+**Ranglistenreihenfolge per Drag & Drop.**
+
+### Neu
+
+- Im Adminbereich können Ranglisten per Drag & Drop umsortiert werden.
+  Die Reihenfolge wird sofort gespeichert und gilt auch für die
+  öffentliche Ranglisten-Übersicht.
+- Neues Datenbankfeld `sortOrder` auf dem `Ranking`-Modell.
+
+---
+
 ## [2026.04.42] — 2026-04-30
 
 **JWM/JEM-Quali: Typ-Auswahl entfernt.**

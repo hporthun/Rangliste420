@@ -24,7 +24,7 @@ export default async function RanglisteIndexPage({ searchParams }: Props) {
 
   const rankings = await db.ranking.findMany({
     where: { isPublic: true },
-    orderBy: [{ seasonEnd: "desc" }, { publishedAt: "desc" }],
+    orderBy: [{ sortOrder: "asc" }, { publishedAt: "desc" }],
     select: {
       id: true,
       name: true,
