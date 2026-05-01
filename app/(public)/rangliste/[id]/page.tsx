@@ -74,6 +74,14 @@ export default async function RanglistePage({ params }: Props) {
             <span>Saison {ranking.seasonStart.getFullYear()}</span>
             <span>Stichtag {ranking.seasonEnd.toLocaleDateString("de-DE")}</span>
           </div>
+          <div className="mt-3">
+            <Link
+              href={`/rangliste/${id}/regatten`}
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground border rounded px-2.5 py-1 hover:bg-muted/60 transition-colors"
+            >
+              Verwendete Regatten →
+            </Link>
+          </div>
         </div>
 
         {/* Main ranking */}
@@ -156,6 +164,14 @@ export default async function RanglistePage({ params }: Props) {
           <span>{ranking.ageCategory} / {ranking.genderCategory}</span>
           <span>Saison {ranking.seasonStart.getFullYear()}</span>
           <span>Stichtag {ranking.seasonEnd.toLocaleDateString("de-DE")}</span>
+        </div>
+        <div className="mt-3">
+          <Link
+            href={`/rangliste/${id}/regatten`}
+            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground border rounded px-2.5 py-1 hover:bg-muted/60 transition-colors"
+          >
+            Verwendete Regatten →
+          </Link>
         </div>
       </div>
 
