@@ -294,6 +294,9 @@ function RankingTable({
                     month: "2-digit",
                   })}
                 </span>
+                <span className="font-normal normal-case text-xs block text-muted-foreground/70">
+                  {r.starters} TN
+                </span>
               </th>
             ))}
           </tr>
