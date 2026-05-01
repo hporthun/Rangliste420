@@ -31,10 +31,11 @@ export default async function RanglisteIndexPage() {
     },
   });
 
-  // Group by season year
+  // Group by season year — use seasonEnd (= Stichtag) so JWM/JEM-Quali
+  // entries with regattas in a prior year still land in the correct season.
   const byYear = new Map<number, typeof rankings>();
   for (const r of rankings) {
-    const year = r.seasonStart.getFullYear();
+    const year = r.seasonEnd.getFullYear();
     if (!byYear.has(year)) byYear.set(year, []);
     byYear.get(year)!.push(r);
   }
