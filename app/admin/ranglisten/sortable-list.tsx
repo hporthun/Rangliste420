@@ -35,16 +35,7 @@ export function RankingsSortableList({ initialRows }: { initialRows: RankingRow[
   );
   const [, startTransition] = useTransition();
 
-  // Refs so saveOrder always reads the latest state regardless of when the
-  // drop event fires relative to React's render cycle.
-  const rlRef = useRef(ranglisten);
-  const qlRef = useRef(qualilisten);
-  rlRef.current = ranglisten;
-  qlRef.current = qualilisten;
-
-  function saveOrder() {
-    const rl = rlRef.current;
-    const ql = qlRef.current;
+  function persist(rl: RankingRow[], ql: RankingRow[]) {
     const updates = [
       ...rl.map((r, i) => ({ id: r.id, sortOrder: i })),
       ...ql.map((r, i) => ({ id: r.id, sortOrder: rl.length + i })),
@@ -59,13 +50,21 @@ export function RankingsSortableList({ initialRows }: { initialRows: RankingRow[
       {ranglisten.length > 0 && (
         <section className="space-y-2">
           <h2 className="text-sm font-semibold">Ranglisten</h2>
-          <SortableTable rows={ranglisten} setRows={setRanglisten} onDrop={saveOrder} />
+          <SortableTable
+            rows={ranglisten}
+            setRows={setRanglisten}
+            onDrop={(updated) => persist(updated, qualilisten)}
+          />
         </section>
       )}
       {qualilisten.length > 0 && (
         <section className="space-y-2">
           <h2 className="text-sm font-semibold">Qualifikationsranglisten</h2>
-          <SortableTable rows={qualilisten} setRows={setQualilisten} onDrop={saveOrder} />
+          <SortableTable
+            rows={qualilisten}
+            setRows={setQualilisten}
+            onDrop={(updated) => persist(ranglisten, updated)}
+          />
         </section>
       )}
     </div>
@@ -79,7 +78,7 @@ function SortableTable({
 }: {
   rows: RankingRow[];
   setRows: React.Dispatch<React.SetStateAction<RankingRow[]>>;
-  onDrop: () => void;
+  onDrop: (rows: RankingRow[]) => void;
 }) {
   const dragIdx = useRef<number | null>(null);
 
@@ -104,7 +103,7 @@ function SortableTable({
 
   function handleDrop() {
     dragIdx.current = null;
-    onDrop();
+    onDrop(rows);
   }
 
   return (
