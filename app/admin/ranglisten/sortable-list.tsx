@@ -17,6 +17,8 @@ type RankingRow = {
   sortOrder: number;
 };
 
+const QUALI_TYPES = new Set(["IDJM", "JWM_QUALI", "JEM_QUALI"]);
+
 const TYPE_LABELS: Record<string, string> = {
   JAHRESRANGLISTE: "Jahresrangliste",
   IDJM:            "IDJM-Quali",
@@ -25,39 +27,88 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export function RankingsSortableList({ initialRows }: { initialRows: RankingRow[] }) {
-  const [rows, setRows] = useState(initialRows);
+  const [ranglisten, setRanglisten] = useState(
+    () => initialRows.filter((r) => !QUALI_TYPES.has(r.type))
+  );
+  const [qualilisten, setQualilisten] = useState(
+    () => initialRows.filter((r) => QUALI_TYPES.has(r.type))
+  );
   const [, startTransition] = useTransition();
-  const dragIdx = useRef<number | null>(null);
 
-  function onDragStart(idx: number) {
-    dragIdx.current = idx;
-  }
+  // Refs so saveOrder always reads the latest state regardless of when the
+  // drop event fires relative to React's render cycle.
+  const rlRef = useRef(ranglisten);
+  const qlRef = useRef(qualilisten);
+  rlRef.current = ranglisten;
+  qlRef.current = qualilisten;
 
-  function onDragOver(e: React.DragEvent, idx: number) {
-    e.preventDefault();
-    if (dragIdx.current === null || dragIdx.current === idx) return;
-
-    setRows((prev) => {
-      const next = [...prev];
-      const [moved] = next.splice(dragIdx.current!, 1);
-      next.splice(idx, 0, moved);
-      dragIdx.current = idx;
-      return next;
-    });
-  }
-
-  function onDrop() {
-    if (dragIdx.current === null) return;
-    dragIdx.current = null;
-
-    const updates = rows.map((r, i) => ({ id: r.id, sortOrder: i }));
+  function saveOrder() {
+    const rl = rlRef.current;
+    const ql = qlRef.current;
+    const updates = [
+      ...rl.map((r, i) => ({ id: r.id, sortOrder: i })),
+      ...ql.map((r, i) => ({ id: r.id, sortOrder: rl.length + i })),
+    ];
     startTransition(async () => {
       await updateRankingsSortOrderAction(updates);
     });
   }
 
   return (
-    <div className="rounded-md border overflow-x-auto" data-tour="ranglisten-tabelle">
+    <div className="space-y-6" data-tour="ranglisten-tabelle">
+      {ranglisten.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="text-sm font-semibold">Ranglisten</h2>
+          <SortableTable rows={ranglisten} setRows={setRanglisten} onDrop={saveOrder} />
+        </section>
+      )}
+      {qualilisten.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="text-sm font-semibold">Qualifikationsranglisten</h2>
+          <SortableTable rows={qualilisten} setRows={setQualilisten} onDrop={saveOrder} />
+        </section>
+      )}
+    </div>
+  );
+}
+
+function SortableTable({
+  rows,
+  setRows,
+  onDrop,
+}: {
+  rows: RankingRow[];
+  setRows: React.Dispatch<React.SetStateAction<RankingRow[]>>;
+  onDrop: () => void;
+}) {
+  const dragIdx = useRef<number | null>(null);
+
+  function handleDragStart(idx: number) {
+    dragIdx.current = idx;
+  }
+
+  function handleDragOver(e: React.DragEvent, idx: number) {
+    e.preventDefault();
+    if (dragIdx.current === null || dragIdx.current === idx) return;
+
+    const from = dragIdx.current;
+    dragIdx.current = idx;
+
+    setRows((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(idx, 0, moved);
+      return next;
+    });
+  }
+
+  function handleDrop() {
+    dragIdx.current = null;
+    onDrop();
+  }
+
+  return (
+    <div className="rounded-md border overflow-x-auto">
       <table className="w-full text-sm min-w-[360px]">
         <thead className="bg-gray-50 text-xs text-muted-foreground uppercase">
           <tr>
@@ -76,9 +127,9 @@ export function RankingsSortableList({ initialRows }: { initialRows: RankingRow[
             <tr
               key={r.id}
               draggable
-              onDragStart={() => onDragStart(idx)}
-              onDragOver={(e) => onDragOver(e, idx)}
-              onDrop={onDrop}
+              onDragStart={() => handleDragStart(idx)}
+              onDragOver={(e) => handleDragOver(e, idx)}
+              onDrop={handleDrop}
               className="cursor-default"
             >
               <td className="px-2 py-2 text-muted-foreground cursor-grab active:cursor-grabbing select-none text-center">
