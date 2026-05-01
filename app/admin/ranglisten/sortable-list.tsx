@@ -82,6 +82,15 @@ function SortableTable({
 }) {
   const dragIdx = useRef<number | null>(null);
 
+  function moveRow(from: number, to: number) {
+    if (to < 0 || to >= rows.length) return;
+    const next = [...rows];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    setRows(next);
+    onDrop(next);
+  }
+
   function handleDragStart(idx: number) {
     dragIdx.current = idx;
   }
@@ -111,7 +120,7 @@ function SortableTable({
       <table className="w-full text-sm min-w-[360px]">
         <thead className="bg-gray-50 text-xs text-muted-foreground uppercase">
           <tr>
-            <th className="px-2 py-2 w-8"></th>
+            <th className="px-2 py-2 w-14"></th>
             <th className="px-4 py-2 text-left">Name</th>
             <th className="px-4 py-2 text-left hidden sm:table-cell">Typ</th>
             <th className="px-4 py-2 text-left hidden sm:table-cell">Saison</th>
@@ -131,8 +140,28 @@ function SortableTable({
               onDrop={handleDrop}
               className="cursor-default"
             >
-              <td className="px-2 py-2 text-muted-foreground cursor-grab active:cursor-grabbing select-none text-center">
-                ⠿
+              <td className="px-1 py-1 text-center select-none">
+                <div className="flex flex-col items-center gap-0.5">
+                  <button
+                    type="button"
+                    onClick={() => moveRow(idx, idx - 1)}
+                    disabled={idx === 0}
+                    className="text-muted-foreground hover:text-foreground disabled:opacity-20 leading-none px-1"
+                    aria-label="Nach oben"
+                  >
+                    ▲
+                  </button>
+                  <span className="text-muted-foreground cursor-grab active:cursor-grabbing text-base leading-none">⠿</span>
+                  <button
+                    type="button"
+                    onClick={() => moveRow(idx, idx + 1)}
+                    disabled={idx === rows.length - 1}
+                    className="text-muted-foreground hover:text-foreground disabled:opacity-20 leading-none px-1"
+                    aria-label="Nach unten"
+                  >
+                    ▼
+                  </button>
+                </div>
               </td>
               <td className="px-4 py-2 font-medium">{r.name}</td>
               <td className="px-4 py-2 text-muted-foreground text-xs hidden sm:table-cell">
