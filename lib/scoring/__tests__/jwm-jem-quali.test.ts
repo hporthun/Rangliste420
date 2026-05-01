@@ -35,7 +35,8 @@ function mkResult(
     helmGender?: string | null;
     crewBirthYear?: number | null;
     crewGender?: string | null;
-    crewId?: string;
+    /** Pass null to simulate a PDF-import with no crew data. */
+    crewId?: string | null;
     crewSwapApproved?: boolean;
   } = {}
 ): ResultData {
@@ -44,17 +45,21 @@ function mkResult(
     birthYear: opts.helmBirthYear !== undefined ? opts.helmBirthYear : 2007,
     gender: opts.helmGender !== undefined ? opts.helmGender : "M",
   };
-  const crewId = opts.crewId ?? defaultCrewForHelm(helmId);
-  const crew = {
-    id: crewId,
-    birthYear: opts.crewBirthYear !== undefined ? opts.crewBirthYear : 2007,
-    gender: opts.crewGender !== undefined ? opts.crewGender : "F",
-  };
+  // null = explicitly no crew (PDF import). undefined = use stable default crew.
+  const crewId = opts.crewId !== undefined ? opts.crewId : defaultCrewForHelm(helmId);
+  const crew =
+    crewId !== null
+      ? {
+          id: crewId,
+          birthYear: opts.crewBirthYear !== undefined ? opts.crewBirthYear : 2007,
+          gender: opts.crewGender !== undefined ? opts.crewGender : "F",
+        }
+      : null;
   return {
     id: uid(),
     teamEntry: {
       helmId,
-      crewId: crew.id,
+      crewId: crewId ?? null,
       helm,
       crew,
       crewSwapApproved: opts.crewSwapApproved ?? false,
@@ -597,6 +602,51 @@ describe("calculateJwmJemQuali", () => {
       const helmRows = ranked.filter((r) => r.helmId === helmId);
       expect(helmRows).toHaveLength(1);
       expect(helmRows[0].validCount).toBe(3);
+    });
+
+    it("null-Crew (PDF-Import) gefolgt von bekannter Crew → kein Split, ein Team", () => {
+      const helmId = uid();
+      const crewX = uid();
+      // R1 from PDF (crew unknown = null), R2 from web (crew known) — same team
+      const reg1 = mkRegatta("2025-04-01", [
+        mkResult(helmId, 1, { crewId: null }),
+        mkResult(uid(), 2),
+      ]);
+      const reg2 = mkRegatta("2025-05-01", [
+        mkResult(helmId, 2, { crewId: crewX }),
+        mkResult(uid(), 1),
+      ]);
+
+      const { ranked, preliminary } = calculateJwmJemQuali(
+        mkInput({ regattas: [reg1, reg2] })
+      );
+      const allRows = [...ranked, ...preliminary];
+      const helmRows = allRows.filter((r) => r.helmId === helmId);
+      // ONE team, 2 results → ranked
+      expect(helmRows).toHaveLength(1);
+      expect(helmRows[0].validCount).toBe(2);
+      expect(helmRows[0].splitFromSwap).toBe(false);
+    });
+
+    it("bekannte Crew gefolgt von null-Crew → kein Split (null = unbekannt)", () => {
+      const helmId = uid();
+      const crewX = uid();
+      const reg1 = mkRegatta("2025-04-01", [
+        mkResult(helmId, 1, { crewId: crewX }),
+        mkResult(uid(), 2),
+      ]);
+      const reg2 = mkRegatta("2025-05-01", [
+        mkResult(helmId, 2, { crewId: null }),
+        mkResult(uid(), 1),
+      ]);
+
+      const { ranked, preliminary } = calculateJwmJemQuali(
+        mkInput({ regattas: [reg1, reg2] })
+      );
+      const allRows = [...ranked, ...preliminary];
+      const helmRows = allRows.filter((r) => r.helmId === helmId);
+      expect(helmRows).toHaveLength(1);
+      expect(helmRows[0].validCount).toBe(2);
     });
 
     it("Teams haben unterschiedliche teamKeys → React-Keys eindeutig", () => {

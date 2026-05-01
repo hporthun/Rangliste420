@@ -77,6 +77,26 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.2",
+    date: "2026-05-01",
+    title: "JWM/JEM-Quali: PDF-Import ohne Crew-Daten kein Teamwechsel",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            Teams, deren erster Regatta-Eintrag aus einem PDF-Import stammt (Crew
+            unbekannt), wurden beim nächsten Eintrag mit bekannter Crew fälschlicherweise
+            als neues Team gewertet. Dadurch erschienen beide Teil-Teams als
+            „Zwischenergebnis (unvollständig)" statt als ein vollständiges Team in der
+            Qualifikationsrangliste. Die Null-Crew gilt jetzt als „unbekannte Besatzung"
+            und führt nicht mehr zu einem Split.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.1",
     date: "2026-05-01",
     title: "Vorschoter-Ranglisten (Issue #47)",

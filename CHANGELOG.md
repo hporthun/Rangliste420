@@ -8,6 +8,25 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.2] — 2026-05-01
+
+**JWM/JEM-Quali: Null-Crew (PDF-Import) verursacht keinen Teamwechsel.**
+
+### Korrigiert
+
+- Teams, deren erster Regatta-Eintrag aus einem PDF-Import stammt (Crew
+  unbekannt = `null`), wurden beim nächsten Eintrag mit bekannter Crew
+  fälschlicherweise als neues Team gewertet. Dadurch erschienen beide
+  Teil-Teams als „Zwischenergebnis (unvollständig)" statt als ein
+  vollständiges Team in der Qualifikationsrangliste.
+- Umgekehrt: bekannte Crew gefolgt von einem PDF-Eintrag ohne Crew-Daten
+  führt ebenfalls nicht mehr zu einem Split.
+- Nur ein echter, unterschiedlicher Crew-Wechsel (von einem bekannten zu
+  einem anderen bekannten Vorschoter) löst weiterhin die Schottenwechsel-
+  Logik aus.
+
+---
+
 ## [2026.05.1] — 2026-05-01
 
 **Vorschoter-Ranglisten (Issue #47).**

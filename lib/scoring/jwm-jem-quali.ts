@@ -139,7 +139,8 @@ function partitionTeams(entries: HelmEntry[]): Team[] {
     const e = sorted[i];
 
     // Same crew as one of the team's accepted crews? → continue the team.
-    if (current.crewIds.has(e.crewId)) {
+    // null crewId means "crew unknown" (e.g. PDF import) — treat as same team.
+    if (current.crewIds.has(e.crewId) || e.crewId === null) {
       current.entries.push(e);
       continue;
     }
@@ -149,6 +150,16 @@ function partitionTeams(entries: HelmEntry[]): Team[] {
     if (!current.swapUsed && e.crewSwapApproved && e.crewId !== null) {
       current.crewIds.add(e.crewId);
       current.swapUsed = true;
+      current.entries.push(e);
+      continue;
+    }
+
+    // Primary crew was null (unknown, e.g. PDF import), but now we have a
+    // real crewId → adopt it without consuming the swap allowance.
+    if (current.primaryCrewId === null && e.crewId !== null) {
+      current.crewIds.delete(null);
+      current.crewIds.add(e.crewId);
+      current.primaryCrewId = e.crewId;
       current.entries.push(e);
       continue;
     }
