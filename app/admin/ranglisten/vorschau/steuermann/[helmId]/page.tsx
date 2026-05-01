@@ -164,7 +164,7 @@ export default async function SteuermanDetailPage({ params, searchParams }: Prop
       )}
 
       {/* Crew history */}
-      {d.crewHistory.length > 0 && (
+      {d.partnerHistory.length > 0 && (
         <div className="space-y-2">
           <h2 className="text-base font-medium">Crew-Historie</h2>
           <div className="rounded-md border overflow-x-auto">
@@ -178,15 +178,15 @@ export default async function SteuermanDetailPage({ params, searchParams }: Prop
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {d.crewHistory.map((c, i) => (
+                {d.partnerHistory.map((c, i) => (
                   <tr key={i}>
                     <td className="px-3 py-2">{c.regattaName}</td>
                     <td className="px-3 py-2 text-muted-foreground text-xs">
                       {new Date(c.regattaDate).toLocaleDateString("de-DE")}
                     </td>
                     <td className="px-3 py-2">
-                      {c.crewFirstName && c.crewLastName
-                        ? `${c.crewFirstName} ${c.crewLastName}`
+                      {c.partnerFirstName && c.partnerLastName
+                        ? `${c.partnerFirstName} ${c.partnerLastName}`
                         : <span className="text-muted-foreground italic">keine Crew</span>}
                     </td>
                     <td className="px-3 py-2 font-mono text-xs">{c.sailNumber ?? "—"}</td>

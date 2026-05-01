@@ -26,6 +26,7 @@ export type IdjmQualiInput = {
   genderCategory: GenderCategory;
   regattas: RegattaData[];
   referenceDate: Date;
+  scoringUnit?: "HELM" | "CREW";
 };
 
 export const IDJM_MIN_R = 25;
@@ -37,6 +38,7 @@ export function calculateIdjmQuali(input: IdjmQualiInput): DsvRankingResult {
     genderCategory: input.genderCategory,
     referenceDate: input.referenceDate,
     regattas: input.regattas,
+    scoringUnit: input.scoringUnit,
   };
 
   const result = calculateDsvRanking(dsvInput);

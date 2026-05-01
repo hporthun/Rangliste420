@@ -155,6 +155,8 @@ model Ranking {
   publishedAt    DateTime?
   // Display order in the public listing (lower = higher up); ties broken by publishedAt desc
   sortOrder      Int       @default(0)
+  // "HELM" | "CREW" — scoring unit (Steuermann or Vorschoter)
+  scoringUnit    String    @default("HELM")
 
   rankingRegattas RankingRegatta[]
 

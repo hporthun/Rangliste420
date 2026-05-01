@@ -191,7 +191,7 @@ export default async function RanglistePage({ params }: Props) {
           <tbody className="divide-y divide-border/60 bg-card">
             {rows.map((row, idx) => (
               <tr
-                key={row.helmId}
+                key={row.sailorId}
                 className={`hover:bg-muted/40 transition-colors group ${
                   idx === 0
                     ? "bg-yellow-50/60"
@@ -221,12 +221,12 @@ export default async function RanglistePage({ params }: Props) {
                 </td>
                 <td className="px-4 py-3 font-medium">
                   <Link
-                    href={`/rangliste/${id}/steuermann/${row.helmId}`}
+                    href={`/rangliste/${id}/steuermann/${row.sailorId}`}
                     className="hover:text-accent transition-colors"
                   >
                     {row.firstName} {row.lastName}
                   </Link>
-                  <CrewLabel crews={row.crews} />
+                  <CrewLabel crews={row.partners} />
                 </td>
                 <td className="px-4 py-3 text-muted-foreground text-xs hidden sm:table-cell">
                   {row.club ?? "—"}
@@ -239,7 +239,7 @@ export default async function RanglistePage({ params }: Props) {
                 </td>
                 <td className="px-4 py-3 text-right">
                   <Link
-                    href={`/rangliste/${id}/steuermann/${row.helmId}`}
+                    href={`/rangliste/${id}/steuermann/${row.sailorId}`}
                     className="text-xs text-accent/50 group-hover:text-accent transition-colors"
                     aria-label={`Details ${row.firstName} ${row.lastName}`}
                   >

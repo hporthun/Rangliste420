@@ -11,6 +11,7 @@ type Props = {
     ref?: string;
     age?: string;
     gender?: string;
+    unit?: string;
     /** Issue #26: when set, save flow updates this ranking instead of creating a new one. */
     editId?: string;
   }>;
@@ -29,6 +30,7 @@ export default async function NeueRanglistePage({ searchParams }: Props) {
   const type = ((sp.type ?? editingData?.params.type ?? "JAHRESRANGLISTE") as RankingType);
   const age = (sp.age ?? editingData?.params.ageCategory ?? "OPEN") as ComputeParams["ageCategory"];
   const gender = (sp.gender ?? editingData?.params.genderCategory ?? "OPEN") as ComputeParams["genderCategory"];
+  const unit = ((sp.unit ?? editingData?.params.scoringUnit ?? "HELM") === "CREW" ? "CREW" : "HELM") as "HELM" | "CREW";
 
   const currentYear = new Date().getFullYear();
   const defaultRef = type === "AKTUELLE"
@@ -44,6 +46,7 @@ export default async function NeueRanglistePage({ searchParams }: Props) {
     referenceDate: ref,
     ageCategory: age,
     genderCategory: gender,
+    scoringUnit: unit,
   };
 
   const result = await computeRankingAction(params);
@@ -107,11 +110,11 @@ export default async function NeueRanglistePage({ searchParams }: Props) {
                 </thead>
                 <tbody className="divide-y">
                   {result.data.rows.map((row) => (
-                    <tr key={row.helmId}>
+                    <tr key={row.sailorId}>
                       <td className="px-4 py-2 font-medium text-center">{row.rank}</td>
                       <td className="px-4 py-2">
                         {row.firstName} {row.lastName}
-                        <CrewLabel crews={row.crews} />
+                        <CrewLabel crews={row.partners} />
                       </td>
                       <td className="px-4 py-2 text-muted-foreground text-xs">{row.club ?? "—"}</td>
                       <td className="px-4 py-2 text-right font-mono font-medium">

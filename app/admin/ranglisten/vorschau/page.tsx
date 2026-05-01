@@ -78,6 +78,7 @@ type Props = {
     ref?: string;
     age?: string;
     gender?: string;
+    unit?: string;
     /** Issue #26: when present, the form edits an existing ranking instead of creating a new one. */
     editId?: string;
   }>;
@@ -119,6 +120,7 @@ export default async function VorschauPage({ searchParams }: Props) {
   const ref    = sp.ref  ?? editing?.params.referenceDate ?? defaults.ref;
   const age    = (sp.age    ?? editing?.params.ageCategory    ?? "OPEN") as ComputeParams["ageCategory"];
   const gender = (sp.gender ?? editing?.params.genderCategory ?? "OPEN") as ComputeParams["genderCategory"];
+  const unit   = ((sp.unit  ?? editing?.params.scoringUnit    ?? "HELM") === "CREW" ? "CREW" : "HELM") as "HELM" | "CREW";
 
   const hasParams = !!sp.type || !!sp.season || !!sp.from || !!sp.ref || !!editing;
   const params: ComputeParams = {
@@ -127,6 +129,7 @@ export default async function VorschauPage({ searchParams }: Props) {
     referenceDate: ref,
     ageCategory: age,
     genderCategory: gender,
+    scoringUnit: unit,
   };
 
   const result = hasParams ? await computeRankingAction(params) : null;
@@ -145,6 +148,7 @@ export default async function VorschauPage({ searchParams }: Props) {
     ref,
     age,
     gender,
+    unit,
     ...(editing ? { editId: editing.id } : {}),
   }).toString();
 
@@ -215,6 +219,14 @@ export default async function VorschauPage({ searchParams }: Props) {
           </div>
 
           <div className="space-y-1">
+            <label className="text-xs font-medium text-muted-foreground uppercase">Einheit</label>
+            <select name="unit" defaultValue={unit} className="input text-sm">
+              <option value="HELM">Steuermann</option>
+              <option value="CREW">Vorschoter</option>
+            </select>
+          </div>
+
+          <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground uppercase">
               Von <span className="font-normal normal-case opacity-70">(optional)</span>
             </label>
@@ -276,7 +288,7 @@ export default async function VorschauPage({ searchParams }: Props) {
               <thead className="bg-gray-50 text-xs text-muted-foreground uppercase">
                 <tr>
                   <th className="px-4 py-2 text-left w-12">Platz</th>
-                  <th className="px-4 py-2 text-left">Name</th>
+                  <th className="px-4 py-2 text-left">{unit === "CREW" ? "Vorschoter" : "Steuermann"}</th>
                   <th className="px-4 py-2 text-left">Verein</th>
                   <th className="px-4 py-2 text-right">R</th>
                   <th className="px-4 py-2 text-right">Wertungen</th>
@@ -285,11 +297,11 @@ export default async function VorschauPage({ searchParams }: Props) {
               </thead>
               <tbody className="divide-y">
                 {result.data.rows.map((row) => (
-                  <tr key={row.helmId}>
+                  <tr key={row.sailorId}>
                     <td className="px-4 py-2 font-medium text-center">{row.rank}</td>
                     <td className="px-4 py-2">
                       {row.firstName} {row.lastName}
-                      <CrewLabel crews={row.crews} />
+                      <CrewLabel crews={row.partners} />
                     </td>
                     <td className="px-4 py-2 text-muted-foreground text-xs">{row.club ?? "—"}</td>
                     <td className="px-4 py-2 text-right font-mono font-medium">
@@ -300,7 +312,7 @@ export default async function VorschauPage({ searchParams }: Props) {
                     </td>
                     <td className="px-4 py-2 text-right">
                       <Link
-                        href={`/admin/ranglisten/vorschau/steuermann/${row.helmId}?${new URLSearchParams({ ...sp } as Record<string, string>)}`}
+                        href={`/admin/ranglisten/vorschau/steuermann/${row.sailorId}?${new URLSearchParams({ ...sp } as Record<string, string>)}`}
                         className="text-xs text-blue-600 hover:underline"
                       >
                         Detail →

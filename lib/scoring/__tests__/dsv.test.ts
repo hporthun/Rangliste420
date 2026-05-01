@@ -132,7 +132,7 @@ describe("calculateDsvRanking", () => {
       const helmId = uid();
       const regattas = buildRegattas(helmId, 9, 10, 1.0);
       const { rankings } = calculateDsvRanking(mkInput(regattas));
-      const e = rankings.find((r) => r.helmId === helmId)!;
+      const e = rankings.find((r) => r.sailorId === helmId)!;
       expect(e).toBeDefined();
       expect(e.R).toBeCloseTo(100, 5);
       expect(e.rank).toBe(1);
@@ -165,7 +165,7 @@ describe("calculateDsvRanking", () => {
       });
 
       const { rankings } = calculateDsvRanking(mkInput(regattas));
-      const e = rankings.find((r) => r.helmId === helmId)!;
+      const e = rankings.find((r) => r.sailorId === helmId)!;
       expect(e).toBeDefined();
       // s sollte 20 sein in jedem RankingValue (überschrieben)
       expect(e.top9[0].s).toBe(20);
@@ -177,7 +177,7 @@ describe("calculateDsvRanking", () => {
       const regattas = buildRegattas(helmId, 9, 10, 1.0);
       // Kein totalStarters gesetzt → fallback
       const { rankings } = calculateDsvRanking(mkInput(regattas));
-      const e = rankings.find((r) => r.helmId === helmId)!;
+      const e = rankings.find((r) => r.sailorId === helmId)!;
       expect(e.top9[0].s).toBe(10); // = results.length
     });
 
@@ -188,7 +188,7 @@ describe("calculateDsvRanking", () => {
         totalStarters: null,
       }));
       const { rankings } = calculateDsvRanking(mkInput(regattas));
-      const e = rankings.find((r) => r.helmId === helmId)!;
+      const e = rankings.find((r) => r.sailorId === helmId)!;
       expect(e.top9[0].s).toBe(10);
     });
 
@@ -203,7 +203,7 @@ describe("calculateDsvRanking", () => {
         return { ...mkRegatta(1, false, results, 1.0), totalStarters: 5 };
       });
       const { rankings } = calculateDsvRanking(mkInput(regattas));
-      const e = rankings.find((r) => r.helmId === helmId)!;
+      const e = rankings.find((r) => r.sailorId === helmId)!;
       expect(e.top9[0].s).toBe(5);
     });
   });
@@ -213,21 +213,21 @@ describe("calculateDsvRanking", () => {
       const helmId = uid();
       const regattas = buildRegattas(helmId, 8, 2, 1.0);
       const { rankings } = calculateDsvRanking(mkInput(regattas));
-      expect(rankings.find((r) => r.helmId === helmId)).toBeUndefined();
+      expect(rankings.find((r) => r.sailorId === helmId)).toBeUndefined();
     });
 
     it("exactly 9 values → listed", () => {
       const helmId = uid();
       const regattas = buildRegattas(helmId, 9, 2, 1.0);
       const { rankings } = calculateDsvRanking(mkInput(regattas));
-      expect(rankings.find((r) => r.helmId === helmId)).toBeDefined();
+      expect(rankings.find((r) => r.sailorId === helmId)).toBeDefined();
     });
 
     it(">9 values → still listed", () => {
       const helmId = uid();
       const regattas = buildRegattas(helmId, 15, 2, 1.0);
       const { rankings } = calculateDsvRanking(mkInput(regattas));
-      expect(rankings.find((r) => r.helmId === helmId)).toBeDefined();
+      expect(rankings.find((r) => r.sailorId === helmId)).toBeDefined();
     });
   });
 
@@ -239,7 +239,7 @@ describe("calculateDsvRanking", () => {
       const mainReg = mkRegatta(3, false, [mkResult(helmId, 1), mkResult(uid(), 2), mkResult(uid(), 3)]);
       const extras = buildRegattas(helmId, 6, 2, 1.0);
       const { rankings } = calculateDsvRanking(mkInput([mainReg, ...extras]));
-      const e = rankings.find((r) => r.helmId === helmId)!;
+      const e = rankings.find((r) => r.sailorId === helmId)!;
       expect(e).toBeDefined();
       // 3 + 6 = 9 total values
       expect(e.allValues.length).toBe(9);
@@ -251,7 +251,7 @@ describe("calculateDsvRanking", () => {
       const mainReg = mkRegatta(6, true, [mkResult(helmId, 1), ...fillers]);
       const extras = buildRegattas(helmId, 4, 2, 1.0);
       const { rankings } = calculateDsvRanking(mkInput([mainReg, ...extras]));
-      const e = rankings.find((r) => r.helmId === helmId)!;
+      const e = rankings.find((r) => r.sailorId === helmId)!;
       expect(e).toBeDefined();
       expect(e.allValues.length).toBe(9); // 5 + 4
     });
@@ -261,7 +261,7 @@ describe("calculateDsvRanking", () => {
       const mainReg = mkRegatta(4, false, [mkResult(helmId, 1), mkResult(uid(), 2)]);
       const extras = buildRegattas(helmId, 5, 2, 1.0);
       const { rankings } = calculateDsvRanking(mkInput([mainReg, ...extras]));
-      const e = rankings.find((r) => r.helmId === helmId)!;
+      const e = rankings.find((r) => r.sailorId === helmId)!;
       expect(e).toBeDefined();
       expect(e.allValues.length).toBe(9); // 4 + 5
     });
@@ -282,7 +282,7 @@ describe("calculateDsvRanking", () => {
       regattas.push(startReg);
 
       const { rankings } = calculateDsvRanking(mkInput(regattas));
-      const e = rankings.find((r) => r.helmId === helmId)!;
+      const e = rankings.find((r) => r.sailorId === helmId)!;
       expect(e).toBeDefined();
       expect(e.R).toBeCloseTo(800 / 9, 4);
       const startVal = e.top9.find((v) => v.inStartArea);
@@ -310,7 +310,7 @@ describe("calculateDsvRanking", () => {
       });
 
       const { rankings } = calculateDsvRanking(mkInput(regs));
-      const e = rankings.find((r) => r.helmId === helmId)!;
+      const e = rankings.find((r) => r.sailorId === helmId)!;
       expect(e).toBeDefined();
       expect(e.top9.length).toBe(9);
       // Best 9 are x=1..9; worst are x=10,11,12
@@ -353,8 +353,8 @@ describe("calculateDsvRanking", () => {
       });
 
       const { rankings } = calculateDsvRanking(mkInput([regA1, ...regsA2, ...regsB]));
-      const a = rankings.find((r) => r.helmId === helmA)!;
-      const b = rankings.find((r) => r.helmId === helmB)!;
+      const a = rankings.find((r) => r.sailorId === helmA)!;
+      const b = rankings.find((r) => r.sailorId === helmB)!;
       expect(a.R).toBeCloseTo(100, 4);
       expect(b.R).toBeCloseTo(100, 4);
       expect(a.rank).toBe(1);
@@ -381,8 +381,8 @@ describe("calculateDsvRanking", () => {
       });
 
       const { rankings } = calculateDsvRanking(mkInput([...regsA, ...regsB]));
-      const a = rankings.find((r) => r.helmId === helmA)!;
-      const b = rankings.find((r) => r.helmId === helmB)!;
+      const a = rankings.find((r) => r.sailorId === helmA)!;
+      const b = rankings.find((r) => r.sailorId === helmB)!;
       expect(a.R).toBeCloseTo(b.R, 4);
       expect(a.rank).toBe(1);
       expect(b.rank).toBe(2);
@@ -409,7 +409,7 @@ describe("calculateDsvRanking", () => {
       const { rankings } = calculateDsvRanking(
         mkInput(regs, { ageCategory: "U19", referenceDate: new Date(2025, 11, 31) })
       );
-      expect(rankings.find((r) => r.helmId === helmId)).toBeUndefined();
+      expect(rankings.find((r) => r.sailorId === helmId)).toBeUndefined();
     });
 
     it("GIRLS: M+F team excluded", () => {
@@ -429,7 +429,7 @@ describe("calculateDsvRanking", () => {
         return mkRegatta(1, false, [r, mkResult(uid(), 2)]);
       });
       const { rankings } = calculateDsvRanking(mkInput(regs, { genderCategory: "GIRLS" }));
-      expect(rankings.find((r) => r.helmId === helmId)).toBeUndefined();
+      expect(rankings.find((r) => r.sailorId === helmId)).toBeUndefined();
     });
 
     it("MEN: M+M team included", () => {
@@ -449,7 +449,7 @@ describe("calculateDsvRanking", () => {
         return mkRegatta(1, false, [r, mkResult(uid(), 2)]);
       });
       const { rankings } = calculateDsvRanking(mkInput(regs, { genderCategory: "MEN" }));
-      expect(rankings.find((r) => r.helmId === helmId)).toBeDefined();
+      expect(rankings.find((r) => r.sailorId === helmId)).toBeDefined();
     });
   });
 
@@ -466,7 +466,7 @@ describe("calculateDsvRanking", () => {
       const helmId = uid();
       const reg = mkRegatta(0, false, [mkResult(helmId, 1), mkResult(uid(), 2)]);
       const { rankings } = calculateDsvRanking(mkInput([reg]));
-      expect(rankings.find((r) => r.helmId === helmId)).toBeUndefined();
+      expect(rankings.find((r) => r.sailorId === helmId)).toBeUndefined();
     });
   });
 });

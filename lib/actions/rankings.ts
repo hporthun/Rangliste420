@@ -109,19 +109,18 @@ export type CrewEntry = {
 
 export type RankingRow = {
   rank: number;
-  helmId: string;
+  /** Primary sailor: helmId in HELM mode, crewId in CREW mode */
+  sailorId: string;
   firstName: string;
   lastName: string;
   club: string | null;
   R: number;
   valuesCount: number;
   /**
-   * All crews used by this helm during the season, ordered most-frequent
-   * first. Empty array if the helm only sailed PDF-imported regattas
-   * (where crew is unknown). UI typically shows the first one inline and
-   * indicates +N when there are more.
+   * Partner sailors: crews in HELM mode, helms in CREW mode.
+   * Ordered most-frequent first.
    */
-  crews: CrewEntry[];
+  partners: CrewEntry[];
 };
 
 export type RegattaMeta = {
@@ -157,6 +156,8 @@ export type ComputeParams = {
   referenceDate: string;
   ageCategory: AgeCategory;
   genderCategory: GenderCategory;
+  /** "HELM" (default) or "CREW" — group ranking by Steuermann or Vorschoter */
+  scoringUnit?: "HELM" | "CREW";
 };
 
 // ── Compute action ────────────────────────────────────────────────────────────
@@ -166,7 +167,7 @@ export async function computeRankingAction(
 ): Promise<{ ok: true; data: RankingComputeResult } | { ok: false; error: string }> {
   // Read-only computation — no auth required (data shown on public pages too)
   try {
-    const { type, seasonStart: seasonStartStr, referenceDate, ageCategory, genderCategory } = params;
+    const { type, seasonStart: seasonStartStr, referenceDate, ageCategory, genderCategory, scoringUnit = "HELM" } = params;
     const refDate = new Date(referenceDate);
     const seasonStart = new Date(seasonStartStr);
     const seasonYear = refDate.getFullYear();
@@ -186,6 +187,7 @@ export async function computeRankingAction(
         genderCategory,
         regattas,
         referenceDate: refDate,
+        scoringUnit,
       });
       rankings = result.rankings;
     } else {
@@ -195,56 +197,68 @@ export async function computeRankingAction(
         genderCategory,
         referenceDate: refDate,
         regattas,
+        scoringUnit,
       });
       rankings = result.rankings;
     }
 
-    // Fetch sailor names
-    const helmIds = rankings.map((r) => r.helmId);
+    // Fetch sailor names for the primary scoring unit
+    const sailorIds = rankings.map((r) => r.sailorId);
     const sailors = await db.sailor.findMany({
-      where: { id: { in: helmIds } },
+      where: { id: { in: sailorIds } },
       select: { id: true, firstName: true, lastName: true, club: true },
     });
     const sailorMap = Object.fromEntries(sailors.map((s) => [s.id, s]));
 
-    // Issue #31: aggregate the crew(s) each helm sailed with during the
-    // season. One DB query covers all helms in scope; we group in memory.
-    const teamEntriesWithCrew = await db.teamEntry.findMany({
-      where: {
-        helmId: { in: helmIds },
-        regatta: {
-          isRanglistenRegatta: true,
-          startDate: { gte: seasonStart, lte: refDate },
-        },
-        crewId: { not: null },
-      },
-      select: {
-        helmId: true,
-        crewId: true,
-        crew: { select: { id: true, firstName: true, lastName: true } },
-      },
-    });
+    // Aggregate partner sailors (crew→helm in CREW mode, helm→crew in HELM mode)
+    type PartnerMap = Map<string, { firstName: string; lastName: string; count: number }>;
+    const sailorPartners = new Map<string, PartnerMap>();
 
-    type CrewMap = Map<string, { firstName: string; lastName: string; count: number }>;
-    const helmCrews = new Map<string, CrewMap>();
-    for (const te of teamEntriesWithCrew) {
-      if (!te.crew) continue;
-      const map = helmCrews.get(te.helmId) ?? new Map();
-      const existing = map.get(te.crew.id);
-      if (existing) {
-        existing.count += 1;
-      } else {
-        map.set(te.crew.id, {
-          firstName: te.crew.firstName,
-          lastName: te.crew.lastName,
-          count: 1,
-        });
+    if (scoringUnit === "CREW") {
+      const teamEntriesWithHelm = await db.teamEntry.findMany({
+        where: {
+          crewId: { in: sailorIds },
+          regatta: { isRanglistenRegatta: true, startDate: { gte: seasonStart, lte: refDate } },
+        },
+        select: {
+          crewId: true,
+          helmId: true,
+          helm: { select: { id: true, firstName: true, lastName: true } },
+        },
+      });
+      for (const te of teamEntriesWithHelm) {
+        if (!te.crewId) continue;
+        const map = sailorPartners.get(te.crewId) ?? new Map();
+        const existing = map.get(te.helm.id);
+        if (existing) existing.count += 1;
+        else map.set(te.helm.id, { firstName: te.helm.firstName, lastName: te.helm.lastName, count: 1 });
+        sailorPartners.set(te.crewId, map);
       }
-      helmCrews.set(te.helmId, map);
+    } else {
+      const teamEntriesWithCrew = await db.teamEntry.findMany({
+        where: {
+          helmId: { in: sailorIds },
+          regatta: { isRanglistenRegatta: true, startDate: { gte: seasonStart, lte: refDate } },
+          crewId: { not: null },
+        },
+        select: {
+          helmId: true,
+          crewId: true,
+          crew: { select: { id: true, firstName: true, lastName: true } },
+        },
+      });
+      for (const te of teamEntriesWithCrew) {
+        if (!te.crew) continue;
+        const map = sailorPartners.get(te.helmId) ?? new Map();
+        const existing = map.get(te.crew.id);
+        if (existing) existing.count += 1;
+        else map.set(te.crew.id, { firstName: te.crew.firstName, lastName: te.crew.lastName, count: 1 });
+        sailorPartners.set(te.helmId, map);
+      }
     }
 
-    function crewsFor(helmId: string): CrewEntry[] {
-      const map = helmCrews.get(helmId);
+    function partnersFor(sailorId: string): CrewEntry[] {
+      const map = sailorPartners.get(sailorId);
       if (!map) return [];
       return Array.from(map.entries())
         .map(([id, v]) => ({ id, ...v }))
@@ -257,16 +271,16 @@ export async function computeRankingAction(
     }
 
     const rows: RankingRow[] = rankings.map((r) => {
-      const sailor = sailorMap[r.helmId];
+      const sailor = sailorMap[r.sailorId];
       return {
         rank: r.rank,
-        helmId: r.helmId,
+        sailorId: r.sailorId,
         firstName: sailor?.firstName ?? "?",
         lastName: sailor?.lastName ?? "?",
         club: sailor?.club ?? null,
         R: r.R,
         valuesCount: r.allValues.length,
-        crews: crewsFor(r.helmId),
+        partners: partnersFor(r.sailorId),
       };
     });
 
@@ -305,7 +319,8 @@ export type ValueDetail = {
 };
 
 export type HelmDetailData = {
-  helmId: string;
+  /** Primary sailor: helmId in HELM mode, crewId in CREW mode */
+  sailorId: string;
   firstName: string;
   lastName: string;
   club: string | null;
@@ -313,13 +328,14 @@ export type HelmDetailData = {
   R: number;
   top9: ValueDetail[];
   nonContributing: ValueDetail[];
-  crewHistory: Array<{
+  /** Partner history: crew entries in HELM mode, helm entries in CREW mode */
+  partnerHistory: Array<{
     regattaId: string;
     regattaName: string;
     regattaDate: string;
-    crewId: string | null;
-    crewFirstName: string | null;
-    crewLastName: string | null;
+    partnerId: string | null;
+    partnerFirstName: string | null;
+    partnerLastName: string | null;
     sailNumber: string | null;
   }>;
 };
@@ -330,7 +346,7 @@ export async function computeHelmDetailAction(
 ): Promise<{ ok: true; data: HelmDetailData } | { ok: false; error: string }> {
   // Read-only computation — no auth required (data shown on public pages too)
   try {
-    const { type, seasonStart: seasonStartStr, referenceDate, ageCategory, genderCategory } = params;
+    const { type, seasonStart: seasonStartStr, referenceDate, ageCategory, genderCategory, scoringUnit = "HELM" } = params;
     const refDate = new Date(referenceDate);
     const seasonStart = new Date(seasonStartStr);
     const seasonYear = refDate.getFullYear();
@@ -385,12 +401,12 @@ export async function computeHelmDetailAction(
       if (ageCategory !== "U19" && ageCategory !== "U16") {
         return { ok: false, error: "IDJM nur für U19/U16." };
       }
-      rankings = calculateIdjmQuali({ ageCategory: ageCategory as "U19" | "U16", genderCategory, regattas, referenceDate: refDate }).rankings;
+      rankings = calculateIdjmQuali({ ageCategory: ageCategory as "U19" | "U16", genderCategory, regattas, referenceDate: refDate, scoringUnit }).rankings;
     } else {
-      rankings = calculateDsvRanking({ seasonYear, ageCategory, genderCategory, referenceDate: refDate, regattas }).rankings;
+      rankings = calculateDsvRanking({ seasonYear, ageCategory, genderCategory, referenceDate: refDate, regattas, scoringUnit }).rankings;
     }
 
-    const entry = rankings.find((r) => r.helmId === helmId);
+    const entry = rankings.find((r) => r.sailorId === helmId);
     if (!entry) return { ok: false, error: "Kein Ranglisten-Eintrag für diesen Segler." };
 
     const sailor = await db.sailor.findUnique({
@@ -414,33 +430,56 @@ export async function computeHelmDetailAction(
       };
     }
 
-    // Crew history from DB (all teamEntries for this helm in the season)
-    const teamEntries = await db.teamEntry.findMany({
-      where: {
-        helmId,
-        regatta: { isRanglistenRegatta: true, startDate: { gte: seasonStart, lte: refDate } }, // seasonStart is already a Date here
-      },
-      include: {
-        crew: { select: { firstName: true, lastName: true } },
-        regatta: { select: { id: true, name: true, startDate: true } },
-      },
-      orderBy: { regatta: { startDate: "asc" } },
-    });
-
-    const crewHistory = teamEntries.map((te) => ({
-      regattaId: te.regatta.id,
-      regattaName: te.regatta.name,
-      regattaDate: te.regatta.startDate.toISOString(),
-      crewId: te.crewId,
-      crewFirstName: te.crew?.firstName ?? null,
-      crewLastName: te.crew?.lastName ?? null,
-      sailNumber: te.sailNumber,
-    }));
+    // Partner history: in HELM mode = crews sailed with; in CREW mode = helms sailed with
+    let partnerHistory: HelmDetailData["partnerHistory"];
+    if (scoringUnit === "CREW") {
+      const teamEntries = await db.teamEntry.findMany({
+        where: {
+          crewId: helmId,
+          regatta: { isRanglistenRegatta: true, startDate: { gte: seasonStart, lte: refDate } },
+        },
+        include: {
+          helm: { select: { id: true, firstName: true, lastName: true } },
+          regatta: { select: { id: true, name: true, startDate: true } },
+        },
+        orderBy: { regatta: { startDate: "asc" } },
+      });
+      partnerHistory = teamEntries.map((te) => ({
+        regattaId: te.regatta.id,
+        regattaName: te.regatta.name,
+        regattaDate: te.regatta.startDate.toISOString(),
+        partnerId: te.helmId,
+        partnerFirstName: te.helm.firstName,
+        partnerLastName: te.helm.lastName,
+        sailNumber: te.sailNumber,
+      }));
+    } else {
+      const teamEntries = await db.teamEntry.findMany({
+        where: {
+          helmId,
+          regatta: { isRanglistenRegatta: true, startDate: { gte: seasonStart, lte: refDate } },
+        },
+        include: {
+          crew: { select: { id: true, firstName: true, lastName: true } },
+          regatta: { select: { id: true, name: true, startDate: true } },
+        },
+        orderBy: { regatta: { startDate: "asc" } },
+      });
+      partnerHistory = teamEntries.map((te) => ({
+        regattaId: te.regatta.id,
+        regattaName: te.regatta.name,
+        regattaDate: te.regatta.startDate.toISOString(),
+        partnerId: te.crewId,
+        partnerFirstName: te.crew?.firstName ?? null,
+        partnerLastName: te.crew?.lastName ?? null,
+        sailNumber: te.sailNumber,
+      }));
+    }
 
     return {
       ok: true,
       data: {
-        helmId,
+        sailorId: helmId,
         firstName: sailor?.firstName ?? "?",
         lastName: sailor?.lastName ?? "?",
         club: sailor?.club ?? null,
@@ -448,7 +487,7 @@ export async function computeHelmDetailAction(
         R: entry.R,
         top9: entry.top9.map(toDetail),
         nonContributing: entry.allValues.slice(9).map(toDetail),
-        crewHistory,
+        partnerHistory,
       },
     };
   } catch (e) {
@@ -487,6 +526,7 @@ export async function saveRanklisteAction(
         seasonEnd: new Date(params.referenceDate),
         ageCategory: params.ageCategory,
         genderCategory: params.genderCategory,
+        scoringUnit: params.scoringUnit ?? "HELM",
         scoringRule: JSON.stringify({ scoringType: "dsv_standard", ...params }),
         isPublic: false,
         rankingRegattas: {
@@ -534,6 +574,7 @@ export async function updateRanklisteAction(
           seasonEnd: new Date(params.referenceDate),
           ageCategory: params.ageCategory,
           genderCategory: params.genderCategory,
+          scoringUnit: params.scoringUnit ?? "HELM",
           scoringRule: JSON.stringify({ scoringType: "dsv_standard", ...params }),
           rankingRegattas: {
             create: regattaIds.map((rid) => ({ regattaId: rid })),
@@ -575,6 +616,7 @@ export async function getRankingForEditAction(
       seasonEnd: true,
       ageCategory: true,
       genderCategory: true,
+      scoringUnit: true,
     },
   });
   if (!r) return { ok: false, error: "Rangliste nicht gefunden." };
@@ -589,6 +631,7 @@ export async function getRankingForEditAction(
         referenceDate: r.seasonEnd.toISOString().slice(0, 10),
         ageCategory: r.ageCategory as AgeCategory,
         genderCategory: r.genderCategory as GenderCategory,
+        scoringUnit: (r.scoringUnit ?? "HELM") as "HELM" | "CREW",
       },
     },
   };

@@ -8,6 +8,22 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.44] — 2026-05-01
+
+**Vorschoter-Ranglisten (Issue #47).**
+
+### Neu
+
+- Alle DSV-Ranglisten (Jahresrangliste, Aktuelle, IDJM-Quali) können jetzt
+  wahlweise nach Vorschoter statt nach Steuermann berechnet werden.
+- Neues `scoringUnit`-Feld (`"HELM"` | `"CREW"`) am `Ranking`-Modell und in den
+  Compute-Parametern.
+- Vorschau-Formular: neuer "Einheit"-Selektor (Steuermann / Vorschoter).
+- `HelmRanking.helmId` → `sailorId`; `RankingRow.helmId` → `sailorId`,
+  `crews` → `partners`; `HelmDetailData.crewHistory` → `partnerHistory`.
+
+---
+
 ## [2026.04.43] — 2026-04-30
 
 **Ranglistenreihenfolge per Drag & Drop.**

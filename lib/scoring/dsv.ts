@@ -75,6 +75,12 @@ export type DsvRankingInput = {
    * Helm/Crew-Filterung läuft pro Regatta.
    */
   useRegattaDateForAge?: boolean;
+  /**
+   * Gruppiert die Rangliste nach Steuermann (HELM, Standard) oder
+   * nach Vorschoter (CREW). Einträge ohne bekannte crewId werden in
+   * CREW-Modus übersprungen.
+   */
+  scoringUnit?: "HELM" | "CREW";
 };
 
 // ── Output types ──────────────────────────────────────────────────────────────
@@ -91,11 +97,12 @@ export type RankingValue = {
 };
 
 export type HelmRanking = {
-  helmId: string;
+  /** helmId (HELM-Modus) oder crewId (CREW-Modus) */
+  sailorId: string;
   rank: number;
   R: number;
   top9: RankingValue[];
-  /** All values for this helm, sorted desc by value — includes non-contributing entries */
+  /** All values for this sailor, sorted desc by value — includes non-contributing entries */
   allValues: RankingValue[];
 };
 
@@ -142,7 +149,7 @@ export function calculateRAForResult(
  * Pass pre-fetched regattas with their results.
  */
 export function calculateDsvRanking(input: DsvRankingInput): DsvRankingResult {
-  const { ageCategory, genderCategory, referenceDate, regattas, useRegattaDateForAge } = input;
+  const { ageCategory, genderCategory, referenceDate, regattas, useRegattaDateForAge, scoringUnit = "HELM" } = input;
 
   const sailorValues = new Map<string, RankingValue[]>();
 
@@ -178,9 +185,10 @@ export function calculateDsvRanking(input: DsvRankingInput): DsvRankingResult {
       const rA = calculateRAForResult(f, s, result);
       if (rA == null) continue;
 
-      const helmId = teamEntry.helmId;
-      if (!sailorValues.has(helmId)) sailorValues.set(helmId, []);
-      const values = sailorValues.get(helmId)!;
+      const sailorId = scoringUnit === "CREW" ? teamEntry.crewId : teamEntry.helmId;
+      if (!sailorId) continue;
+      if (!sailorValues.has(sailorId)) sailorValues.set(sailorId, []);
+      const values = sailorValues.get(sailorId)!;
 
       for (let i = 0; i < m; i++) {
         values.push({
@@ -199,14 +207,14 @@ export function calculateDsvRanking(input: DsvRankingInput): DsvRankingResult {
 
   const rankings: HelmRanking[] = [];
 
-  for (const [helmId, values] of sailorValues) {
+  for (const [sailorId, values] of sailorValues) {
     if (values.length < 9) continue;
 
     const sorted = [...values].sort((a, b) => b.value - a.value);
     const top9 = sorted.slice(0, 9);
     const R = top9.reduce((sum, v) => sum + v.value, 0) / 9;
 
-    rankings.push({ helmId, rank: 0, R, top9, allValues: sorted });
+    rankings.push({ sailorId, rank: 0, R, top9, allValues: sorted });
   }
 
   // Tiebreak: 1) R desc, 2) best single R_A in top9 desc, 3) total values count desc

@@ -200,7 +200,7 @@ export default async function PublicSteuermanDetailPage({ params }: Props) {
       )}
 
       {/* Crew history */}
-      {d.crewHistory.length > 0 && (
+      {d.partnerHistory.length > 0 && (
         <div className="space-y-2">
           <h2 className="text-base font-semibold">Crew-Historie</h2>
           <div className="rounded-lg border overflow-x-auto shadow-sm">
@@ -214,15 +214,15 @@ export default async function PublicSteuermanDetailPage({ params }: Props) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60 bg-card">
-                {d.crewHistory.map((c, i) => (
+                {d.partnerHistory.map((c, i) => (
                   <tr key={i} className="hover:bg-muted/40 transition-colors">
                     <td className="px-3 py-2.5">{c.regattaName}</td>
                     <td className="px-3 py-2.5 text-muted-foreground text-xs tabular-nums">
                       {new Date(c.regattaDate).toLocaleDateString("de-DE")}
                     </td>
                     <td className="px-3 py-2.5">
-                      {c.crewFirstName && c.crewLastName ? (
-                        `${c.crewFirstName} ${c.crewLastName}`
+                      {c.partnerFirstName && c.partnerLastName ? (
+                        `${c.partnerFirstName} ${c.partnerLastName}`
                       ) : (
                         <span className="text-muted-foreground italic text-xs">keine Crew</span>
                       )}

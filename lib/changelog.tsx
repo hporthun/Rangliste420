@@ -77,6 +77,25 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.44",
+    date: "2026-05-01",
+    title: "Vorschoter-Ranglisten (Issue #47)",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Alle DSV-Ranglisten (Jahresrangliste, Aktuelle, IDJM-Quali) können jetzt
+            wahlweise nach Vorschoter statt nach Steuermann berechnet werden.
+            Im Vorschau-Formular gibt es dafür einen neuen "Einheit"-Selektor
+            (Steuermann / Vorschoter), der beim Speichern mit der Rangliste
+            gespeichert wird.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.04.43",
     date: "2026-04-30",
     title: "Ranglistenreihenfolge per Drag & Drop",

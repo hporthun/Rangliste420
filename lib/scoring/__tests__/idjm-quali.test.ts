@@ -46,7 +46,7 @@ describe("calculateIdjmQuali", () => {
         return mkRegatta("2025-06-01", [r, ...filler]);
       });
       const { rankings } = calculateIdjmQuali({ ageCategory: "U19", genderCategory: "OPEN", regattas: regs, referenceDate: new Date("2025-12-31") });
-      expect(rankings.find((r) => r.helmId === helmId)).toBeUndefined();
+      expect(rankings.find((r) => r.sailorId === helmId)).toBeUndefined();
     });
 
     it("R ≥ 25 → included", () => {
@@ -57,7 +57,7 @@ describe("calculateIdjmQuali", () => {
         return mkRegatta("2025-06-01", [r, mkResult(uid(), 2, 2007, "M", 2007, "F")]);
       });
       const { rankings } = calculateIdjmQuali({ ageCategory: "U19", genderCategory: "OPEN", regattas: regs, referenceDate: new Date("2025-12-31") });
-      expect(rankings.find((r) => r.helmId === helmId)).toBeDefined();
+      expect(rankings.find((r) => r.sailorId === helmId)).toBeDefined();
     });
   });
 
@@ -70,7 +70,7 @@ describe("calculateIdjmQuali", () => {
       });
       const { rankings } = calculateIdjmQuali({ ageCategory: "U19", genderCategory: "OPEN", regattas: regs, referenceDate: new Date("2025-12-31") });
       // No qualifying values → not listed
-      expect(rankings.find((r) => r.helmId === helmId)).toBeUndefined();
+      expect(rankings.find((r) => r.sailorId === helmId)).toBeUndefined();
     });
 
     it("crew born 2007 (Saisonstichtag 2025 → age 18): included", () => {
@@ -80,7 +80,7 @@ describe("calculateIdjmQuali", () => {
         return mkRegatta("2025-06-01", [r, mkResult(uid(), 2, 2007, "M", 2007, "F")]);
       });
       const { rankings } = calculateIdjmQuali({ ageCategory: "U19", genderCategory: "OPEN", regattas: regs, referenceDate: new Date("2025-12-31") });
-      const entry = rankings.find((r) => r.helmId === helmId);
+      const entry = rankings.find((r) => r.sailorId === helmId);
       expect(entry).toBeDefined();
       expect(entry!.allValues.length).toBe(9);
     });
@@ -92,7 +92,7 @@ describe("calculateIdjmQuali", () => {
         return mkRegatta("2025-06-01", [r, mkResult(uid(), 2, 2007, "M", 2007, "F")]);
       });
       const { rankings } = calculateIdjmQuali({ ageCategory: "U19", genderCategory: "OPEN", regattas: regs, referenceDate: new Date("2025-12-31") });
-      expect(rankings.find((r) => r.helmId === helmId)).toBeUndefined();
+      expect(rankings.find((r) => r.sailorId === helmId)).toBeUndefined();
     });
   });
 
@@ -104,7 +104,7 @@ describe("calculateIdjmQuali", () => {
         return mkRegatta("2025-06-01", [r, mkResult(uid(), 2, 2010, "M", 2010, "F")]);
       });
       const { rankings } = calculateIdjmQuali({ ageCategory: "U16", genderCategory: "OPEN", regattas: regs, referenceDate: new Date("2025-12-31") });
-      expect(rankings.find((r) => r.helmId === helmId)).toBeDefined();
+      expect(rankings.find((r) => r.sailorId === helmId)).toBeDefined();
     });
 
     it("U16: born 2009 (age 16) → excluded", () => {
@@ -114,7 +114,7 @@ describe("calculateIdjmQuali", () => {
         return mkRegatta("2025-06-01", [r, mkResult(uid(), 2, 2009, "M", 2009, "F")]);
       });
       const { rankings } = calculateIdjmQuali({ ageCategory: "U16", genderCategory: "OPEN", regattas: regs, referenceDate: new Date("2025-12-31") });
-      expect(rankings.find((r) => r.helmId === helmId)).toBeUndefined();
+      expect(rankings.find((r) => r.sailorId === helmId)).toBeUndefined();
     });
   });
 
@@ -126,7 +126,7 @@ describe("calculateIdjmQuali", () => {
         return mkRegatta("2025-06-01", [r, mkResult(uid(), 2, 2007, "F", 2007, "F")]);
       });
       const { rankings } = calculateIdjmQuali({ ageCategory: "U19", genderCategory: "GIRLS", regattas: regs, referenceDate: new Date("2025-12-31") });
-      expect(rankings.find((r) => r.helmId === helmId)).toBeUndefined();
+      expect(rankings.find((r) => r.sailorId === helmId)).toBeUndefined();
     });
   });
 
@@ -163,7 +163,7 @@ describe("calculateIdjmQuali", () => {
         referenceDate: new Date("2025-12-31"),
       });
 
-      const entry = rankings.find((r) => r.helmId === helmId);
+      const entry = rankings.find((r) => r.sailorId === helmId);
       expect(entry).toBeDefined();
       // f=1, s=100, x=1 → R_A = 100 * (100+1-1)/100 = 100
       // Wenn s fälschlich gefiltert worden wäre (nur 1 Boot), wäre R_A
@@ -200,7 +200,7 @@ describe("calculateIdjmQuali", () => {
         regattas: regs,
         referenceDate: new Date("2025-12-31"),
       });
-      const entry = rankings.find((r) => r.helmId === helmId);
+      const entry = rankings.find((r) => r.sailorId === helmId);
       expect(entry).toBeDefined();
       const v = entry!.allValues[0];
       expect(v.s).toBe(100);
