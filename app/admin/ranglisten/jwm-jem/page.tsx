@@ -11,6 +11,7 @@ import type { AgeCategory, GenderCategory } from "@/lib/scoring/filters";
 
 const AGE_CATEGORIES: AgeCategory[] = ["U22", "U19", "U17", "U16", "U15", "OPEN"];
 const GENDER_CATEGORIES: GenderCategory[] = ["OPEN", "MEN", "MIX", "GIRLS"];
+const GENDER_LABELS: Record<GenderCategory, string> = { OPEN: "Open", MEN: "Jungen", MIX: "Mix", GIRLS: "Mädchen" };
 
 type Props = {
   searchParams: Promise<{
@@ -129,7 +130,7 @@ export default async function JwmJemPage({ searchParams }: Props) {
             <select name="gender" defaultValue={gender} className="input text-sm">
               {GENDER_CATEGORIES.map((c) => (
                 <option key={c} value={c}>
-                  {c}
+                  {GENDER_LABELS[c]}
                 </option>
               ))}
             </select>

@@ -41,6 +41,7 @@ const VORSCHAU_TOUR: TourStep[] = [
 
 const AGE_CATEGORIES = ["OPEN", "U19", "U17", "U16", "U15"] as const;
 const GENDER_CATEGORIES = ["OPEN", "MEN", "MIX", "GIRLS"] as const;
+const GENDER_LABELS: Record<string, string> = { OPEN: "Open", MEN: "Jungen", MIX: "Mix", GIRLS: "Mädchen" };
 const RANKING_TYPES: RankingType[] = ["JAHRESRANGLISTE", "AKTUELLE", "IDJM"];
 
 const TYPE_LABELS: Record<RankingType, string> = {
@@ -213,7 +214,7 @@ export default async function VorschauPage({ searchParams }: Props) {
             <label className="text-xs font-medium text-muted-foreground uppercase">Gender</label>
             <select name="gender" defaultValue={gender} className="input text-sm">
               {GENDER_CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>{GENDER_LABELS[c] ?? c}</option>
               ))}
             </select>
           </div>
