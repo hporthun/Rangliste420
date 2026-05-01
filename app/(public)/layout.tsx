@@ -35,14 +35,45 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       </main>
 
       <footer className="border-t border-border/50 py-3 px-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between gap-4 text-xs text-muted-foreground">
-          <span>420er Rangliste · DSV-Ranglistensystem</span>
-          <a
-            href="/admin"
-            className="hover:text-foreground transition-colors"
-          >
-            Admin-Zugang →
-          </a>
+        <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          <span>
+            420er Rangliste · DSV-Ranglistensystem ·{" "}
+            <span className="whitespace-nowrap">
+              Powered by{" "}
+              <a
+                href="https://pt-systemhaus.de"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-foreground transition-colors"
+              >
+                Porthun &amp; Thiede Systemhaus
+              </a>
+            </span>
+          </span>
+          <span className="flex items-center gap-3">
+            <a
+              href="https://pt-systemhaus.de/impressum"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-foreground transition-colors"
+            >
+              Impressum
+            </a>
+            <a
+              href="https://pt-systemhaus.de/datenschutz"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-foreground transition-colors"
+            >
+              Datenschutz
+            </a>
+            <a
+              href="/admin"
+              className="hover:text-foreground transition-colors"
+            >
+              Admin-Zugang →
+            </a>
+          </span>
         </div>
       </footer>
     </div>
