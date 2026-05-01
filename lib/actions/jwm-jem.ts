@@ -165,7 +165,9 @@ export async function computeJwmJemAction(
       return { ok: false, error: "Maximal 3 Regatten können ausgewählt werden." };
     }
 
-    const regattas = await fetchRegattasByIds(regattaIds);
+    const regattas = (await fetchRegattasByIds(regattaIds)).sort(
+      (a, b) => a.startDate.getTime() - b.startDate.getTime()
+    );
 
     // Collect all helm IDs to fetch nationalities
     const helmIds = [
