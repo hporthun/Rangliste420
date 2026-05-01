@@ -484,7 +484,7 @@ describe("calculateJwmJemQuali", () => {
       expect(helmRows[0].crewIds).toEqual([crewId]);
     });
 
-    it("Helm mit unterschiedlicher Crew + ungenehmigt → zwei separate Teams", () => {
+    it("Helm mit unterschiedlicher Crew + ungenehmigt → Team1 bleibt, Team2-Wechsel-Eintrag ausgeschlossen", () => {
       const helmId = uid();
       const crewA = uid();
       const crewB = uid();
@@ -493,26 +493,74 @@ describe("calculateJwmJemQuali", () => {
         mkResult(uid(), 2),
       ]);
       const reg2 = mkRegatta("2025-05-01", [
-        // Wechsel zu crewB, KEIN Genehmigungs-Flag → split
+        // Wechsel zu crewB, KEIN Genehmigungs-Flag → split, reg2-Eintrag ausgeschlossen
         mkResult(helmId, 1, { crewId: crewB, crewSwapApproved: false }),
         mkResult(uid(), 2),
       ]);
 
-      const { ranked, preliminary } = calculateJwmJemQuali(
+      const { ranked, preliminary, startersByRegatta } = calculateJwmJemQuali(
         mkInput({ regattas: [reg1, reg2] })
       );
-      // Beide Teams haben je nur 1 valid → beide in preliminary
       const allRows = [...ranked, ...preliminary];
-      const helmRows = allRows.filter((r) => r.helmId === helmId);
-      expect(helmRows).toHaveLength(2);
-      expect(helmRows.map((r) => r.crewIds[0]).sort()).toEqual(
-        [crewA, crewB].sort()
+
+      // Team1 (crewA) hat reg1 → validCount=1 → preliminary
+      const team1 = allRows.find((r) => r.helmId === helmId && r.crewIds.includes(crewA))!;
+      expect(team1).toBeDefined();
+      expect(team1.validCount).toBe(1);
+      expect(team1.splitFromSwap).toBe(false);
+
+      // Team2 (crewB): reg2 ist der Wechsel-Eintrag → ausgeschlossen → validCount=0 → nicht in Ausgabe
+      const team2 = allRows.find((r) => r.helmId === helmId && r.crewIds.includes(crewB));
+      expect(team2).toBeUndefined();
+
+      // reg2-Teilnehmerzahl ist um 1 reduziert (helmId ausgeschlossen)
+      expect(startersByRegatta[reg1.id]).toBe(2);
+      expect(startersByRegatta[reg2.id]).toBe(1);
+    });
+
+    it("Ungenehmigter Wechsel: Folge-Einträge des neuen Teams werden gewertet, Wechsel-Regatta nicht", () => {
+      const helmId = uid();
+      const crewA = uid();
+      const crewB = uid();
+      const others = (n: number) => Array.from({ length: n }, (_, i) => mkResult(uid(), i + 2));
+
+      const reg1 = mkRegatta("2025-04-01", [mkResult(helmId, 3, { crewId: crewA }), ...others(9)]);
+      const reg2 = mkRegatta("2025-05-01", [
+        // Unapproved swap → reg2-Eintrag ausgeschlossen
+        mkResult(helmId, 2, { crewId: crewB, crewSwapApproved: false }),
+        ...others(9),
+      ]);
+      const reg3 = mkRegatta("2025-06-01", [mkResult(helmId, 4, { crewId: crewB }), ...others(9)]);
+
+      const { ranked, preliminary, startersByRegatta } = calculateJwmJemQuali(
+        mkInput({ regattas: [reg1, reg2, reg3] })
       );
-      // Erstes Team (chronologisch) ist nicht "split", zweites schon
-      const firstTeam = helmRows.find((r) => r.crewIds[0] === crewA)!;
-      const secondTeam = helmRows.find((r) => r.crewIds[0] === crewB)!;
-      expect(firstTeam.splitFromSwap).toBe(false);
-      expect(secondTeam.splitFromSwap).toBe(true);
+      const allRows = [...ranked, ...preliminary];
+
+      // Team1 (crewA): reg1 zählt → validCount=1 → preliminary
+      const team1 = allRows.find((r) => r.crewIds.includes(crewA))!;
+      expect(team1).toBeDefined();
+      expect(team1.validCount).toBe(1);
+
+      // Team2 (crewB): reg2 ausgeschlossen, reg3 zählt → validCount=1 → preliminary
+      const team2 = allRows.find((r) => r.crewIds.includes(crewB))!;
+      expect(team2).toBeDefined();
+      expect(team2.validCount).toBe(1);
+
+      // reg2-Slot von Team2 ist null (Wechsel-Eintrag)
+      const slot2 = team2.regattaSlots.find((s) => s.regattaId === reg2.id)!;
+      expect(slot2.finalRank).toBeNull();
+      expect(slot2.weightedScore).toBeNull();
+
+      // reg3-Slot von Team2 hat Wert
+      const slot3 = team2.regattaSlots.find((s) => s.regattaId === reg3.id)!;
+      expect(slot3.finalRank).toBe(4);
+      expect(slot3.weightedScore).not.toBeNull();
+
+      // reg2 hat 10 Starter (helmId ausgeschlossen, 9 others haben finalRank)
+      expect(startersByRegatta[reg1.id]).toBe(10);
+      expect(startersByRegatta[reg2.id]).toBe(9);
+      expect(startersByRegatta[reg3.id]).toBe(10);
     });
 
     it("Genehmigter Schottenwechsel → ein Team mit beiden Crews, beide Ergebnisse zählen", () => {
@@ -658,14 +706,21 @@ describe("calculateJwmJemQuali", () => {
         mkResult(uid(), 2),
       ]);
       const reg2 = mkRegatta("2025-05-01", [
+        // Unapproved swap → reg2-Eintrag ausgeschlossen
         mkResult(helmId, 2, { crewId: crewB, crewSwapApproved: false }),
         mkResult(uid(), 1),
       ]);
+      const reg3 = mkRegatta("2025-06-01", [
+        // Same crew as reg2 → Team2's valid entry
+        mkResult(helmId, 1, { crewId: crewB }),
+        mkResult(uid(), 2),
+      ]);
 
       const { preliminary } = calculateJwmJemQuali(
-        mkInput({ regattas: [reg1, reg2] })
+        mkInput({ regattas: [reg1, reg2, reg3] })
       );
       const helmRows = preliminary.filter((r) => r.helmId === helmId);
+      // Team1 (reg1, crewA) + Team2 (reg3, crewB) → beide preliminary
       expect(helmRows).toHaveLength(2);
       expect(helmRows[0].teamKey).not.toBe(helmRows[1].teamKey);
     });

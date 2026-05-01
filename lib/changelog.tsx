@@ -77,6 +77,25 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.3",
+    date: "2026-05-01",
+    title: "JWM/JEM-Quali: Wechsel-Regatta bei ungenehmigtem Schottenwechsel ausgeschlossen",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            Teams mit einem nicht genehmigten Schottenwechsel werden jetzt bei der
+            Regatta, an der der Wechsel stattfand, weder mit ihrer Platzierung noch
+            in der Teilnehmerzahl berücksichtigt. Der erste Eintrag des neuen Teams
+            zählt somit nicht als gültige Wertung; Folge-Einträge mit derselben Crew
+            werden weiterhin normal gewertet.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.2",
     date: "2026-05-01",
     title: "JWM/JEM-Quali: PDF-Import ohne Crew-Daten kein Teamwechsel",

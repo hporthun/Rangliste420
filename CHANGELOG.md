@@ -8,6 +8,22 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.3] — 2026-05-01
+
+**JWM/JEM-Quali: Ungenehmigter Schottenwechsel — Wechsel-Regatta wird ausgeschlossen.**
+
+### Korrigiert
+
+- Teams, die einen nicht genehmigten Schottenwechsel vorgenommen haben,
+  werden bei der Regatta, an der der Wechsel stattfand, weder mit ihrer
+  Platzierung noch in der Teilnehmerzahl berücksichtigt (z. B. Ida Marie
+  Claussen). Der erste Eintrag eines solchen Teams erhält
+  `weightedScore = null` und wird von der Starter-Summe dieser Regatta
+  abgezogen. Folge-Einträge desselben neuen Teams (mit gleicher Crew,
+  spätere Regatten) werden weiterhin normal gewertet.
+
+---
+
 ## [2026.05.2] — 2026-05-01
 
 **JWM/JEM-Quali: Null-Crew (PDF-Import) verursacht keinen Teamwechsel.**

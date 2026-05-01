@@ -12,7 +12,7 @@
  * - 0 Ergebnisse → nicht angezeigt
  * - Tiebreak: 1) niedrigster bester einzelner weightedScore, 2) mehr Regatten teilgenommen
  *
- * Schottenwechsel-Regel (Issue: User-Klarstellung 2026-04-29):
+ * Schottenwechsel-Regel (User-Klarstellung 2026-04-29):
  *   "Pro Helm ist nur ein einziger Schottenwechsel zulässig, dieser muss
  *   genehmigt sein. In ungenehmigten Fällen wird es wie ein neues Team
  *   gewertet."
@@ -24,6 +24,14 @@
  *   - Ein einziger genehmigter Wechsel hält das Team zusammen — das
  *     Team enthält dann beide Crews. Spätere weitere Wechsel (genehmigt
  *     oder nicht) starten jeweils ein neues Team.
+ *
+ * Zusatzregel (User-Klarstellung 2026-05-01):
+ *   Teams, die einen nicht genehmigten Wechsel vorgenommen haben, werden
+ *   bei der **entsprechenden Regatta** (der Wechsel-Regatta) weder mit
+ *   ihrer Platzierung noch in der Teilnehmerzahl berücksichtigt.
+ *   D.h. der erste Eintrag eines per ungenehmigtem Wechsel entstandenen
+ *   neuen Teams wird komplett ausgeschlossen (weightedScore = null,
+ *   starters für diese Regatta −1).
  *
  * Algorithmus: Für jeden Helm sortieren wir seine Einträge chronologisch
  * und walken sie durch. Aktuell offenes Team trackt die akzeptierten
@@ -107,6 +115,12 @@ type Team = {
   /** Ob dieses Team durch einen Split (ungenehmigter Wechsel oder zweiter Wechsel)
    *  entstanden ist und nicht das Anfangs-Team des Helms ist. */
   splitFromSwap: boolean;
+  /**
+   * Regatta-ID, bei der ein nicht genehmigter Schottenwechsel stattfand.
+   * Der Eintrag für diese Regatta wird von der Wertung ausgeschlossen
+   * (finalRank/weightedScore = null) und nicht in der Teilnehmerzahl gezählt.
+   */
+  unapprovedSwapAtRegattaId: string | null;
 };
 
 /**
@@ -122,7 +136,11 @@ function partitionTeams(entries: HelmEntry[]): Team[] {
   const teams: Team[] = [];
   const helmId = sorted[0].result.teamEntry.helmId;
 
-  function startNewTeam(e: HelmEntry, splitFromSwap: boolean): Team {
+  function startNewTeam(
+    e: HelmEntry,
+    splitFromSwap: boolean,
+    unapprovedSwapAtRegattaId: string | null = null
+  ): Team {
     return {
       helmId,
       primaryCrewId: e.crewId,
@@ -130,6 +148,7 @@ function partitionTeams(entries: HelmEntry[]): Team[] {
       swapUsed: false,
       entries: [e],
       splitFromSwap,
+      unapprovedSwapAtRegattaId,
     };
   }
 
@@ -164,10 +183,12 @@ function partitionTeams(entries: HelmEntry[]): Team[] {
       continue;
     }
 
-    // Otherwise: close the current team and start a new one. The new team
-    // gets its own fresh swap allowance.
+    // Otherwise: close the current team and start a new one.
+    // If the split was due to an unapproved swap, mark the first entry of the
+    // new team so it is excluded from scoring and starters counts.
+    const unapprovedSwapAtRegattaId = !e.crewSwapApproved ? e.regatta.id : null;
     teams.push(current);
-    current = startNewTeam(e, true);
+    current = startNewTeam(e, true, unapprovedSwapAtRegattaId);
   }
   teams.push(current);
   return teams;
@@ -177,16 +198,56 @@ export function calculateJwmJemQuali(input: JwmJemInput): JwmJemOutput {
   const { regattas, ageCategory, genderCategory, referenceDate, germanOnly, helmNationalities } =
     input;
 
-  // starters per regatta = results with finalRank !== null
+  // ── Build per-helm entry list ──────────────────────────────────────────────
+  // Must happen before starters computation so we can identify unapproved-swap
+  // entries that need to be excluded from the starters count.
+  const helmEntries = new Map<string, HelmEntry[]>();
+  for (const regatta of regattas) {
+    for (const result of regatta.results) {
+      const helmId = result.teamEntry.helmId;
+      const list = helmEntries.get(helmId) ?? [];
+      list.push({
+        regatta,
+        result,
+        crewId: result.teamEntry.crewId,
+        crewSwapApproved: result.teamEntry.crewSwapApproved ?? false,
+      });
+      helmEntries.set(helmId, list);
+    }
+  }
+
+  // ── Partition teams; collect unapproved-swap entry keys ───────────────────
+  // unapprovedSwapKeys: `${helmId}::${regattaId}` for every entry that is the
+  // first appearance of a team created by an unapproved crew change.
+  // Those entries are excluded from starters counts AND from the team's scores.
+  const teamsByHelm = new Map<string, Team[]>();
+  const unapprovedSwapKeys = new Set<string>();
+
+  for (const [helmId, entries] of helmEntries) {
+    if (germanOnly && helmNationalities[helmId] !== "GER") continue;
+
+    const teams = partitionTeams(entries);
+
+    for (const team of teams) {
+      if (team.unapprovedSwapAtRegattaId) {
+        unapprovedSwapKeys.add(`${helmId}::${team.unapprovedSwapAtRegattaId}`);
+      }
+    }
+
+    teamsByHelm.set(helmId, teams);
+  }
+
+  // ── Starters per regatta (excluding unapproved-swap entries) ─────────────
   const startersByRegatta: Record<string, number> = {};
   for (const regatta of regattas) {
     startersByRegatta[regatta.id] = regatta.results.filter(
-      (r) => r.finalRank !== null
+      (r) =>
+        r.finalRank !== null &&
+        !unapprovedSwapKeys.has(`${r.teamEntry.helmId}::${regatta.id}`)
     ).length;
   }
 
-  // German-only re-ranking: when germanOnly=true, re-number ranks and count
-  // starters among German sailors only per regatta.
+  // ── German-only re-ranking (also excluding unapproved-swap entries) ───────
   const germanStartersByRegatta: Record<string, number> = {};
   const germanRankMap: Record<string, Record<string, number>> = {};
 
@@ -196,7 +257,8 @@ export function calculateJwmJemQuali(input: JwmJemInput): JwmJemOutput {
         .filter(
           (r) =>
             r.finalRank !== null &&
-            helmNationalities[r.teamEntry.helmId] === "GER"
+            helmNationalities[r.teamEntry.helmId] === "GER" &&
+            !unapprovedSwapKeys.has(`${r.teamEntry.helmId}::${regatta.id}`)
         )
         .sort((a, b) => (a.finalRank ?? Infinity) - (b.finalRank ?? Infinity));
 
@@ -219,42 +281,28 @@ export function calculateJwmJemQuali(input: JwmJemInput): JwmJemOutput {
 
   const maxStarters = Math.max(0, ...Object.values(effectiveStartersByRegatta));
 
-  // Build per-helm entry list (one entry per regatta the helm sailed in,
-  // carrying the crewId + approval flag).
-  const helmEntries = new Map<string, HelmEntry[]>();
-  for (const regatta of regattas) {
-    for (const result of regatta.results) {
-      const helmId = result.teamEntry.helmId;
-      const list = helmEntries.get(helmId) ?? [];
-      list.push({
-        regatta,
-        result,
-        crewId: result.teamEntry.crewId,
-        crewSwapApproved: result.teamEntry.crewSwapApproved ?? false,
-      });
-      helmEntries.set(helmId, list);
-    }
-  }
-
-  // Build per-team rows.
+  // ── Build per-team rows ───────────────────────────────────────────────────
   const rows: JwmJemRow[] = [];
 
-  for (const [helmId, entries] of helmEntries) {
-    // Nationality filter (applied before any score computation)
-    if (germanOnly) {
-      const nat = helmNationalities[helmId];
-      if (nat !== "GER") continue;
-    }
-
-    const teams = partitionTeams(entries);
-
+  for (const [helmId, teams] of teamsByHelm) {
     for (const team of teams) {
-      // Build slots for ALL selected regattas — even those this team did
-      // NOT sail in (for visual consistency with the existing UI which
-      // shows a row per regatta with "—" for non-participation).
       const slots: JwmJemRegattaSlot[] = [];
 
       for (const regatta of regattas) {
+        // Unapproved-swap entry for this team at this regatta → fully excluded
+        if (team.unapprovedSwapAtRegattaId === regatta.id) {
+          slots.push({
+            regattaId: regatta.id,
+            regattaName: regatta.name,
+            regattaDate: regatta.startDate.toISOString(),
+            starters: effectiveStartersByRegatta[regatta.id] ?? 0,
+            finalRank: null,
+            weightedScore: null,
+            counted: false,
+          });
+          continue;
+        }
+
         const teamEntry = team.entries.find((e) => e.regatta.id === regatta.id);
         if (!teamEntry) {
           slots.push({
