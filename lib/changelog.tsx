@@ -77,6 +77,93 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.8",
+    date: "2026-05-01",
+    title: "Altersklassen- und Gender-Filter in öffentlicher Rangliste",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Auf jeder öffentlichen Ranglistenseite gibt es jetzt eine Filterleiste für
+            Altersklasse (U15–U22) und Geschlechtskategorie (Offen/Männer/Mix/Girls).
+            Damit lässt sich z. B. eine OPEN/OPEN-Rangliste direkt auf U17/Mix einschränken,
+            ohne eine separate Rangliste anlegen zu müssen. Der Filter wirkt über URL-Parameter
+            und ist direkt verlinkbar.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
+    version: "2026.05.7",
+    date: "2026-05-01",
+    title: "Footer: Impressum, Datenschutz und Powered-by-Link",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Der Footer der öffentlichen Seite enthält jetzt Links zu Impressum und
+            Datenschutz (pt-systemhaus.de) sowie den Hinweis „Powered by Porthun &amp;
+            Thiede Systemhaus".
+          </>,
+        ],
+      },
+    ],
+  },
+  {
+    version: "2026.05.6",
+    date: "2026-05-01",
+    title: "IDJM-Quali: U17 und U15 freigeschaltet",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            Die IDJM-Qualifikationsrangliste ließ bisher nur U19 und U16 zu — obwohl
+            das Vorschau-Formular bereits U17 und U15 anbot. Die Runtime-Validierung
+            wurde entsprechend erweitert.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
+    version: "2026.05.5",
+    date: "2026-05-01",
+    title: "JWM/JEM-Quali: Regatten-Spalten chronologisch sortiert",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            Die Spaltenreihenfolge in der JWM/JEM-Qualifikationsrangliste folgt jetzt
+            dem Startdatum der Regatten (aufsteigend), unabhängig davon, in welcher
+            Reihenfolge sie im Formular ausgewählt wurden.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
+    version: "2026.05.4",
+    date: "2026-05-01",
+    title: "JWM/JEM-Quali: Teilnehmerzahl in Spaltenköpfen",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Jeder Regatta-Spaltenkopf in der JWM/JEM-Qualifikationsrangliste zeigt jetzt
+            die Anzahl gewerteter Starter (z. B. „12 TN"), damit der Gewichtungsfaktor
+            (Rang × max. Starter / Starter) direkt nachvollziehbar ist.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.3",
     date: "2026-05-01",
     title: "JWM/JEM-Quali: Wechsel-Regatta bei ungenehmigtem Schottenwechsel ausgeschlossen",
