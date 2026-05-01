@@ -33,7 +33,7 @@ export default async function RegatttenPage({ searchParams }: Props) {
         lte: new Date(selectedYear, 11, 31, 23, 59, 59),
       },
     },
-    orderBy: { startDate: "desc" },
+    orderBy: { startDate: "asc" },
     select: {
       id: true,
       name: true,
