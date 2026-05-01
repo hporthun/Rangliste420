@@ -3,12 +3,20 @@ import { notFound } from "next/navigation";
 import { computeRankingAction, type ComputeParams, type RankingType } from "@/lib/actions/rankings";
 import { computeJwmJemAction, type JwmJemParams, type JwmJemDisplayRow } from "@/lib/actions/jwm-jem";
 import { CrewLabel } from "@/components/rankings/crew-label";
+import { RankingFilterBar } from "@/components/rankings/ranking-filter-bar";
 import Link from "next/link";
 
-type Props = { params: Promise<{ id: string }> };
+const VALID_AGE_PARAMS = ["U22", "U19", "U17", "U16", "U15"] as const;
+const VALID_GENDER_PARAMS = ["OPEN", "MEN", "MIX", "GIRLS"] as const;
 
-export default async function RanglistePage({ params }: Props) {
+type Props = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ age?: string; gender?: string }>;
+};
+
+export default async function RanglistePage({ params, searchParams }: Props) {
   const { id } = await params;
+  const { age: ageParam, gender: genderParam } = await searchParams;
 
   const ranking = await db.ranking.findUnique({
     where: { id, isPublic: true },
@@ -30,12 +38,27 @@ export default async function RanglistePage({ params }: Props) {
 
   if (!ranking) notFound();
 
+  const isIdjm = ranking.type === "IDJM_QUALI";
+
+  // Parse + validate filter URL params
+  const rawAge = VALID_AGE_PARAMS.includes(ageParam as (typeof VALID_AGE_PARAMS)[number])
+    ? (ageParam as string)
+    : "";
+  // IDJM doesn't support U22
+  const filterAge = isIdjm && rawAge === "U22" ? "" : rawAge;
+  const filterGender = VALID_GENDER_PARAMS.includes(genderParam as (typeof VALID_GENDER_PARAMS)[number])
+    ? (genderParam as string)
+    : "";
+
   // ── JWM/JEM Quali branch ───────────────────────────────────────────────────
   if (ranking.type === "JWM_QUALI" || ranking.type === "JEM_QUALI") {
+    const effectiveAge = (filterAge || ranking.ageCategory) as JwmJemParams["ageCategory"];
+    const effectiveGender = (filterGender || ranking.genderCategory) as JwmJemParams["genderCategory"];
+
     const jwmParams: JwmJemParams = {
       regattaIds: ranking.rankingRegattas.map((rr) => rr.regattaId),
-      ageCategory: ranking.ageCategory as JwmJemParams["ageCategory"],
-      genderCategory: ranking.genderCategory as JwmJemParams["genderCategory"],
+      ageCategory: effectiveAge,
+      genderCategory: effectiveGender,
       referenceDate: ranking.seasonEnd.toISOString().slice(0, 10),
     };
 
@@ -71,7 +94,7 @@ export default async function RanglistePage({ params }: Props) {
           <h1 className="text-xl font-bold">{ranking.name}</h1>
           <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-xs text-muted-foreground">
             <span>{typeLabel}</span>
-            <span>{ranking.ageCategory} / {ranking.genderCategory}</span>
+            <span>{effectiveAge} / {effectiveGender}</span>
             <span>Saison {ranking.seasonStart.getFullYear()}</span>
             <span>Stichtag {ranking.seasonEnd.toLocaleDateString("de-DE")}</span>
           </div>
@@ -84,6 +107,9 @@ export default async function RanglistePage({ params }: Props) {
             </Link>
           </div>
         </div>
+
+        {/* Filter bar */}
+        <RankingFilterBar currentAge={filterAge} currentGender={filterGender} />
 
         {/* Main ranking */}
         {ranked.length > 0 && (
@@ -125,12 +151,15 @@ export default async function RanglistePage({ params }: Props) {
 
   // ── DSV / IDJM branch (existing) ──────────────────────────────────────────
   const scoringUnit = (ranking.scoringUnit ?? "HELM") as "HELM" | "CREW";
+  const effectiveAge = (filterAge || ranking.ageCategory) as ComputeParams["ageCategory"];
+  const effectiveGender = (filterGender || ranking.genderCategory) as ComputeParams["genderCategory"];
+
   const computeParams: ComputeParams = {
     type: ranking.type as RankingType,
     seasonStart: ranking.seasonStart.toISOString().slice(0, 10),
     referenceDate: ranking.seasonEnd.toISOString().slice(0, 10),
-    ageCategory: ranking.ageCategory as ComputeParams["ageCategory"],
-    genderCategory: ranking.genderCategory as ComputeParams["genderCategory"],
+    ageCategory: effectiveAge,
+    genderCategory: effectiveGender,
     scoringUnit,
   };
 
@@ -164,7 +193,7 @@ export default async function RanglistePage({ params }: Props) {
       <div className="rounded-xl border bg-gradient-to-br from-card to-muted/40 px-5 py-4 shadow-sm">
         <h1 className="text-xl font-bold">{ranking.name}</h1>
         <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-xs text-muted-foreground">
-          <span>{ranking.ageCategory} / {ranking.genderCategory}</span>
+          <span>{effectiveAge} / {effectiveGender}</span>
           <span>Saison {ranking.seasonStart.getFullYear()}</span>
           <span>Stichtag {ranking.seasonEnd.toLocaleDateString("de-DE")}</span>
         </div>
@@ -177,6 +206,9 @@ export default async function RanglistePage({ params }: Props) {
           </Link>
         </div>
       </div>
+
+      {/* Filter bar */}
+      <RankingFilterBar currentAge={filterAge} currentGender={filterGender} hideU22={isIdjm} />
 
       {/* Table */}
       <div className="rounded-lg border overflow-x-auto shadow-sm">
