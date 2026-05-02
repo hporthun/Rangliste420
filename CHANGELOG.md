@@ -8,6 +8,24 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.12] — 2026-05-02
+
+**Vorschoter-Rangliste: Detail-Ansicht zeigt jetzt den korrekten Eintrag.**
+
+### Korrigiert
+
+- In Vorschoter-Ranglisten (`scoringUnit = "CREW"`) führte ein Klick auf einen
+  Vorschoter zur Fehlermeldung „Kein Ranglisten-Eintrag für diesen Segler".
+  Ursache: die Detail-Seite las `scoringUnit` weder aus dem Ranking-Datensatz
+  (öffentliche Seite) noch aus dem `?unit=`-Query-Parameter (Admin-Vorschau)
+  und rief deshalb intern eine Steuermann-Rangliste mit der Crew-ID ab.
+  (Issue #48)
+- Die Tabellen-Überschrift „Crew-Historie" und die Spalte „Crew" auf der
+  Detail-Seite werden in Vorschoter-Ranglisten zu „Steuermann-Historie" und
+  „Steuermann".
+
+---
+
 ## [2026.05.11] — 2026-05-02
 
 **Vollständigeres Backup — Admin-Accounts, Passkeys, SMTP, Audit-Log.**

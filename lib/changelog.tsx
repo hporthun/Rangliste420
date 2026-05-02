@@ -77,6 +77,30 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.12",
+    date: "2026-05-02",
+    title: "Vorschoter-Rangliste: Detail-Ansicht zeigt jetzt den korrekten Eintrag",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            In <strong>Vorschoter-Ranglisten</strong> führte der Klick auf einen
+            Vorschoter zur Fehlermeldung „Kein Ranglisten-Eintrag für diesen
+            Segler". Ursache: die Detail-Seite kannte die Vorschoter-Wertung
+            nicht und suchte stattdessen den Vorschoter in der Steuermann-Liste.
+            Jetzt wird die Wertungs-Einheit (Steuermann/Vorschoter) korrekt aus
+            dem Ranking übernommen.
+          </>,
+          <>
+            In Vorschoter-Ranglisten heißt die Tabellen-Überschrift jetzt
+            „Steuermann-Historie" statt „Crew-Historie".
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.11",
     date: "2026-05-02",
     title: "Vollständigeres Backup — Admin-Accounts, Passkeys, SMTP, Audit-Log",

@@ -9,6 +9,7 @@ type Props = {
     ref?: string;
     age?: string;
     gender?: string;
+    unit?: string;
   }>;
 };
 
@@ -19,6 +20,7 @@ export default async function SteuermanDetailPage({ params, searchParams }: Prop
   const type = (sp.type ?? "JAHRESRANGLISTE") as RankingType;
   const age = (sp.age ?? "OPEN") as ComputeParams["ageCategory"];
   const gender = (sp.gender ?? "OPEN") as ComputeParams["genderCategory"];
+  const scoringUnit: "HELM" | "CREW" = sp.unit === "CREW" ? "CREW" : "HELM";
 
   const currentYear = new Date().getFullYear();
   const defaultRef =
@@ -35,6 +37,7 @@ export default async function SteuermanDetailPage({ params, searchParams }: Prop
     referenceDate: ref,
     ageCategory: age,
     genderCategory: gender,
+    scoringUnit,
   };
 
   const result = await computeHelmDetailAction(computeParams, helmId);
@@ -54,6 +57,7 @@ export default async function SteuermanDetailPage({ params, searchParams }: Prop
   const { data: d } = result;
   const fromLabel = new Date(from).toLocaleDateString("de-DE");
   const toLabel = new Date(ref).toLocaleDateString("de-DE");
+  const partnerLabel = scoringUnit === "CREW" ? "Steuermann" : "Crew";
 
   return (
     <div className="space-y-6">
@@ -163,17 +167,17 @@ export default async function SteuermanDetailPage({ params, searchParams }: Prop
         </details>
       )}
 
-      {/* Crew history */}
+      {/* Partner history */}
       {d.partnerHistory.length > 0 && (
         <div className="space-y-2">
-          <h2 className="text-base font-medium">Crew-Historie</h2>
+          <h2 className="text-base font-medium">{partnerLabel}-Historie</h2>
           <div className="rounded-md border overflow-x-auto">
             <table className="w-full text-sm min-w-[420px]">
               <thead className="bg-gray-50 text-xs text-muted-foreground uppercase">
                 <tr>
                   <th className="px-3 py-2 text-left">Regatta</th>
                   <th className="px-3 py-2 text-left">Datum</th>
-                  <th className="px-3 py-2 text-left">Crew</th>
+                  <th className="px-3 py-2 text-left">{partnerLabel}</th>
                   <th className="px-3 py-2 text-left">Segel</th>
                 </tr>
               </thead>
@@ -187,7 +191,7 @@ export default async function SteuermanDetailPage({ params, searchParams }: Prop
                     <td className="px-3 py-2">
                       {c.partnerFirstName && c.partnerLastName
                         ? `${c.partnerFirstName} ${c.partnerLastName}`
-                        : <span className="text-muted-foreground italic">keine Crew</span>}
+                        : <span className="text-muted-foreground italic">{`kein${partnerLabel === "Crew" ? "e" : ""} ${partnerLabel}`}</span>}
                     </td>
                     <td className="px-3 py-2 font-mono text-xs">{c.sailNumber ?? "—"}</td>
                   </tr>

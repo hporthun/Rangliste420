@@ -18,6 +18,7 @@ export default async function PublicSteuermanDetailPage({ params }: Props) {
       genderCategory: true,
       seasonStart: true,
       seasonEnd: true,
+      scoringUnit: true,
     },
   });
 
@@ -29,6 +30,7 @@ export default async function PublicSteuermanDetailPage({ params }: Props) {
     referenceDate: ranking.seasonEnd.toISOString().slice(0, 10),
     ageCategory: ranking.ageCategory as ComputeParams["ageCategory"],
     genderCategory: ranking.genderCategory as ComputeParams["genderCategory"],
+    scoringUnit: (ranking.scoringUnit === "CREW" ? "CREW" : "HELM"),
   };
 
   const result = await computeHelmDetailAction(computeParams, helmId);
@@ -48,6 +50,7 @@ export default async function PublicSteuermanDetailPage({ params }: Props) {
   }
 
   const { data: d } = result;
+  const partnerLabel = computeParams.scoringUnit === "CREW" ? "Steuermann" : "Crew";
 
   return (
     <div className="space-y-6">
@@ -199,17 +202,17 @@ export default async function PublicSteuermanDetailPage({ params }: Props) {
         </details>
       )}
 
-      {/* Crew history */}
+      {/* Partner history */}
       {d.partnerHistory.length > 0 && (
         <div className="space-y-2">
-          <h2 className="text-base font-semibold">Crew-Historie</h2>
+          <h2 className="text-base font-semibold">{partnerLabel}-Historie</h2>
           <div className="rounded-lg border overflow-x-auto shadow-sm">
             <table className="w-full text-sm min-w-[360px]">
               <thead>
                 <tr className="table-head-maritime text-xs text-muted-foreground uppercase">
                   <th className="px-3 py-2.5 text-left">Regatta</th>
                   <th className="px-3 py-2.5 text-left">Datum</th>
-                  <th className="px-3 py-2.5 text-left">Crew</th>
+                  <th className="px-3 py-2.5 text-left">{partnerLabel}</th>
                   <th className="px-3 py-2.5 text-left">Segel</th>
                 </tr>
               </thead>
@@ -224,7 +227,7 @@ export default async function PublicSteuermanDetailPage({ params }: Props) {
                       {c.partnerFirstName && c.partnerLastName ? (
                         `${c.partnerFirstName} ${c.partnerLastName}`
                       ) : (
-                        <span className="text-muted-foreground italic text-xs">keine Crew</span>
+                        <span className="text-muted-foreground italic text-xs">{`kein${partnerLabel === "Crew" ? "e" : ""} ${partnerLabel}`}</span>
                       )}
                     </td>
                     <td className="px-3 py-2.5 font-mono text-xs text-muted-foreground">
