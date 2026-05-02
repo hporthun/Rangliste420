@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { auth, signOut } from "@/lib/auth";
-import { redirect } from "next/navigation";
+import { signOut } from "@/lib/auth";
+import { requireSession } from "@/lib/auth-guard";
 import { AdminNav, HilfeLink, AdminMobileMenu } from "@/components/admin/admin-nav";
 import { AdminUserMenu } from "@/components/admin/user-menu";
 import { TourProvider } from "@/components/tour/tour-context";
@@ -17,18 +17,17 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-  if (!session) redirect("/auth/login");
+  // requireSession() prüft tokenVersion + disabledAt gegen die DB und leitet
+  // bei Bedarf auf /auth/login um. Damit wirken „Rauswerfen" und „Sperren"
+  // sofort, sobald der User die nächste Admin-Seite aufruft.
+  const guarded = await requireSession();
 
   // Compute unread changelog entries for the popup. Only the latest version
   // is read from the user record; the comparison happens in lib/changelog.tsx.
-  const userId = session.user?.id;
-  const user = userId
-    ? await db.user.findUnique({
-        where: { id: userId },
-        select: { lastReadChangelogVersion: true },
-      })
-    : null;
+  const user = await db.user.findUnique({
+    where: { id: guarded.userId },
+    select: { lastReadChangelogVersion: true },
+  });
   const unread = unreadEntries(user?.lastReadChangelogVersion ?? null);
 
   async function signOutAction() {
@@ -44,7 +43,7 @@ export default async function AdminLayout({
           <div className="max-w-7xl mx-auto px-3 sm:px-4 flex items-center justify-between h-14 gap-2">
             {/* Brand + Nav */}
             <div className="flex items-center gap-3 md:gap-8 min-w-0">
-              <AdminMobileMenu />
+              <AdminMobileMenu role={guarded.role} />
               <Link href="/admin" className="flex items-center gap-2.5 group shrink-0">
                 <Image
                   src="/logo-420.png"
@@ -59,7 +58,7 @@ export default async function AdminLayout({
                   <span className="font-normal text-white/60 text-xs">Admin</span>
                 </span>
               </Link>
-              <AdminNav />
+              <AdminNav role={guarded.role} />
             </div>
 
             {/* Right side: Tour + Hilfe + user menu */}
@@ -67,8 +66,8 @@ export default async function AdminLayout({
               <TourButton />
               <HilfeLink />
               <AdminUserMenu
-                username={session.user?.username ?? session.user?.name ?? ""}
-                email={session.user?.email ?? ""}
+                username={guarded.username ?? ""}
+                email={guarded.email ?? ""}
                 signOutAction={signOutAction}
               />
             </div>

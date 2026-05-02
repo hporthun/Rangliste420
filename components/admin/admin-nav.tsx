@@ -5,23 +5,30 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 
-const navItems = [
+type NavItem = { href: string; label: string; tour: string; adminOnly?: boolean };
+
+const navItems: NavItem[] = [
   { href: "/admin/segler",     label: "Segler",     tour: "nav-segler"     },
   { href: "/admin/regatten",   label: "Regatten",   tour: "nav-regatten"   },
   { href: "/admin/ranglisten", label: "Ranglisten", tour: "nav-ranglisten" },
-  { href: "/admin/wartung",    label: "Wartung",    tour: "nav-wartung"    },
+  { href: "/admin/wartung",    label: "Wartung",    tour: "nav-wartung",    adminOnly: true },
+  { href: "/admin/benutzer",   label: "Benutzer",   tour: "nav-benutzer",   adminOnly: true },
 ];
+
+function visibleItems(role: string | undefined): NavItem[] {
+  return role === "ADMIN" ? navItems : navItems.filter((i) => !i.adminOnly);
+}
 
 /**
  * Inline navigation bar for the admin header. Visible from `md` upwards.
  * On smaller viewports, use {@link AdminMobileMenu} instead — it overlays a
  * full-screen sheet that contains the nav links + Hilfe.
  */
-export function AdminNav() {
+export function AdminNav({ role }: { role?: string }) {
   const pathname = usePathname();
   return (
     <nav className="hidden md:flex gap-1">
-      {navItems.map((item) => {
+      {visibleItems(role).map((item) => {
         const active =
           pathname === item.href || pathname.startsWith(item.href + "/");
         return (
@@ -65,7 +72,7 @@ export function HilfeLink() {
  * Hamburger-triggered overlay menu visible below `md`. Lists the same nav
  * items as {@link AdminNav}, plus the Hilfe link, in a single column.
  */
-export function AdminMobileMenu() {
+export function AdminMobileMenu({ role }: { role?: string }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -104,7 +111,10 @@ export function AdminMobileMenu() {
             }}
           >
             <ul className="flex flex-col py-2">
-              {[...navItems, { href: "/admin/hilfe", label: "Hilfe", tour: "nav-hilfe" }].map((item) => {
+              {[
+                ...visibleItems(role),
+                { href: "/admin/hilfe", label: "Hilfe", tour: "nav-hilfe" } as NavItem,
+              ].map((item) => {
                 const active =
                   pathname === item.href || pathname.startsWith(item.href + "/");
                 return (

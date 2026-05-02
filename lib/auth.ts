@@ -61,8 +61,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const user = await db.user.findUnique({ where: { id: record.userId } });
           if (!user) return null;
 
+          if (user.disabledAt) {
+            await logAudit({ userId: user.id, action: A.LOGIN_FAILED, detail: "Account gesperrt (manuell)", ip });
+            return null;
+          }
+
           await logAudit({ userId: user.id, action: A.LOGIN_PASSKEY, ip });
-          return { id: user.id, name: user.username ?? user.email ?? user.id, email: user.email ?? "", role: user.role };
+          return {
+            id: user.id,
+            name: user.username ?? user.email ?? user.id,
+            email: user.email ?? "",
+            role: user.role,
+            tokenVersion: user.tokenVersion,
+          };
         }
 
         // ── Password path ────────────────────────────────────────────────────
@@ -76,6 +87,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (user?.lockedUntil && user.lockedUntil > new Date()) {
           const minutesLeft = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60_000);
           await logAudit({ userId: user.id, action: A.LOGIN_LOCKED, detail: `${minutesLeft}min verbleibend`, ip });
+          return null;
+        }
+
+        // ── Manuelle Sperrung (Issue #49) ────────────────────────────────────
+        if (user?.disabledAt) {
+          await logAudit({ userId: user.id, action: A.LOGIN_FAILED, detail: "Account gesperrt (manuell)", ip });
           return null;
         }
 
@@ -150,6 +167,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: user.username ?? user.email ?? user.id,
           email: user.email ?? "",
           role: user.role,
+          tokenVersion: user.tokenVersion,
         };
       },
     }),
@@ -188,6 +206,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return false;
       }
 
+      if (existing.disabledAt) {
+        await logAudit({
+          userId: existing.id,
+          action: A.LOGIN_OAUTH_REJECTED,
+          detail: `${account.provider}: ${email} (disabled)`,
+        });
+        return false;
+      }
+
       // Audit the successful OAuth match — the JWT callback will run next
       // and link the session to the existing user.
       await logAudit({
@@ -203,8 +230,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       // Credentials path returns our DB user shape directly.
       if (!account || account.provider === "credentials") {
-        token.role = (user as { role: string }).role;
-        token.username = (user as { name?: string }).name ?? "";
+        const u = user as { role: string; name?: string; tokenVersion?: number };
+        token.role = u.role;
+        token.username = u.name ?? "";
+        token.tokenVersion = u.tokenVersion ?? 0;
         return token;
       }
 
@@ -217,6 +246,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.sub = dbUser.id;
         token.role = dbUser.role;
         token.username = dbUser.username ?? dbUser.email ?? "";
+        token.tokenVersion = dbUser.tokenVersion;
       }
       return token;
     },
@@ -226,6 +256,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.id = token.sub ?? "";
         session.user.role = token.role as string;
         session.user.username = token.username as string;
+        session.user.tokenVersion = (token.tokenVersion as number) ?? 0;
       }
       return session;
     },

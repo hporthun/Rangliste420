@@ -5,6 +5,7 @@ import { DeleteAllSection, PruneSection, CleanupSection } from "./maintenance-cl
 import { AuditLogSection } from "./audit-log";
 import { PageTour } from "@/components/tour/page-tour";
 import type { TourStep } from "@/components/tour/tour-context";
+import { requireRole } from "@/lib/auth-guard";
 
 // ── Page-specific tour steps ──────────────────────────────────────────────────
 
@@ -45,6 +46,10 @@ const WARTUNG_TOUR: TourStep[] = [
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function WartungPage() {
+  // Admin-only — Editors werden auf /admin umgeleitet, bevor irgendwelche
+  // sensitiven Wartungs-Daten geladen werden.
+  await requireRole("ADMIN");
+
   const [sailorCount, regattaCount, teamEntryCount, resultCount, rankingCount, allRegattas, auditLogs] =
     await Promise.all([
       db.sailor.count(),

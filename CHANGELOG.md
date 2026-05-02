@@ -8,6 +8,49 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.13] — 2026-05-02
+
+**Benutzerverwaltung mit Editor-Rolle (Issue #49).**
+
+### Neu
+
+- Admin-Bereich `/admin/benutzer` zum Anlegen, Bearbeiten und Löschen von
+  Konten. Zwei Rollen: `ADMIN` (voller Zugriff) und `EDITOR` (Segler,
+  Regatten, Ranglisten — kein Zugriff auf `/admin/wartung` und
+  `/admin/benutzer`).
+- Liste mit „letzter Login" (Zeit + Methode: Passwort/Passkey/OAuth) — gelesen
+  aus dem bestehenden `AuditLog` ohne zusätzliches Feld am User.
+- Manuelles Sperren (`disabledAt`) und Entsperren. Gesperrte Konten können
+  sich nicht mehr einloggen; laufende Sessions werden bei der nächsten
+  Auth-Prüfung invalidiert.
+- „Rauswerfen": erhöht `tokenVersion`, vorhandene JWTs werden beim nächsten
+  Request über `lib/auth-guard.ts` verworfen — sofortiges Session-Ende ohne
+  Wechsel auf Database-Sessions (NextAuth v5 unterstützt mit Credentials
+  noch keine `database`-Strategie).
+- Admin-initiierter Passwort-Reset: setzt neues Passwort und invalidiert
+  zugleich alle Sessions.
+- Selbstschutz: der eingeloggte Admin kann sich selbst nicht löschen,
+  sperren oder zum Editor degradieren. Mindestens ein aktiver Admin bleibt
+  immer erhalten (letzter Admin kann nicht gelöscht/degradiert/gesperrt
+  werden).
+
+### Geändert
+
+- Schema: `User.disabledAt`, `User.disabledBy`, `User.tokenVersion`
+  ergänzt. Default-Rolle für neu angelegte User ist `EDITOR` (der
+  Seed-Admin bleibt `ADMIN`).
+- Audit-Aktionen `USER_CREATED`, `USER_UPDATED`, `USER_DELETED`,
+  `USER_DISABLED`, `USER_ENABLED`, `USER_SESSIONS_REVOKED`,
+  `USER_PASSWORD_RESET` ergänzt.
+- Login-Pfad weist disabled User ab und loggt einen Fehlversuch.
+- Admin-Layout liest die Session via neuem `requireSession()`-Helper, der
+  pro Request gegen die DB prüft (Disabled-Check + tokenVersion-Vergleich).
+- `/admin/wartung` und `/admin/benutzer` rufen `requireRole("ADMIN")` direkt
+  am Anfang ihrer Server-Components auf, sodass Editor-Konten umgeleitet
+  werden, bevor sensitive Daten geladen werden.
+
+---
+
 ## [2026.05.12] — 2026-05-02
 
 **Vorschoter-Rangliste: Detail-Ansicht zeigt jetzt den korrekten Eintrag.**

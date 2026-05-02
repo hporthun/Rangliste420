@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { db } from "@/lib/db/client";
+import { requireSession } from "@/lib/auth-guard";
 import {
   Users,
   Trophy,
@@ -8,9 +9,11 @@ import {
   BarChart3,
   Download,
   ArrowRight,
+  Shield,
 } from "lucide-react";
 
 export default async function AdminPage() {
+  const me = await requireSession();
   const [sailorCount, regattaCount, entryCount, rankingCount] = await Promise.all([
     db.sailor.count(),
     db.regatta.count(),
@@ -63,14 +66,26 @@ export default async function AdminPage() {
       color: "text-purple-600",
       bg: "bg-purple-50",
     },
-    {
-      href: "/admin/wartung",
-      icon: Download,
-      title: "Wartung",
-      desc: "Datensicherung, Rücksicherung, automatische Backups und Datenreduktion.",
-      color: "text-amber-600",
-      bg: "bg-amber-50",
-    },
+    ...(me.role === "ADMIN"
+      ? [
+          {
+            href: "/admin/wartung",
+            icon: Download,
+            title: "Wartung",
+            desc: "Datensicherung, Rücksicherung, automatische Backups und Datenreduktion.",
+            color: "text-amber-600",
+            bg: "bg-amber-50",
+          },
+          {
+            href: "/admin/benutzer",
+            icon: Shield,
+            title: "Benutzer",
+            desc: "Konten anlegen, Rollen verwalten, Sessions invalidieren oder Konten sperren.",
+            color: "text-rose-600",
+            bg: "bg-rose-50",
+          },
+        ]
+      : []),
   ];
 
   return (

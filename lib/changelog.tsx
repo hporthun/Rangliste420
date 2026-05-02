@@ -77,6 +77,57 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.13",
+    date: "2026-05-02",
+    title: "Benutzerverwaltung mit Editor-Rolle (Issue #49)",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Unter <strong>Admin → Benutzer</strong> können Admins jetzt weitere
+            Konten anlegen. Es gibt zwei Rollen: <strong>Admin</strong> (voller
+            Zugriff inkl. Wartung und Benutzerverwaltung) und{" "}
+            <strong>Editor</strong> (darf Segler, Regatten und Ranglisten
+            pflegen, aber nicht Wartung oder Benutzerverwaltung sehen).
+          </>,
+          <>
+            Pro Benutzer wird der letzte Login (Zeitpunkt + Methode:
+            Passwort, Passkey, OAuth) aus dem bestehenden Sicherheitsprotokoll
+            angezeigt — ein zusätzliches Feld am User wird dafür nicht benötigt.
+          </>,
+          <>
+            Konten lassen sich <strong>sperren</strong> (manuell, dauerhaft —
+            der Benutzer kann sich danach nicht mehr einloggen),{" "}
+            <strong>rauswerfen</strong> (alle laufenden Sessions werden sofort
+            beim nächsten Klick auf eine Admin-Seite ungültig) oder dauerhaft
+            <strong> löschen</strong>. Selbstschutz: der eingeloggte Admin kann
+            sich selbst nicht löschen, sperren oder zum Editor degradieren.
+            Außerdem stellt das System sicher, dass mindestens ein aktiver Admin
+            erhalten bleibt.
+          </>,
+          <>
+            Der Admin kann zudem für jeden Benutzer ein neues Passwort setzen.
+            Beim Reset werden alle laufenden Sessions des Benutzers
+            invalidiert.
+          </>,
+        ],
+      },
+      {
+        kind: "geändert",
+        items: [
+          <>
+            Sicherheitsprotokoll-Aktionen <code>USER_CREATED</code>,{" "}
+            <code>USER_UPDATED</code>, <code>USER_DELETED</code>,{" "}
+            <code>USER_DISABLED</code>, <code>USER_ENABLED</code>,{" "}
+            <code>USER_SESSIONS_REVOKED</code> und <code>USER_PASSWORD_RESET</code>{" "}
+            werden für alle Benutzerverwaltungs-Aktionen geloggt.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.12",
     date: "2026-05-02",
     title: "Vorschoter-Rangliste: Detail-Ansicht zeigt jetzt den korrekten Eintrag",

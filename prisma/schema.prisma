@@ -190,8 +190,25 @@ model User {
   // email is optional; used for display/contact, not required for login
   email        String? @unique
   passwordHash String?
-  // "ADMIN" (only role in MVP)
-  role         String  @default("ADMIN")
+  // "ADMIN" | "EDITOR" — Editor darf Inhalt pflegen (Segler, Regatten,
+  // Ranglisten), aber nicht /admin/wartung oder /admin/benutzer.
+  // Default beim Anlegen über die Benutzerverwaltung ist "EDITOR" — der Seed
+  // legt weiterhin einen ADMIN an.
+  role         String  @default("EDITOR")
+
+  // ── Manuelle Sperrung (Issue #49) ──────────────────────────────────────────
+  // Setzt der Admin in der Benutzerverwaltung. Solange disabledAt != null,
+  // schlägt jeder Login-Versuch fehl und vorhandene Sessions werden bei der
+  // nächsten Auth-Prüfung ungültig (siehe tokenVersion).
+  disabledAt   DateTime?
+  // User-ID des Admins, der gesperrt hat (für Audit/Anzeige).
+  disabledBy   String?
+
+  // ── Session-Invalidierung (Issue #49) ──────────────────────────────────────
+  // Wird in jeden ausgegebenen JWT eingebettet. Bei "Rauswerfen" oder
+  // Sperrung erhöht sich der Wert; vorhandene JWTs werden beim nächsten
+  // Request via lib/auth-guard.ts verworfen.
+  tokenVersion Int       @default(0)
 
   // ── TOTP 2-Factor Auth ─────────────────────────────────────────────────────
   totpSecret      String?

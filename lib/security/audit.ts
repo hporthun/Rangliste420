@@ -35,6 +35,15 @@ export const A = {
   BACKUP_RESTORED: "BACKUP_RESTORED",
   BACKUP_DELETED:  "BACKUP_DELETED",
   SAILOR_MERGED:   "SAILOR_MERGED",
+
+  // Benutzerverwaltung (Issue #49)
+  USER_CREATED:           "USER_CREATED",
+  USER_UPDATED:           "USER_UPDATED",
+  USER_DELETED:           "USER_DELETED",
+  USER_DISABLED:          "USER_DISABLED",
+  USER_ENABLED:           "USER_ENABLED",
+  USER_SESSIONS_REVOKED:  "USER_SESSIONS_REVOKED",
+  USER_PASSWORD_RESET:    "USER_PASSWORD_RESET",
 } as const;
 
 export type AuditAction = (typeof A)[keyof typeof A];
