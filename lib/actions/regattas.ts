@@ -107,24 +107,42 @@ export type ImportRegattaRow = ParsedRegattaRow & {
 
 export async function importRegattenAction(
   rows: ImportRegattaRow[]
-): Promise<{ ok: true; created: number; skipped: number } | { ok: false; error: string }> {
+): Promise<
+  | { ok: true; created: number; skipped: number; urlUpdated: number }
+  | { ok: false; error: string }
+> {
   const session = await auth();
   if (!session) return { ok: false, error: "Nicht angemeldet." };
   try {
     let created = 0;
     let skipped = 0;
+    let urlUpdated = 0;
     let createdRanglistenregattas = 0;
 
     for (const row of rows) {
       const start = new Date(row.startDate);
       const end = new Date(row.endDate);
 
-      // Skip duplicates: same name + same startDate
+      // Existing regatta? Match by name + startDate.
       const exists = await db.regatta.findFirst({
         where: { name: row.name, startDate: start },
-        select: { id: true },
+        select: { id: true, sourceUrl: true },
       });
-      if (exists) { skipped++; continue; }
+      if (exists) {
+        // Wenn M2S eine sourceUrl liefert, die bei uns fehlt oder abweicht,
+        // ergänzen / aktualisieren wir sie still. Andere Felder bleiben
+        // unangetastet — sie könnten manuell gepflegt sein.
+        if (row.sourceUrl && row.sourceUrl !== exists.sourceUrl) {
+          await db.regatta.update({
+            where: { id: exists.id },
+            data: { sourceUrl: row.sourceUrl, sourceType: "MANAGE2SAIL_PASTE" },
+          });
+          urlUpdated++;
+        } else {
+          skipped++;
+        }
+        continue;
+      }
 
       await db.regatta.create({
         data: {
@@ -162,7 +180,7 @@ export async function importRegattenAction(
       });
     }
 
-    return { ok: true, created, skipped };
+    return { ok: true, created, skipped, urlUpdated };
   } catch (e) {
     return { ok: false, error: String(e) };
   }

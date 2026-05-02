@@ -119,11 +119,12 @@ export function RegattaListImport() {
     startTransition(async () => {
       const res = await importRegattenAction(toImport);
       if (!res.ok) { setError(res.error); return; }
-      setResult(
-        res.skipped > 0
-          ? `${res.created} Regatta(en) importiert, ${res.skipped} bereits vorhanden (übersprungen).`
-          : `${res.created} Regatta(en) erfolgreich importiert.`
-      );
+      const parts: string[] = [`${res.created} Regatta(en) importiert`];
+      if (res.urlUpdated > 0)
+        parts.push(`${res.urlUpdated} URL${res.urlUpdated === 1 ? "" : "s"} aktualisiert`);
+      if (res.skipped > 0)
+        parts.push(`${res.skipped} bereits vorhanden (übersprungen)`);
+      setResult(parts.join(", ") + ".");
       setRows(null);
       setText("");
     });

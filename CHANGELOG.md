@@ -8,6 +8,24 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.16] — 2026-05-02
+
+**Regattenliste-Import: URL bestehender Regatten wird nachgepflegt.**
+
+### Geändert
+
+- Beim Re-Einlesen der Manage2Sail-Klassenvereinigungsliste werden Regatten,
+  die wir schon kennen (Match per Name + Startdatum), nicht mehr stumm
+  übersprungen, wenn die M2S-Liste eine `sourceUrl` liefert, die bei uns
+  fehlt oder abweicht. In dem Fall wird die `sourceUrl` (und `sourceType` =
+  `MANAGE2SAIL_PASTE`) am bestehenden Datensatz aktualisiert. Andere Felder
+  (Faktor, Wettfahrten, Teilnehmerzahl, Ranglisten-Flag) bleiben unangetastet
+  — die könnten manuell gepflegt sein.
+- Die Erfolgsmeldung im Import-Wizard nennt jetzt zusätzlich, wie viele URLs
+  ergänzt/aktualisiert wurden.
+
+---
+
 ## [2026.05.15] — 2026-05-02
 
 **IDJM-Quali: alle Jahrgänge zulässig (Issue #53).**

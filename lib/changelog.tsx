@@ -77,6 +77,31 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.16",
+    date: "2026-05-02",
+    title: "Regattenliste-Import: URL bestehender Regatten wird nachgepflegt",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            Beim erneuten Einlesen der <strong>Manage2Sail-Regattenliste</strong>{" "}
+            werden bereits vorhandene Regatten nicht mehr stumm übersprungen, wenn
+            M2S inzwischen einen <strong>Ergebnis-Link</strong> liefert, der bei
+            uns fehlt oder abweicht — die Link-URL wird dann am bestehenden
+            Datensatz aktualisiert. Andere Felder (Faktor, Wettfahrten,
+            Teilnehmerzahl, Ranglisten-Flag) bleiben unangetastet, weil sie
+            manuell gepflegt sein könnten.
+          </>,
+          <>
+            Die Erfolgsmeldung im Import-Wizard zeigt jetzt zusätzlich, wie viele
+            URLs ergänzt/aktualisiert wurden.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.15",
     date: "2026-05-02",
     title: "IDJM-Rangliste: alle Jahrgänge zulässig (Issue #53)",
