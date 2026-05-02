@@ -77,6 +77,23 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.10",
+    date: "2026-05-02",
+    title: "Einheitliches Logo im öffentlichen Bereich",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            Im öffentlichen Bereich (Regatten, Ranglisten) wird jetzt dasselbe
+            Logo verwendet wie auf der Startseite — vorher zeigte der Header
+            dort eine ältere Variante.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.9",
     date: "2026-05-02",
     title: "JWM/JEM-Quali: Teams mit ungenehmigtem Schottenwechsel werden unten ausgewiesen",

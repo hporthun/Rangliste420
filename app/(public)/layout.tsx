@@ -11,11 +11,11 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         <div className="max-w-5xl mx-auto px-3 sm:px-4 flex items-center gap-3 sm:gap-6 h-14">
           <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
             <Image
-              src="/logo-420-full.png"
+              src="/logo-420.png"
               alt="420er Klasse"
-              width={249}
-              height={108}
-              className="h-10 w-auto group-hover:opacity-90 transition-opacity"
+              width={1000}
+              height={665}
+              className="h-8 w-auto rounded-sm ring-1 ring-white/20 group-hover:ring-white/40 transition-all"
               priority
             />
             <span className="font-semibold text-white tracking-tight text-sm leading-tight">

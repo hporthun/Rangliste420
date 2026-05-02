@@ -8,6 +8,18 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.10] — 2026-05-02
+
+**Einheitliches Logo im öffentlichen Bereich.**
+
+### Korrigiert
+
+- Im öffentlichen Bereich (Regatten, Ranglisten) wurde im Header bislang ein
+  anderes Logo (`logo-420-full.png`) angezeigt als auf der Startseite. Beide
+  zeigen jetzt das einheitliche Logo (`logo-420.png`). (Issue #50)
+
+---
+
 ## [2026.05.9] — 2026-05-02
 
 **JWM/JEM-Quali: Teams mit ungenehmigtem Schottenwechsel werden unten ausgewiesen.**
