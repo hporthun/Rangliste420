@@ -212,11 +212,30 @@ export default async function JwmJemPage({ searchParams }: Props) {
             </div>
           )}
 
-          {result.data.ranked.length === 0 && result.data.preliminary.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-6">
-              Keine qualifizierten Segler gefunden.
-            </p>
+          {/* Excluded due to unapproved crew swap */}
+          {result.data.excludedSwap.length > 0 && (
+            <div className="space-y-2">
+              <h2 className="font-semibold text-base text-muted-foreground">
+                Nicht gewertet — ungenehmigter Schottenwechsel
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Diese Teams sind nur durch einen ungenehmigten Schottenwechsel
+                entstanden und haben kein gewertetes Ergebnis.
+              </p>
+              <ExcludedSwapTable
+                rows={result.data.excludedSwap}
+                regattas={result.data.regattas}
+              />
+            </div>
           )}
+
+          {result.data.ranked.length === 0 &&
+            result.data.preliminary.length === 0 &&
+            result.data.excludedSwap.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-6">
+                Keine qualifizierten Segler gefunden.
+              </p>
+            )}
 
           {/* Save section */}
           <div className="space-y-2">
@@ -247,6 +266,7 @@ type TableRow = {
   qualiScore: number;
   validCount: number;
   splitFromSwap: boolean;
+  excludedSwapRegattaId: string | null;
   slots: {
     regattaId: string;
     finalRank: number | null;
@@ -360,6 +380,64 @@ function RankingTable({
               })}
             </tr>
           ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ── Tabelle für nicht gewertete Teams (ungenehmigter Schottenwechsel) ─────────
+
+function ExcludedSwapTable({
+  rows,
+  regattas,
+}: {
+  rows: TableRow[];
+  regattas: RegattaMeta[];
+}) {
+  const regattaById = new Map(regattas.map((r) => [r.id, r]));
+  return (
+    <div className="rounded-md border overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead className="bg-gray-50 text-xs text-muted-foreground uppercase">
+          <tr>
+            <th className="px-4 py-2 text-left">Name</th>
+            <th className="px-4 py-2 text-left hidden sm:table-cell">Verein</th>
+            <th className="px-4 py-2 text-left">Wechsel-Regatta</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y">
+          {rows.map((row) => {
+            const swapReg = row.excludedSwapRegattaId
+              ? regattaById.get(row.excludedSwapRegattaId)
+              : null;
+            return (
+              <tr key={row.teamKey} className="hover:bg-muted/30 transition-colors">
+                <td className="px-4 py-2 font-medium">
+                  {row.firstName} {row.lastName}
+                  <span
+                    className="ml-1.5 text-[10px] font-normal text-amber-700 bg-amber-50 border border-amber-200 rounded px-1 py-0.5 align-middle"
+                    title="Eigenständige Wertung wegen ungenehmigtem Schottenwechsel"
+                  >
+                    neues Team
+                  </span>
+                  {row.crews.length > 0 && (
+                    <span className="block text-xs text-muted-foreground font-normal mt-0.5">
+                      Crew: {row.crews.map((c) => `${c.firstName} ${c.lastName}`).join(" · ")}
+                    </span>
+                  )}
+                </td>
+                <td className="px-4 py-2 text-xs text-muted-foreground hidden sm:table-cell">
+                  {row.club ?? "—"}
+                </td>
+                <td className="px-4 py-2 text-xs text-muted-foreground">
+                  {swapReg
+                    ? `${swapReg.name} (${new Date(swapReg.startDate).toLocaleDateString("de-DE")})`
+                    : "—"}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

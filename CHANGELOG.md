@@ -8,6 +8,27 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.9] — 2026-05-02
+
+**JWM/JEM-Quali: Teams mit ungenehmigtem Schottenwechsel werden unten ausgewiesen.**
+
+### Neu
+
+- In der JWM/JEM-Qualifikationsrangliste werden Teams, die nur durch einen
+  ungenehmigten Schottenwechsel entstanden sind und deshalb kein gewertetes
+  Ergebnis haben, jetzt in einer eigenen Sektion „Nicht gewertet —
+  ungenehmigter Schottenwechsel" unten ausgewiesen. Bislang verschwanden
+  diese Helm/Crew-Kombinationen still aus der Rangliste, weil ihr einziger
+  Eintrag (die Wechsel-Regatta) ausgeschlossen wurde.
+- Die Sektion erscheint sowohl in der Admin-Vorschau als auch auf der
+  öffentlichen Rangliste; jede Zeile zeigt Helm-Name, Crew, Verein und die
+  Regatta, in der der ungenehmigte Wechsel stattfand.
+- DSV-Rangliste, Aktuelle Rangliste und IDJM-Quali sind nicht betroffen —
+  sie ignorieren das `crewSwapApproved`-Flag ohnehin (siehe
+  `docs/business-rules.md` §2.5).
+
+---
+
 ## [2026.05.3] — 2026-05-01
 
 **JWM/JEM-Quali: Ungenehmigter Schottenwechsel — Wechsel-Regatta wird ausgeschlossen.**

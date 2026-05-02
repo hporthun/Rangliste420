@@ -76,7 +76,7 @@ export default async function RanglistePage({ params, searchParams }: Props) {
       );
     }
 
-    const { ranked, preliminary, regattas } = result.data;
+    const { ranked, preliminary, excludedSwap, regattas } = result.data;
     const typeLabel = ranking.type === "JWM_QUALI" ? "JWM-Qualifikation" : "JEM-Qualifikation";
 
     return (
@@ -132,7 +132,21 @@ export default async function RanglistePage({ params, searchParams }: Props) {
           </div>
         )}
 
-        {ranked.length === 0 && preliminary.length === 0 && (
+        {/* Excluded due to unapproved crew swap */}
+        {excludedSwap.length > 0 && (
+          <div className="space-y-2">
+            <h2 className="font-semibold text-base text-muted-foreground">
+              Nicht gewertet — ungenehmigter Schottenwechsel
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Diese Teams sind nur durch einen ungenehmigten Schottenwechsel
+              entstanden und haben kein gewertetes Ergebnis.
+            </p>
+            <JwmJemExcludedSwapTable rows={excludedSwap} regattas={regattas} />
+          </div>
+        )}
+
+        {ranked.length === 0 && preliminary.length === 0 && excludedSwap.length === 0 && (
           <div className="rounded-lg border overflow-hidden shadow-sm">
             <p className="px-4 py-10 text-center text-muted-foreground text-sm">
               Noch keine qualifizierten Segler.
@@ -430,6 +444,60 @@ function JwmJemTable({
               })}
             </tr>
           ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ── Tabelle für nicht gewertete Teams (ungenehmigter Schottenwechsel) ─────────
+
+function JwmJemExcludedSwapTable({
+  rows,
+  regattas,
+}: {
+  rows: JwmJemDisplayRow[];
+  regattas: RegattaMeta[];
+}) {
+  const regattaById = new Map(regattas.map((r) => [r.id, r]));
+  return (
+    <div className="rounded-lg border overflow-x-auto shadow-sm">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="table-head-maritime text-xs text-muted-foreground uppercase">
+            <th className="px-4 py-2.5 text-left">Name</th>
+            <th className="px-4 py-2.5 text-left hidden sm:table-cell">Verein</th>
+            <th className="px-4 py-2.5 text-left">Wechsel-Regatta</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border/60 bg-card">
+          {rows.map((row) => {
+            const swapReg = row.excludedSwapRegattaId
+              ? regattaById.get(row.excludedSwapRegattaId)
+              : null;
+            return (
+              <tr key={row.teamKey} className="hover:bg-muted/40 transition-colors">
+                <td className="px-4 py-3 font-medium">
+                  {row.firstName} {row.lastName}
+                  <span
+                    className="ml-1.5 text-[10px] font-normal text-amber-700 bg-amber-50 border border-amber-200 rounded px-1 py-0.5 align-middle"
+                    title="Eigenständige Wertung wegen ungenehmigtem Schottenwechsel"
+                  >
+                    neues Team
+                  </span>
+                  <CrewLabel crews={row.crews} />
+                </td>
+                <td className="px-4 py-3 text-muted-foreground text-xs hidden sm:table-cell">
+                  {row.club ?? "—"}
+                </td>
+                <td className="px-4 py-3 text-muted-foreground text-xs">
+                  {swapReg
+                    ? `${swapReg.name} (${new Date(swapReg.startDate).toLocaleDateString("de-DE")})`
+                    : "—"}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

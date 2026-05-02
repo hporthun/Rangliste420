@@ -62,6 +62,12 @@ export type JwmJemDisplayRow = {
    * Die UI zeigt dann ein Hinweis-Icon „neues Team".
    */
   splitFromSwap: boolean;
+  /**
+   * Regatta-ID, bei der ein ungenehmigter Schottenwechsel den Eintrag aus der
+   * Wertung ausgeschlossen hat. Wird in der `excludedSwap`-Sektion angezeigt,
+   * damit nachvollziehbar ist, welche Regatta den Ausschluss ausgelöst hat.
+   */
+  excludedSwapRegattaId: string | null;
   slots: {
     regattaId: string;
     finalRank: number | null;
@@ -84,6 +90,12 @@ export type JwmJemDisplayRow = {
 export type JwmJemComputeResult = {
   ranked: JwmJemDisplayRow[];
   preliminary: JwmJemDisplayRow[];
+  /**
+   * Teams, deren einzige Regatta-Teilnahme durch einen ungenehmigten
+   * Schottenwechsel ausgeschlossen wurde — werden in der UI ohne Wertung
+   * unten ausgewiesen.
+   */
+  excludedSwap: JwmJemDisplayRow[];
   regattas: {
     id: string;
     name: string;
@@ -207,6 +219,7 @@ export async function computeJwmJemAction(
     const allOutputHelmIds = [
       ...output.ranked.map((r) => r.helmId),
       ...output.preliminary.map((r) => r.helmId),
+      ...output.excludedSwap.map((r) => r.helmId),
     ];
 
     const sailors = await db.sailor.findMany({
@@ -218,7 +231,7 @@ export async function computeJwmJemAction(
     // Crew name lookup: gather all crew IDs that appear in the output rows.
     const allCrewIds = [
       ...new Set(
-        [...output.ranked, ...output.preliminary]
+        [...output.ranked, ...output.preliminary, ...output.excludedSwap]
           .flatMap((r) => r.crewIds)
           .filter((id): id is string => id !== null)
       ),
@@ -267,6 +280,7 @@ export async function computeJwmJemAction(
         qualiScore: row.qualiScore,
         validCount: row.validCount,
         splitFromSwap: row.splitFromSwap,
+        excludedSwapRegattaId: row.excludedSwapRegattaId,
         slots: row.regattaSlots.map((s) => ({
           regattaId: s.regattaId,
           finalRank: s.finalRank,
@@ -289,6 +303,7 @@ export async function computeJwmJemAction(
       data: {
         ranked: output.ranked.map(toDisplayRow),
         preliminary: output.preliminary.map(toDisplayRow),
+        excludedSwap: output.excludedSwap.map(toDisplayRow),
         regattas: regattaMetas,
         maxStarters: output.maxStarters,
       },

@@ -484,7 +484,7 @@ describe("calculateJwmJemQuali", () => {
       expect(helmRows[0].crewIds).toEqual([crewId]);
     });
 
-    it("Helm mit unterschiedlicher Crew + ungenehmigt → Team1 bleibt, Team2-Wechsel-Eintrag ausgeschlossen", () => {
+    it("Helm mit unterschiedlicher Crew + ungenehmigt → Team1 bleibt, Team2 erscheint im excludedSwap-Bucket", () => {
       const helmId = uid();
       const crewA = uid();
       const crewB = uid();
@@ -498,20 +498,27 @@ describe("calculateJwmJemQuali", () => {
         mkResult(uid(), 2),
       ]);
 
-      const { ranked, preliminary, startersByRegatta } = calculateJwmJemQuali(
-        mkInput({ regattas: [reg1, reg2] })
-      );
-      const allRows = [...ranked, ...preliminary];
+      const { ranked, preliminary, excludedSwap, startersByRegatta } =
+        calculateJwmJemQuali(mkInput({ regattas: [reg1, reg2] }));
+      const ranking = [...ranked, ...preliminary];
 
       // Team1 (crewA) hat reg1 → validCount=1 → preliminary
-      const team1 = allRows.find((r) => r.helmId === helmId && r.crewIds.includes(crewA))!;
+      const team1 = ranking.find((r) => r.helmId === helmId && r.crewIds.includes(crewA))!;
       expect(team1).toBeDefined();
       expect(team1.validCount).toBe(1);
       expect(team1.splitFromSwap).toBe(false);
+      expect(team1.excludedSwapRegattaId).toBeNull();
 
-      // Team2 (crewB): reg2 ist der Wechsel-Eintrag → ausgeschlossen → validCount=0 → nicht in Ausgabe
-      const team2 = allRows.find((r) => r.helmId === helmId && r.crewIds.includes(crewB));
-      expect(team2).toBeUndefined();
+      // Team2 (crewB): reg2 ist der Wechsel-Eintrag → ausgeschlossen
+      // → validCount=0 → erscheint nun im excludedSwap-Bucket statt zu verschwinden.
+      expect(ranking.find((r) => r.helmId === helmId && r.crewIds.includes(crewB))).toBeUndefined();
+      const team2 = excludedSwap.find((r) => r.helmId === helmId && r.crewIds.includes(crewB));
+      expect(team2).toBeDefined();
+      expect(team2!.validCount).toBe(0);
+      expect(team2!.splitFromSwap).toBe(true);
+      expect(team2!.rank).toBeNull();
+      expect(team2!.qualiScore).toBe(0);
+      expect(team2!.excludedSwapRegattaId).toBe(reg2.id);
 
       // reg2-Teilnehmerzahl ist um 1 reduziert (helmId ausgeschlossen)
       expect(startersByRegatta[reg1.id]).toBe(2);

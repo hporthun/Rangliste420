@@ -75,6 +75,13 @@ export type JwmJemRow = {
   /** Ob dieses Team aus einem bereits gebrauchten Schottenwechsel resultiert
    *  (also nicht das "originale" Team des Helms ist). Nur informativ für die UI. */
   splitFromSwap: boolean;
+  /**
+   * Regatta-ID, bei der ein ungenehmigter Schottenwechsel stattfand und der
+   * Eintrag deshalb aus der Wertung ausgeschlossen wurde. null wenn kein
+   * ungenehmigter Wechsel zugrunde liegt. Wird genutzt, um Teams in der
+   * `excludedSwap`-Sektion mit Hinweis auf die betreffende Regatta darzustellen.
+   */
+  excludedSwapRegattaId: string | null;
 };
 
 export type JwmJemInput = {
@@ -89,6 +96,14 @@ export type JwmJemInput = {
 export type JwmJemOutput = {
   ranked: JwmJemRow[];
   preliminary: JwmJemRow[];
+  /**
+   * Teams, deren einzige Regatta-Teilnahme durch einen ungenehmigten
+   * Schottenwechsel ausgeschlossen wurde (validCount = 0,
+   * excludedSwapRegattaId !== null). Werden in der UI unten ohne Wertung
+   * geführt, damit nachvollziehbar bleibt, welche Helm/Crew-Kombi den Wechsel
+   * vorgenommen hat.
+   */
+  excludedSwap: JwmJemRow[];
   maxStarters: number;
   startersByRegatta: Record<string, number>;
 };
@@ -389,13 +404,19 @@ export function calculateJwmJemQuali(input: JwmJemInput): JwmJemOutput {
         regattaSlots: slots,
         validCount,
         splitFromSwap: team.splitFromSwap,
+        excludedSwapRegattaId: team.unapprovedSwapAtRegattaId,
       });
     }
   }
 
-  // Split into ranked (≥2 results) and preliminary (exactly 1 result)
+  // Split into ranked (≥2 results), preliminary (exactly 1 result), and
+  // excludedSwap (validCount = 0 because the team's only entry was the
+  // ungenehmigte-Wechsel-Eintrag, which is excluded from scoring).
   const ranked = rows.filter((r) => r.validCount >= 2);
   const preliminary = rows.filter((r) => r.validCount === 1);
+  const excludedSwap = rows.filter(
+    (r) => r.validCount === 0 && r.excludedSwapRegattaId !== null
+  );
 
   function tiebreakSort(a: JwmJemRow, b: JwmJemRow): number {
     const scoreDiff = a.qualiScore - b.qualiScore;
@@ -418,9 +439,20 @@ export function calculateJwmJemQuali(input: JwmJemInput): JwmJemOutput {
   ranked.sort(tiebreakSort);
   preliminary.sort(tiebreakSort);
 
+  // Stabile Sortierung der excludedSwap-Zeilen nach Helm/Crew-Namen wird vom
+  // Caller (Display-Layer) gemacht — hier nur Wechsel-Datum/Helm-ID, damit
+  // die Reihenfolge deterministisch ist.
+  excludedSwap.sort((a, b) => a.teamKey.localeCompare(b.teamKey));
+
   ranked.forEach((r, i) => {
     r.rank = i + 1;
   });
 
-  return { ranked, preliminary, maxStarters, startersByRegatta: effectiveStartersByRegatta };
+  return {
+    ranked,
+    preliminary,
+    excludedSwap,
+    maxStarters,
+    startersByRegatta: effectiveStartersByRegatta,
+  };
 }

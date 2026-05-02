@@ -77,6 +77,28 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.9",
+    date: "2026-05-02",
+    title: "JWM/JEM-Quali: Teams mit ungenehmigtem Schottenwechsel werden unten ausgewiesen",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            In der JWM/JEM-Qualifikationsrangliste erscheinen Teams, die nur durch
+            einen <strong>ungenehmigten Schottenwechsel</strong> entstanden sind und
+            deshalb kein gewertetes Ergebnis haben, jetzt unten in einer eigenen
+            Sektion „Nicht gewertet — ungenehmigter Schottenwechsel". So ist
+            nachvollziehbar, welche Helm/Crew-Kombination den Wechsel vorgenommen hat,
+            statt dass diese Zeilen still verschwinden. DSV-Rangliste und
+            IDJM-Quali sind nicht betroffen — sie ignorieren die Schottenwechsel-Logik
+            ohnehin.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.8",
     date: "2026-05-01",
     title: "Altersklassen- und Gender-Filter in öffentlicher Rangliste",
