@@ -181,11 +181,9 @@ export async function computeRankingAction(
 
     let rankings: HelmRanking[];
     if (type === "IDJM") {
-      if (ageCategory !== "U19" && ageCategory !== "U17" && ageCategory !== "U16" && ageCategory !== "U15") {
-        return { ok: false, error: "IDJM-Quali ist nur für U19, U17, U16 und U15 verfügbar." };
-      }
+      // Issue #53: Alle Altersklassen (inkl. OPEN/U22) sind für IDJM-Quali zulässig.
       const result = calculateIdjmQuali({
-        ageCategory: ageCategory as "U19" | "U17" | "U16" | "U15",
+        ageCategory,
         genderCategory,
         regattas,
         referenceDate: refDate,
@@ -401,10 +399,8 @@ export async function computeHelmDetailAction(
 
     let rankings: HelmRanking[];
     if (type === "IDJM") {
-      if (ageCategory !== "U19" && ageCategory !== "U17" && ageCategory !== "U16" && ageCategory !== "U15") {
-        return { ok: false, error: "IDJM nur für U19, U17, U16 und U15." };
-      }
-      rankings = calculateIdjmQuali({ ageCategory: ageCategory as "U19" | "U17" | "U16" | "U15", genderCategory, regattas, referenceDate: refDate, scoringUnit }).rankings;
+      // Issue #53: Alle Altersklassen (inkl. OPEN/U22) sind für IDJM-Quali zulässig.
+      rankings = calculateIdjmQuali({ ageCategory, genderCategory, regattas, referenceDate: refDate, scoringUnit }).rankings;
     } else {
       rankings = calculateDsvRanking({ seasonYear, ageCategory, genderCategory, referenceDate: refDate, regattas, scoringUnit }).rankings;
     }

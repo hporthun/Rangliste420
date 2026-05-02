@@ -40,7 +40,7 @@ const VORSCHAU_TOUR: TourStep[] = [
   },
 ];
 
-const AGE_CATEGORIES = ["OPEN", "U19", "U17", "U16", "U15"] as const;
+const AGE_CATEGORIES = ["OPEN", "U22", "U19", "U17", "U16", "U15"] as const;
 const GENDER_CATEGORIES = ["OPEN", "MEN", "MIX", "GIRLS"] as const;
 const GENDER_LABELS: Record<string, string> = { OPEN: "Open", MEN: "Jungen", MIX: "Mix", GIRLS: "Mädchen" };
 const RANKING_TYPES: RankingType[] = ["JAHRESRANGLISTE", "AKTUELLE", "IDJM"];

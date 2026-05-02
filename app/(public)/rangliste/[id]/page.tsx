@@ -39,14 +39,10 @@ export default async function RanglistePage({ params, searchParams }: Props) {
 
   if (!ranking) notFound();
 
-  const isIdjm = ranking.type === "IDJM_QUALI";
-
   // Parse + validate filter URL params
-  const rawAge = VALID_AGE_PARAMS.includes(ageParam as (typeof VALID_AGE_PARAMS)[number])
+  const filterAge = VALID_AGE_PARAMS.includes(ageParam as (typeof VALID_AGE_PARAMS)[number])
     ? (ageParam as string)
     : "";
-  // IDJM doesn't support U22
-  const filterAge = isIdjm && rawAge === "U22" ? "" : rawAge;
   const filterGender = VALID_GENDER_PARAMS.includes(genderParam as (typeof VALID_GENDER_PARAMS)[number])
     ? (genderParam as string)
     : "";
@@ -223,7 +219,7 @@ export default async function RanglistePage({ params, searchParams }: Props) {
       </div>
 
       {/* Filter bar */}
-      <RankingFilterBar currentAge={filterAge} currentGender={filterGender} hideU22={isIdjm} />
+      <RankingFilterBar currentAge={filterAge} currentGender={filterGender} />
 
       {/* Table */}
       <div className="rounded-lg border overflow-x-auto shadow-sm">

@@ -1,10 +1,10 @@
 /**
  * IDJM-Quali filter (DSV-MO Anlage Jugend, MO 10).
  *
- * Altersregel: Das gesamte Saisonjahr gilt — ein Segler darf im
- * Saisonjahr (gemäß Stichtag) max. 18 Jahre alt sein (U19), 16 Jahre (U17),
- * 15 Jahre (U16) bzw. 14 Jahre (U15). Referenz ist der Saisonstichtag
- * (referenceDate), nicht das Startdatum einzelner Regatten.
+ * Altersregel: Das gesamte Saisonjahr gilt — der gewählte Altersfilter
+ * (z. B. U19, U17, U16, U15) wird auf den Saisonstichtag (`referenceDate`)
+ * angewandt. Issue #53: Auch OPEN und U22 sind als Filter zulässig — die
+ * IDJM-Quali-Rangliste lässt damit alle Jahrgänge zu.
  *
  * R ≥ 25 threshold is applied to the result.
  *
@@ -22,7 +22,7 @@ import type { DsvRankingResult, RegattaData, DsvRankingInput } from "./dsv";
 import type { AgeCategory, GenderCategory } from "./filters";
 
 export type IdjmQualiInput = {
-  ageCategory: Extract<AgeCategory, "U19" | "U17" | "U16" | "U15">;
+  ageCategory: AgeCategory;
   genderCategory: GenderCategory;
   regattas: RegattaData[];
   referenceDate: Date;

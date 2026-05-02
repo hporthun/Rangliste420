@@ -8,6 +8,32 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.15] — 2026-05-02
+
+**IDJM-Quali: alle Jahrgänge zulässig (Issue #53).**
+
+### Geändert
+
+- Die IDJM-Quali-Rangliste lässt jetzt alle Altersklassen zu — also auch
+  `OPEN` und `U22`, nicht mehr nur U19/U17/U16/U15. Der bisherige Guard in
+  `lib/actions/rankings.ts` (Fehler „IDJM-Quali ist nur für U19, U17, U16
+  und U15 verfügbar.") und die Type-Constraint in `lib/scoring/idjm-quali.ts`
+  wurden entfernt. R ≥ 25-Schwelle und Saisonstichtag-Logik bleiben gleich.
+- `app/admin/ranglisten/vorschau/page.tsx`: Altersklassen-Dropdown enthält
+  zusätzlich `U22`.
+- `components/rankings/ranking-filter-bar.tsx`: `hideU22`-Prop entfernt
+  (war nur für IDJM gesetzt und nicht mehr nötig).
+
+### Korrigiert
+
+- Auf der öffentlichen Ranglisten-Detailseite (`app/(public)/rangliste/[id]`)
+  wurde der Typ-Vergleich gegen `"IDJM_QUALI"` gemacht, gespeichert wird aber
+  `"IDJM"`. Folge: das mit U22 verbundene IDJM-spezifische Filter-Verhalten
+  griff nie, was im Zuge der obigen Lockerung ohnehin obsolet wird; der
+  Vergleich wurde entfernt.
+
+---
+
 ## [2026.05.14] — 2026-05-02
 
 **Hinweis-Badge in Rang-/Quallisten für Segler ohne gepflegtes Geburtsjahr.**

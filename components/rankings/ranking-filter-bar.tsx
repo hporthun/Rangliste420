@@ -22,11 +22,9 @@ const GENDER_OPTIONS = [
 type Props = {
   currentAge: string;
   currentGender: string;
-  /** Hide U22 for IDJM rankings where U22/OPEN are invalid. */
-  hideU22?: boolean;
 };
 
-export function RankingFilterBar({ currentAge, currentGender, hideU22 = false }: Props) {
+export function RankingFilterBar({ currentAge, currentGender }: Props) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -38,7 +36,6 @@ export function RankingFilterBar({ currentAge, currentGender, hideU22 = false }:
     router.push(qs ? `${pathname}?${qs}` : pathname);
   }
 
-  const ageOptions = hideU22 ? AGE_OPTIONS.filter((o) => o.value !== "U22") : AGE_OPTIONS;
   const isFiltered = !!(currentAge || currentGender);
 
   return (
@@ -49,7 +46,7 @@ export function RankingFilterBar({ currentAge, currentGender, hideU22 = false }:
         onChange={(e) => navigate(e.target.value, currentGender)}
         className="border rounded px-2 py-1 bg-background text-foreground hover:border-foreground/40 transition-colors cursor-pointer text-xs"
       >
-        {ageOptions.map((o) => (
+        {AGE_OPTIONS.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}
           </option>

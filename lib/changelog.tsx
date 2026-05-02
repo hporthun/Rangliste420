@@ -77,6 +77,34 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.15",
+    date: "2026-05-02",
+    title: "IDJM-Rangliste: alle Jahrgänge zulässig (Issue #53)",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            Bei der <strong>IDJM-Quali-Rangliste</strong> sind jetzt alle
+            Altersklassen wählbar — also auch <strong>OPEN</strong> und{" "}
+            <strong>U22</strong>, nicht mehr nur U19/U17/U16/U15. Die übrigen
+            IDJM-Eigenheiten (R ≥ 25, Saisonstichtag-Logik) bleiben unverändert.
+          </>,
+        ],
+      },
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            Auf der öffentlichen IDJM-Detailseite wurde der U22-Filter
+            fälschlich versteckt, weil die Typ-Erkennung gegen den falschen
+            Wert verglich. Filter funktioniert jetzt für alle Altersklassen.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.14",
     date: "2026-05-02",
     title: "Hinweis-Badge in Rang-/Quallisten für Segler ohne Geburtsjahr",
