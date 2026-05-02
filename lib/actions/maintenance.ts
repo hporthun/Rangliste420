@@ -270,6 +270,12 @@ type BackupData = {
     results: Record<string, unknown>[];
     rankingRegattas: Record<string, unknown>[];
     importSessions: Record<string, unknown>[];
+    // Optional in Backups vor Version 2 — werden nur bei scope="all" wiederhergestellt.
+    users?: Record<string, unknown>[];
+    webAuthnCredentials?: Record<string, unknown>[];
+    mailConfigs?: Record<string, unknown>[];
+    auditLog?: Record<string, unknown>[];
+    pushSubscriptions?: Record<string, unknown>[];
   };
 };
 
@@ -344,8 +350,20 @@ async function _performRestore(
     return { ok: false, error: "Ungültiges Backup-Format (version/data fehlt)." };
   }
 
-  const { sailors, regattas, rankings, teamEntries, results, rankingRegattas, importSessions } =
-    backup.data;
+  const {
+    sailors,
+    regattas,
+    rankings,
+    teamEntries,
+    results,
+    rankingRegattas,
+    importSessions,
+    users,
+    webAuthnCredentials,
+    mailConfigs,
+    auditLog,
+    pushSubscriptions,
+  } = backup.data;
 
   if (
     !Array.isArray(sailors) ||
@@ -408,6 +426,12 @@ async function _performRestore(
           await tx.regatta.deleteMany();
           await tx.ranking.deleteMany();
           await tx.sailor.deleteMany();
+          // Admin-/Config-/Log-Tabellen: WebAuthnCredential vor User (FK)
+          await tx.webAuthnCredential.deleteMany();
+          await tx.user.deleteMany();
+          await tx.mailConfig.deleteMany();
+          await tx.auditLog.deleteMany();
+          await tx.pushSubscription.deleteMany();
         } catch (e) { throw new Error(`[delete] ${String(e)}`); }
       }
 
@@ -429,6 +453,7 @@ async function _performRestore(
                 club: s.club != null ? String(s.club) : null,
                 sailingLicenseId: s.sailingLicenseId != null ? String(s.sailingLicenseId) : null,
                 alternativeNames: toJsonStr(s.alternativeNames),
+                member420: s.member420 != null ? !!s.member420 : true,
                 createdAt: toDate(s.createdAt),
                 updatedAt: toDate(s.updatedAt),
               },
@@ -451,6 +476,7 @@ async function _performRestore(
                 numDays: Number(r.numDays ?? 1),
                 plannedRaces: r.plannedRaces != null ? Number(r.plannedRaces) : null,
                 completedRaces: Number(r.completedRaces ?? 0),
+                totalStarters: r.totalStarters != null ? Number(r.totalStarters) : null,
                 multiDayAnnouncement: !!r.multiDayAnnouncement,
                 ranglistenFaktor: toDecimalStr(r.ranglistenFaktor),
                 scoringSystem: (r.scoringSystem as string) ?? "LOW_POINT",
@@ -483,6 +509,8 @@ async function _performRestore(
                 scoringRule: toJsonStr(r.scoringRule, "{}"),
                 isPublic: !!r.isPublic,
                 publishedAt: toDateOrNull(r.publishedAt),
+                sortOrder: r.sortOrder != null ? Number(r.sortOrder) : 0,
+                scoringUnit: (r.scoringUnit as string) ?? "HELM",
                 createdAt: toDate(r.createdAt),
                 updatedAt: toDate(r.updatedAt),
               },
@@ -557,15 +585,141 @@ async function _performRestore(
         } catch (e) { throw new Error(`[importSessions] ${String(e)}`); }
       } // end scope regattas/all (team data)
 
+      // ── Admin-/Config-/Log-Tabellen (nur scope="all") ─────────────────────
+      // Optional in BackupData — Backups vor Version 2 enthalten sie nicht.
+      let usersRestored = 0;
+      let webAuthnRestored = 0;
+      let mailConfigsRestored = 0;
+      let auditLogRestored = 0;
+      let pushSubsRestored = 0;
+
+      if (scope === "all") {
+        if (Array.isArray(users)) {
+          try {
+            for (const u of users) {
+              await tx.user.create({
+                data: {
+                  id: u.id as string,
+                  username: u.username != null ? String(u.username) : null,
+                  email: u.email != null ? String(u.email) : null,
+                  passwordHash: u.passwordHash != null ? String(u.passwordHash) : null,
+                  role: (u.role as string) ?? "ADMIN",
+                  totpSecret: u.totpSecret != null ? String(u.totpSecret) : null,
+                  totpEnabled: !!u.totpEnabled,
+                  totpBackupCodes: toJsonStr(u.totpBackupCodes),
+                  failedLoginAttempts: Number(u.failedLoginAttempts ?? 0),
+                  lockedUntil: toDateOrNull(u.lockedUntil),
+                  resetToken: u.resetToken != null ? String(u.resetToken) : null,
+                  resetTokenExpiry: toDateOrNull(u.resetTokenExpiry),
+                  lastReadChangelogVersion:
+                    u.lastReadChangelogVersion != null ? String(u.lastReadChangelogVersion) : null,
+                  createdAt: toDate(u.createdAt),
+                  updatedAt: toDate(u.updatedAt),
+                },
+              });
+            }
+            usersRestored = users.length;
+          } catch (e) { throw new Error(`[users] ${String(e)}`); }
+        }
+
+        if (Array.isArray(webAuthnCredentials)) {
+          try {
+            for (const w of webAuthnCredentials) {
+              await tx.webAuthnCredential.create({
+                data: {
+                  id: w.id as string,
+                  userId: w.userId as string,
+                  credentialId: w.credentialId as string,
+                  publicKey: w.publicKey as string,
+                  // counter wird im Backup als String serialisiert (BigInt → JSON)
+                  counter:
+                    typeof w.counter === "string" || typeof w.counter === "number"
+                      ? BigInt(w.counter)
+                      : BigInt(0),
+                  deviceType: (w.deviceType as string) ?? "singleDevice",
+                  backedUp: !!w.backedUp,
+                  transports: toJsonStr(w.transports),
+                  name: (w.name as string) ?? "Passkey",
+                  lastUsed: toDateOrNull(w.lastUsed),
+                  createdAt: toDate(w.createdAt),
+                },
+              });
+            }
+            webAuthnRestored = webAuthnCredentials.length;
+          } catch (e) { throw new Error(`[webAuthnCredentials] ${String(e)}`); }
+        }
+
+        if (Array.isArray(mailConfigs)) {
+          try {
+            for (const m of mailConfigs) {
+              await tx.mailConfig.create({
+                data: {
+                  id: Number(m.id ?? 1),
+                  enabled: !!m.enabled,
+                  host: (m.host as string) ?? "",
+                  port: Number(m.port ?? 587),
+                  username: (m.username as string) ?? "",
+                  password: (m.password as string) ?? "",
+                  fromAddr: (m.fromAddr as string) ?? "",
+                },
+              });
+            }
+            mailConfigsRestored = mailConfigs.length;
+          } catch (e) { throw new Error(`[mailConfigs] ${String(e)}`); }
+        }
+
+        if (Array.isArray(auditLog)) {
+          try {
+            for (const a of auditLog) {
+              await tx.auditLog.create({
+                data: {
+                  id: a.id as string,
+                  userId: a.userId != null ? String(a.userId) : null,
+                  action: a.action as string,
+                  detail: a.detail != null ? String(a.detail) : null,
+                  ip: a.ip != null ? String(a.ip) : null,
+                  createdAt: toDate(a.createdAt),
+                },
+              });
+            }
+            auditLogRestored = auditLog.length;
+          } catch (e) { throw new Error(`[auditLog] ${String(e)}`); }
+        }
+
+        if (Array.isArray(pushSubscriptions)) {
+          try {
+            for (const p of pushSubscriptions) {
+              await tx.pushSubscription.create({
+                data: {
+                  id: p.id as string,
+                  endpoint: p.endpoint as string,
+                  p256dh: p.p256dh as string,
+                  auth: p.auth as string,
+                  userAgent: p.userAgent != null ? String(p.userAgent) : null,
+                  createdAt: toDate(p.createdAt),
+                  updatedAt: toDate(p.updatedAt),
+                },
+              });
+            }
+            pushSubsRestored = pushSubscriptions.length;
+          } catch (e) { throw new Error(`[pushSubscriptions] ${String(e)}`); }
+        }
+      }
+
       // ── Return counts for restored tables ─────────────────────────────────
       return {
-        sailors:         (scope === "all" || scope === "sailors")   ? sailors.length         : 0,
-        regattas:        (scope === "all" || scope === "regattas")  ? regattas.length        : 0,
-        rankings:        scope === "all"                            ? rankings.length        : 0,
-        teamEntries:     (scope === "all" || scope === "regattas")  ? teamEntries.length     : 0,
-        results:         (scope === "all" || scope === "regattas")  ? results.length         : 0,
-        rankingRegattas: (scope === "all" || scope === "regattas")  ? rankingRegattas.length : 0,
-        importSessions:  (scope === "all" || scope === "regattas")  ? importSessions.length  : 0,
+        sailors:             (scope === "all" || scope === "sailors")   ? sailors.length         : 0,
+        regattas:            (scope === "all" || scope === "regattas")  ? regattas.length        : 0,
+        rankings:            scope === "all"                            ? rankings.length        : 0,
+        teamEntries:         (scope === "all" || scope === "regattas")  ? teamEntries.length     : 0,
+        results:             (scope === "all" || scope === "regattas")  ? results.length         : 0,
+        rankingRegattas:     (scope === "all" || scope === "regattas")  ? rankingRegattas.length : 0,
+        importSessions:      (scope === "all" || scope === "regattas")  ? importSessions.length  : 0,
+        users:               usersRestored,
+        webAuthnCredentials: webAuthnRestored,
+        mailConfigs:         mailConfigsRestored,
+        auditLog:            auditLogRestored,
+        pushSubscriptions:   pushSubsRestored,
       };
     }, { timeout: 120_000 });
   } catch (e) {

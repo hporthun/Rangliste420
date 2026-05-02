@@ -77,6 +77,39 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.11",
+    date: "2026-05-02",
+    title: "Vollständigeres Backup — Admin-Accounts, Passkeys, SMTP, Audit-Log",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            <strong>Backup deckt jetzt alle Daten ab.</strong> Zusätzlich zu den
+            Stammdaten (Segler, Regatten, Ergebnisse, Ranglisten) werden jetzt auch
+            Admin-Accounts, Passkeys, SMTP-Einstellungen, Audit-Log und
+            Push-Abonnements mit-gesichert und beim vollständigen Restore
+            wiederhergestellt. Bislang fehlten diese Tabellen — ein Restore auf
+            einem neuen Server hätte zu fehlenden Login-Daten geführt.
+          </>,
+        ],
+      },
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            Beim Restore gingen bislang stillschweigend einzelne Felder verloren:
+            <code>Sailor.member420</code> (Pflicht für JWM/JEM-Quali),
+            <code>Regatta.totalStarters</code> (DSV-Formel),
+            <code>Ranking.sortOrder</code> und <code>Ranking.scoringUnit</code>.
+            Diese Felder sind im Backup-File enthalten und werden jetzt auch
+            zurückgespielt.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.10",
     date: "2026-05-02",
     title: "Einheitliches Logo im öffentlichen Bereich",

@@ -49,19 +49,36 @@ function metaName(filename: string) {
 // ── Snapshot & filename helpers ────────────────────────────────────────────────
 
 async function buildSnapshot() {
-  const [sailors, regattas, rankings, teamEntries, results, rankingRegattas, importSessions] =
-    await Promise.all([
-      db.sailor.findMany({ orderBy: { id: "asc" } }),
-      db.regatta.findMany({ orderBy: { id: "asc" } }),
-      db.ranking.findMany({ orderBy: { id: "asc" } }),
-      db.teamEntry.findMany({ orderBy: { id: "asc" } }),
-      db.result.findMany({ orderBy: { id: "asc" } }),
-      db.rankingRegatta.findMany({ orderBy: [{ rankingId: "asc" }, { regattaId: "asc" }] }),
-      db.importSession.findMany({ orderBy: { id: "asc" } }),
-    ]);
+  const [
+    sailors,
+    regattas,
+    rankings,
+    teamEntries,
+    results,
+    rankingRegattas,
+    importSessions,
+    users,
+    webAuthnCredentials,
+    mailConfigs,
+    auditLog,
+    pushSubscriptions,
+  ] = await Promise.all([
+    db.sailor.findMany({ orderBy: { id: "asc" } }),
+    db.regatta.findMany({ orderBy: { id: "asc" } }),
+    db.ranking.findMany({ orderBy: { id: "asc" } }),
+    db.teamEntry.findMany({ orderBy: { id: "asc" } }),
+    db.result.findMany({ orderBy: { id: "asc" } }),
+    db.rankingRegatta.findMany({ orderBy: [{ rankingId: "asc" }, { regattaId: "asc" }] }),
+    db.importSession.findMany({ orderBy: { id: "asc" } }),
+    db.user.findMany({ orderBy: { id: "asc" } }),
+    db.webAuthnCredential.findMany({ orderBy: { id: "asc" } }),
+    db.mailConfig.findMany({ orderBy: { id: "asc" } }),
+    db.auditLog.findMany({ orderBy: { id: "asc" } }),
+    db.pushSubscription.findMany({ orderBy: { id: "asc" } }),
+  ]);
 
   return {
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
     counts: {
       sailors: sailors.length,
@@ -71,8 +88,26 @@ async function buildSnapshot() {
       results: results.length,
       rankingRegattas: rankingRegattas.length,
       importSessions: importSessions.length,
+      users: users.length,
+      webAuthnCredentials: webAuthnCredentials.length,
+      mailConfigs: mailConfigs.length,
+      auditLog: auditLog.length,
+      pushSubscriptions: pushSubscriptions.length,
     },
-    data: { sailors, regattas, rankings, teamEntries, results, rankingRegattas, importSessions },
+    data: {
+      sailors,
+      regattas,
+      rankings,
+      teamEntries,
+      results,
+      rankingRegattas,
+      importSessions,
+      users,
+      webAuthnCredentials,
+      mailConfigs,
+      auditLog,
+      pushSubscriptions,
+    },
   };
 }
 
@@ -87,7 +122,11 @@ function timestampedFilename(): string {
 export async function writeBackupFile(comment?: string): Promise<string> {
   const schedule = await readSchedule();
   const snapshot = await buildSnapshot();
-  const plainJson = JSON.stringify(snapshot, null, 2);
+  const plainJson = JSON.stringify(
+    snapshot,
+    (_k, v) => (typeof v === "bigint" ? v.toString() : v),
+    2,
+  );
   const content = schedule.encryptionPassword
     ? encryptBackup(plainJson, schedule.encryptionPassword)
     : plainJson;

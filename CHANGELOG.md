@@ -8,6 +8,31 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.11] — 2026-05-02
+
+**Vollständigeres Backup — Admin-Accounts, Passkeys, SMTP, Audit-Log.**
+
+### Geändert
+
+- Backup deckt jetzt alle Daten ab. Zusätzlich zu den Stammdaten werden
+  Admin-Accounts (`User`), Passkeys (`WebAuthnCredential`), SMTP-Einstellungen
+  (`MailConfig`), Audit-Log (`AuditLog`) und Push-Abonnements
+  (`PushSubscription`) im Backup mit-gesichert und beim vollständigen Restore
+  (`scope="all"`) wiederhergestellt. Backup-Dateiformat-Version steigt von 1
+  auf 2; ältere Backups bleiben weiterhin lesbar (Admin-/Config-/Log-Tabellen
+  werden dort schlicht übersprungen). (Issue #51)
+- BigInt-Felder (`WebAuthnCredential.counter`) werden jetzt JSON-serialisiert
+  als String und beim Restore zurück in BigInt konvertiert.
+
+### Korrigiert
+
+- Beim Restore gingen bislang einzelne Felder stillschweigend verloren, obwohl
+  sie im Backup-JSON enthalten sind: `Sailor.member420`,
+  `Regatta.totalStarters`, `Ranking.sortOrder`, `Ranking.scoringUnit`. Diese
+  werden jetzt korrekt zurückgespielt. (Issue #51)
+
+---
+
 ## [2026.05.10] — 2026-05-02
 
 **Einheitliches Logo im öffentlichen Bereich.**
