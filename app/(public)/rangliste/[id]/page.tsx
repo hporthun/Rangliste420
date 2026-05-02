@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { computeRankingAction, type ComputeParams, type RankingType } from "@/lib/actions/rankings";
 import { computeJwmJemAction, type JwmJemParams, type JwmJemDisplayRow } from "@/lib/actions/jwm-jem";
 import { CrewLabel } from "@/components/rankings/crew-label";
+import { MissingBirthYearBadge } from "@/components/rankings/missing-birth-year-badge";
 import { RankingFilterBar } from "@/components/rankings/ranking-filter-bar";
 import Link from "next/link";
 
@@ -275,6 +276,7 @@ export default async function RanglistePage({ params, searchParams }: Props) {
                   >
                     {row.firstName} {row.lastName}
                   </Link>
+                  {row.birthYearMissing && <MissingBirthYearBadge />}
                   <CrewLabel crews={row.partners} prefix={scoringUnit === "CREW" ? "Steuermann" : "Crew"} />
                 </td>
                 <td className="px-4 py-3 text-muted-foreground text-xs hidden sm:table-cell">
@@ -406,6 +408,7 @@ function JwmJemTable({
                     neues Team
                   </span>
                 )}
+                {row.birthYearMissing && <MissingBirthYearBadge />}
                 <CrewLabel crews={row.crews} />
               </td>
               <td className="px-4 py-3 text-muted-foreground text-xs hidden sm:table-cell">
@@ -485,6 +488,7 @@ function JwmJemExcludedSwapTable({
                   >
                     neues Team
                   </span>
+                  {row.birthYearMissing && <MissingBirthYearBadge />}
                   <CrewLabel crews={row.crews} />
                 </td>
                 <td className="px-4 py-3 text-muted-foreground text-xs hidden sm:table-cell">

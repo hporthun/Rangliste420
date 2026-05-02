@@ -68,6 +68,8 @@ export type JwmJemDisplayRow = {
    * damit nachvollziehbar ist, welche Regatta den Ausschluss ausgelöst hat.
    */
   excludedSwapRegattaId: string | null;
+  /** True wenn das Geburtsjahr im Sailor-Stammdatensatz fehlt (Issue #52). */
+  birthYearMissing: boolean;
   slots: {
     regattaId: string;
     finalRank: number | null;
@@ -224,7 +226,7 @@ export async function computeJwmJemAction(
 
     const sailors = await db.sailor.findMany({
       where: { id: { in: allOutputHelmIds } },
-      select: { id: true, firstName: true, lastName: true, club: true },
+      select: { id: true, firstName: true, lastName: true, club: true, birthYear: true },
     });
     const sailorMap = Object.fromEntries(sailors.map((s) => [s.id, s]));
 
@@ -281,6 +283,7 @@ export async function computeJwmJemAction(
         validCount: row.validCount,
         splitFromSwap: row.splitFromSwap,
         excludedSwapRegattaId: row.excludedSwapRegattaId,
+        birthYearMissing: sailor?.birthYear == null,
         slots: row.regattaSlots.map((s) => ({
           regattaId: s.regattaId,
           finalRank: s.finalRank,

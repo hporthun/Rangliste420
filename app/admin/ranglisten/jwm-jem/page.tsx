@@ -7,6 +7,7 @@ import {
 } from "@/lib/actions/jwm-jem";
 import { JwmJemSaveForm } from "./save-form";
 import { RegattaFilterList } from "./regatta-filter-list";
+import { MissingBirthYearBadge } from "@/components/rankings/missing-birth-year-badge";
 import type { AgeCategory, GenderCategory } from "@/lib/scoring/filters";
 
 const AGE_CATEGORIES: AgeCategory[] = ["U22", "U19", "U17", "U16", "U15", "OPEN"];
@@ -267,6 +268,7 @@ type TableRow = {
   validCount: number;
   splitFromSwap: boolean;
   excludedSwapRegattaId: string | null;
+  birthYearMissing: boolean;
   slots: {
     regattaId: string;
     finalRank: number | null;
@@ -338,6 +340,7 @@ function RankingTable({
                     neues Team
                   </span>
                 )}
+                {row.birthYearMissing && <MissingBirthYearBadge />}
                 {row.crews.length > 0 && (
                   <span className="block text-xs text-muted-foreground font-normal mt-0.5">
                     Crew: {row.crews.map((c) => `${c.firstName} ${c.lastName}`).join(" · ")}
@@ -421,6 +424,7 @@ function ExcludedSwapTable({
                   >
                     neues Team
                   </span>
+                  {row.birthYearMissing && <MissingBirthYearBadge />}
                   {row.crews.length > 0 && (
                     <span className="block text-xs text-muted-foreground font-normal mt-0.5">
                       Crew: {row.crews.map((c) => `${c.firstName} ${c.lastName}`).join(" · ")}

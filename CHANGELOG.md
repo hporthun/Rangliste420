@@ -8,6 +8,21 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.14] — 2026-05-02
+
+**Hinweis-Badge in Rang-/Quallisten für Segler ohne gepflegtes Geburtsjahr.**
+
+### Neu
+
+- In allen Rang- und Qualifikationslisten (öffentlich und Admin-Vorschau)
+  erscheint neben dem Namen jetzt ein kleines „ohne Jahrgang"-Badge, sobald
+  beim Segler kein Geburtsjahr in den Stammdaten gepflegt ist. Tooltip
+  erklärt: „Geburtsjahr fehlt — bitte in den Stammdaten ergänzen, sonst
+  erscheint der Segler nicht in Altersklassen-Ranglisten." Betrifft DSV-,
+  IDJM-, JWM- und JEM-Quali-Listen. (Issue #52)
+
+---
+
 ## [2026.05.13] — 2026-05-02
 
 **Benutzerverwaltung mit Editor-Rolle (Issue #49).**

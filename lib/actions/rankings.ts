@@ -121,6 +121,8 @@ export type RankingRow = {
    * Ordered most-frequent first.
    */
   partners: CrewEntry[];
+  /** True wenn das Geburtsjahr im Sailor-Stammdatensatz fehlt (Issue #52). */
+  birthYearMissing: boolean;
 };
 
 export type RegattaMeta = {
@@ -206,7 +208,7 @@ export async function computeRankingAction(
     const sailorIds = rankings.map((r) => r.sailorId);
     const sailors = await db.sailor.findMany({
       where: { id: { in: sailorIds } },
-      select: { id: true, firstName: true, lastName: true, club: true },
+      select: { id: true, firstName: true, lastName: true, club: true, birthYear: true },
     });
     const sailorMap = Object.fromEntries(sailors.map((s) => [s.id, s]));
 
@@ -281,6 +283,7 @@ export async function computeRankingAction(
         R: r.R,
         valuesCount: r.allValues.length,
         partners: partnersFor(r.sailorId),
+        birthYearMissing: sailor?.birthYear == null,
       };
     });
 

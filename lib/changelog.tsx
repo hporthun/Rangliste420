@@ -77,6 +77,25 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.14",
+    date: "2026-05-02",
+    title: "Hinweis-Badge in Rang-/Quallisten für Segler ohne Geburtsjahr",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            In allen Rang- und Qualifikationslisten erscheint neben dem
+            Namen jetzt ein kleines <strong>„ohne Jahrgang"</strong>-Badge,
+            sobald beim Segler kein Geburtsjahr in den Stammdaten gepflegt
+            ist — als Hinweis, dass der Segler aus diesem Grund nicht in
+            Altersklassen-Ranglisten erscheint.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.13",
     date: "2026-05-02",
     title: "Benutzerverwaltung mit Editor-Rolle (Issue #49)",

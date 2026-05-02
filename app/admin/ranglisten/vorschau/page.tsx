@@ -1,5 +1,6 @@
 import { computeRankingAction, getRankingForEditAction, type ComputeParams, type RankingType } from "@/lib/actions/rankings";
 import { CrewLabel } from "@/components/rankings/crew-label";
+import { MissingBirthYearBadge } from "@/components/rankings/missing-birth-year-badge";
 import Link from "next/link";
 import { PageTour } from "@/components/tour/page-tour";
 import type { TourStep } from "@/components/tour/tour-context";
@@ -302,6 +303,7 @@ export default async function VorschauPage({ searchParams }: Props) {
                     <td className="px-4 py-2 font-medium text-center">{row.rank}</td>
                     <td className="px-4 py-2">
                       {row.firstName} {row.lastName}
+                      {row.birthYearMissing && <MissingBirthYearBadge />}
                       <CrewLabel crews={row.partners} prefix={unit === "CREW" ? "Steuermann" : "Crew"} />
                     </td>
                     <td className="px-4 py-2 text-muted-foreground text-xs">{row.club ?? "—"}</td>
