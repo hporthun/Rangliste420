@@ -32,8 +32,19 @@ function styleHeaderRow(row: ExcelJS.Row) {
   });
 }
 
-function partnersJoined(parts: { firstName: string; lastName: string }[]): string {
-  return parts.map((p) => `${p.firstName} ${p.lastName}`).join(", ");
+function partnersJoined(
+  parts: { id: string; firstName: string; lastName: string; birthYearMissing?: boolean }[],
+  birthYearMap: Map<string, number | null>
+): string {
+  return parts
+    .map((p) => {
+      const by = birthYearMap.get(p.id);
+      const base = `${p.firstName} ${p.lastName}`;
+      if (by != null) return `${base}, Jg. ${by}`;
+      if (p.birthYearMissing) return `${base} (ohne Jg.)`;
+      return base;
+    })
+    .join(", ");
 }
 
 type Meta = {
@@ -78,7 +89,7 @@ export async function buildDsvRanglisteWorkbook(
       row.club ?? "",
       Number(row.R.toFixed(2)),
       row.valuesCount,
-      partnersJoined(row.partners),
+      partnersJoined(row.partners, birthYearMap),
     ]);
   }
 
@@ -108,7 +119,7 @@ export async function buildDsvRanglisteWorkbook(
         row.club ?? "",
         "",
         `${row.valuesCount} / 9`,
-        partnersJoined(row.partners),
+        partnersJoined(row.partners, birthYearMap),
       ]);
     }
   }
@@ -160,7 +171,7 @@ export async function buildJwmJemWorkbook(
         birthYearMap.get(row.helmId) ?? "",
         row.club ?? "",
         Number(row.qualiScore.toFixed(2)),
-        partnersJoined(row.crews),
+        partnersJoined(row.crews, birthYearMap),
         ...slotCells,
       ]);
     }
