@@ -8,6 +8,21 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.20] — 2026-05-03
+
+**Rangliste: Live-Suche ueber Steuermann, Crew und Verein.**
+
+### Neu
+
+- Auf jeder Ranglisten-Detailseite (DSV, IDJM, JWM/JEM) gibt es ein
+  **Suchfeld**, das beim Tippen Hauptliste, "Noch nicht in der Wertung"
+  und JWM/JEM-Sektionen filtert. Match auf Helm-Name, Crew-Name(n) und
+  Verein. Diakritika werden ignoriert (z. B. "muehlenberger" findet
+  "Muehlenberger Segel-Club"). Sektionen ohne Treffer werden komplett
+  ausgeblendet.
+
+---
+
 ## [2026.05.19] — 2026-05-03
 
 **Rangliste: Jahrgang auch fuer die Crews (Schotten).**

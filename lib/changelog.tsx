@@ -77,6 +77,26 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.20",
+    date: "2026-05-03",
+    title: "Rangliste: Live-Suche über Steuermann, Crew und Verein",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Auf jeder Ranglisten-Detailseite (DSV, IDJM, JWM/JEM) gibt es ein{" "}
+            <strong>Suchfeld</strong>, das beim Tippen Hauptliste, „Noch nicht
+            in der Wertung" und JWM/JEM-Sektionen filtert. Match auf
+            Helm-Name, Crew-Name(n) und Verein. Diakritika werden ignoriert
+            (z. B. <code>muehlenberger</code> findet „Mühlenberger Segel-Club").
+            Sektionen ohne Treffer werden komplett ausgeblendet.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.19",
     date: "2026-05-03",
     title: "Rangliste: Jahrgang auch für die Crews (Schotten)",

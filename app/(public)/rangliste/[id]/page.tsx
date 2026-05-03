@@ -7,6 +7,7 @@ import { CrewLabel } from "@/components/rankings/crew-label";
 import { MissingBirthYearBadge } from "@/components/rankings/missing-birth-year-badge";
 import { BirthYearLabel } from "@/components/rankings/birth-year-label";
 import { RankingFilterBar } from "@/components/rankings/ranking-filter-bar";
+import { RankingsSearch } from "@/components/rankings/rankings-search";
 import Link from "next/link";
 
 /**
@@ -140,9 +141,12 @@ export default async function RanglistePage({ params, searchParams }: Props) {
         {/* Filter bar */}
         <RankingFilterBar currentAge={filterAge} currentGender={filterGender} />
 
+        {/* Live search filter (Helm + Crew + Verein) */}
+        <RankingsSearch />
+
         {/* Main ranking */}
         {ranked.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-2" data-search-section>
             <h2 className="font-semibold text-base">Qualifikationsrangliste</h2>
             <JwmJemTable rows={ranked} regattas={regattas} birthYearMap={birthYearMap} />
           </div>
@@ -150,7 +154,7 @@ export default async function RanglistePage({ params, searchParams }: Props) {
 
         {/* Preliminary */}
         {preliminary.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-2" data-search-section>
             <h2 className="font-semibold text-base text-muted-foreground">
               Vorläufig / Zwischenergebnis
             </h2>
@@ -163,7 +167,7 @@ export default async function RanglistePage({ params, searchParams }: Props) {
 
         {/* Excluded due to unapproved crew swap */}
         {excludedSwap.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-2" data-search-section>
             <h2 className="font-semibold text-base text-muted-foreground">
               Nicht gewertet — ungenehmigter Schottenwechsel
             </h2>
@@ -260,7 +264,11 @@ export default async function RanglistePage({ params, searchParams }: Props) {
       {/* Filter bar */}
       <RankingFilterBar currentAge={filterAge} currentGender={filterGender} />
 
-      {/* Table */}
+      {/* Live search filter (Helm + Crew + Verein) */}
+      <RankingsSearch />
+
+      {/* Table + Footer als eine Sucheinheit, damit beide gemeinsam aus-/eingeblendet werden */}
+      <div data-search-section className="space-y-3">
       <div className="rounded-lg border overflow-x-auto shadow-sm">
         <table className="w-full text-sm min-w-[320px]">
           <thead>
@@ -277,6 +285,7 @@ export default async function RanglistePage({ params, searchParams }: Props) {
             {rows.map((row, idx) => (
               <tr
                 key={row.sailorId}
+                data-search={[row.firstName, row.lastName, row.club ?? "", ...row.partners.flatMap((p) => [p.firstName, p.lastName])].join(" ")}
                 className={`hover:bg-muted/40 transition-colors group ${
                   idx === 0
                     ? "bg-yellow-50/60"
@@ -351,11 +360,12 @@ export default async function RanglistePage({ params, searchParams }: Props) {
           {rows.length} Segler · R = arithmetisches Mittel der 9 besten R_A-Werte
         </p>
       )}
+      </div>
 
       {/* Teams unter dem 9-Wertungs-Cutoff: stehen mit Wertungen da, kommen aber
           nach DSV-RO Anlage 1 §4 erst ab 9 Wertungen in die Wertung. */}
       {belowCutoff.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-2" data-search-section>
           <h2 className="font-semibold text-base text-muted-foreground">
             Noch nicht in der Wertung
           </h2>
@@ -375,7 +385,11 @@ export default async function RanglistePage({ params, searchParams }: Props) {
               </thead>
               <tbody className="divide-y divide-border/60 bg-card">
                 {belowCutoff.map((row) => (
-                  <tr key={row.sailorId} className="hover:bg-muted/40 transition-colors">
+                  <tr
+                    key={row.sailorId}
+                    data-search={[row.firstName, row.lastName, row.club ?? "", ...row.partners.flatMap((p) => [p.firstName, p.lastName])].join(" ")}
+                    className="hover:bg-muted/40 transition-colors"
+                  >
                     <td className="px-4 py-3 font-medium">
                       {row.firstName} {row.lastName}
                       {row.birthYearMissing && <MissingBirthYearBadge />}
@@ -455,6 +469,7 @@ function JwmJemTable({
           {rows.map((row, idx) => (
             <tr
               key={row.teamKey}
+              data-search={[row.firstName, row.lastName, row.club ?? "", ...row.crews.flatMap((c) => [c.firstName, c.lastName])].join(" ")}
               className={`hover:bg-muted/40 transition-colors group ${
                 idx === 0 && row.rank !== null
                   ? "bg-yellow-50/60"
@@ -568,7 +583,11 @@ function JwmJemExcludedSwapTable({
               ? regattaById.get(row.excludedSwapRegattaId)
               : null;
             return (
-              <tr key={row.teamKey} className="hover:bg-muted/40 transition-colors">
+              <tr
+                key={row.teamKey}
+                data-search={[row.firstName, row.lastName, row.club ?? "", ...row.crews.flatMap((c) => [c.firstName, c.lastName])].join(" ")}
+                className="hover:bg-muted/40 transition-colors"
+              >
                 <td className="px-4 py-3 font-medium">
                   {row.firstName} {row.lastName}
                   <span
