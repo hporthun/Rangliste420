@@ -79,7 +79,7 @@ export const ENTRIES: ChangelogEntry[] = [
   {
     version: "2026.05.21",
     date: "2026-05-03",
-    title: "Rangliste: „ohne Jahrgang"-Hinweis auch für Vorschoter",
+    title: "Rangliste: „ohne Jahrgang“-Hinweis auch für Vorschoter",
     changes: [
       {
         kind: "neu",
