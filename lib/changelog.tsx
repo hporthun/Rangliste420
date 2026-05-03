@@ -77,6 +77,24 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.19",
+    date: "2026-05-03",
+    title: "Rangliste: Jahrgang auch für die Crews (Schotten)",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Die Jahrgangs-Anzeige für angemeldete Benutzer umfasst jetzt auch
+            die <strong>Schotten/Vorschoter</strong> — im Crew-Subtext wird
+            hinter jedem Namen <code>, Jg. 2008</code> ergänzt (sofern bekannt).
+            Anonyme Aufrufe sehen die Jahrgänge weiterhin nicht.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.18",
     date: "2026-05-03",
     title: "Rangliste: Jahrgang neben dem Seglernamen für angemeldete Benutzer",

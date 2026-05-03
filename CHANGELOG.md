@@ -8,6 +8,19 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.19] — 2026-05-03
+
+**Rangliste: Jahrgang auch fuer die Crews (Schotten).**
+
+### Neu
+
+- Die Jahrgangs-Anzeige fuer angemeldete Benutzer umfasst jetzt auch die
+  Schotten/Vorschoter — im Crew-Subtext wird hinter jedem Namen
+  `, Jg. 2008` ergaenzt (sofern bekannt). Anonyme Aufrufe sehen die
+  Jahrgaenge weiterhin nicht.
+
+---
+
 ## [2026.05.18] — 2026-05-03
 
 **Rangliste: Jahrgang neben dem Seglernamen fuer angemeldete Benutzer.**

@@ -102,7 +102,10 @@ export default async function RanglistePage({ params, searchParams }: Props) {
     const { ranked, preliminary, excludedSwap, regattas } = result.data;
     const typeLabel = ranking.type === "JWM_QUALI" ? "JWM-Qualifikation" : "JEM-Qualifikation";
 
-    const jwmJemSailorIds = [...ranked, ...preliminary, ...excludedSwap].map((r) => r.helmId);
+    const jwmJemSailorIds = [
+      ...[...ranked, ...preliminary, ...excludedSwap].map((r) => r.helmId),
+      ...[...ranked, ...preliminary, ...excludedSwap].flatMap((r) => r.crews.map((c) => c.id)),
+    ];
     const birthYearMap = await loadBirthYearsForSignedIn(isSignedIn, jwmJemSailorIds);
 
     return (
@@ -220,7 +223,10 @@ export default async function RanglistePage({ params, searchParams }: Props) {
   const rows = result.data.rows;
   const belowCutoff = result.data.belowCutoff;
 
-  const dsvSailorIds = [...rows, ...belowCutoff].map((r) => r.sailorId);
+  const dsvSailorIds = [
+    ...[...rows, ...belowCutoff].map((r) => r.sailorId),
+    ...[...rows, ...belowCutoff].flatMap((r) => r.partners.map((p) => p.id)),
+  ];
   const birthYearMap = await loadBirthYearsForSignedIn(isSignedIn, dsvSailorIds);
 
   return (
@@ -307,7 +313,7 @@ export default async function RanglistePage({ params, searchParams }: Props) {
                   </Link>
                   {row.birthYearMissing && <MissingBirthYearBadge />}
                   <BirthYearLabel birthYear={birthYearMap.get(row.sailorId) ?? null} />
-                  <CrewLabel crews={row.partners} prefix={scoringUnit === "CREW" ? "Steuermann" : "Crew"} />
+                  <CrewLabel crews={row.partners} prefix={scoringUnit === "CREW" ? "Steuermann" : "Crew"} birthYearMap={birthYearMap} />
                 </td>
                 <td className="px-4 py-3 text-muted-foreground text-xs hidden sm:table-cell">
                   {row.club ?? "—"}
@@ -377,6 +383,7 @@ export default async function RanglistePage({ params, searchParams }: Props) {
                       <CrewLabel
                         crews={row.partners}
                         prefix={scoringUnit === "CREW" ? "Steuermann" : "Crew"}
+                        birthYearMap={birthYearMap}
                       />
                     </td>
                     <td className="px-4 py-3 text-muted-foreground text-xs hidden sm:table-cell">
@@ -489,7 +496,7 @@ function JwmJemTable({
                 )}
                 {row.birthYearMissing && <MissingBirthYearBadge />}
                 <BirthYearLabel birthYear={birthYearMap.get(row.helmId) ?? null} />
-                <CrewLabel crews={row.crews} />
+                <CrewLabel crews={row.crews} birthYearMap={birthYearMap} />
               </td>
               <td className="px-4 py-3 text-muted-foreground text-xs hidden sm:table-cell">
                 {row.club ?? "—"}
@@ -572,7 +579,7 @@ function JwmJemExcludedSwapTable({
                   </span>
                   {row.birthYearMissing && <MissingBirthYearBadge />}
                   <BirthYearLabel birthYear={birthYearMap.get(row.helmId) ?? null} />
-                  <CrewLabel crews={row.crews} />
+                  <CrewLabel crews={row.crews} birthYearMap={birthYearMap} />
                 </td>
                 <td className="px-4 py-3 text-muted-foreground text-xs hidden sm:table-cell">
                   {row.club ?? "—"}
