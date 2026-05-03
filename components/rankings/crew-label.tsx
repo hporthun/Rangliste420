@@ -14,13 +14,19 @@
  * Pure presentational, no auth or DB access. Wenn ein `birthYearMap`
  * uebergeben wird (nur fuer angemeldete Benutzer), wird der Jahrgang
  * ", Jg. 2009" hinter jedem Namen ergaenzt — fehlt der Eintrag in der
- * Map oder ist null, wird er weggelassen.
+ * Map oder ist null, wird er weggelassen. Pro Crew kann zusaetzlich
+ * `birthYearMissing` gesetzt sein — dann zeigt der Subtext einen
+ * "ohne Jahrgang"-Badge, identisch zum Hauptsegler-Hinweis.
  */
+
+import { MissingBirthYearBadge } from "./missing-birth-year-badge";
+
 type Crew = {
   id: string;
   firstName: string;
   lastName: string;
   count: number;
+  birthYearMissing?: boolean;
 };
 
 export function CrewLabel({
@@ -38,25 +44,48 @@ export function CrewLabel({
 }) {
   if (!crews.length) return null;
 
-  const fmt = (c: Crew) => {
+  // Plain-text format (used for the title attribute). JSX-Inhalt unten,
+  // damit MissingBirthYearBadge inline gerendert werden kann.
+  const fmtText = (c: Crew) => {
     const by = birthYearMap?.get(c.id);
-    return by != null ? `${c.firstName} ${c.lastName}, Jg. ${by}` : `${c.firstName} ${c.lastName}`;
+    const base = by != null ? `${c.firstName} ${c.lastName}, Jg. ${by}` : `${c.firstName} ${c.lastName}`;
+    return c.birthYearMissing ? `${base} (ohne Jahrgang)` : base;
   };
-  let label: string;
+
+  const renderOne = (c: Crew) => {
+    const by = birthYearMap?.get(c.id);
+    return (
+      <>
+        {c.firstName} {c.lastName}
+        {by != null && <>, Jg.&nbsp;{by}</>}
+        {c.birthYearMissing && <MissingBirthYearBadge />}
+      </>
+    );
+  };
+
+  let content;
   if (crews.length === 1) {
-    label = fmt(crews[0]);
+    content = renderOne(crews[0]);
   } else if (crews.length === 2) {
-    label = `${fmt(crews[0])} · ${fmt(crews[1])}`;
+    content = (
+      <>
+        {renderOne(crews[0])} · {renderOne(crews[1])}
+      </>
+    );
   } else {
-    label = `${fmt(crews[0])} + ${crews.length - 1} weitere`;
+    content = (
+      <>
+        {renderOne(crews[0])} + {crews.length - 1} weitere
+      </>
+    );
   }
 
   return (
     <span
       className={`block text-xs text-muted-foreground mt-0.5 ${className}`}
-      title={crews.map(fmt).join(", ")}
+      title={crews.map(fmtText).join(", ")}
     >
-      {prefix}: {label}
+      {prefix}: {content}
     </span>
   );
 }

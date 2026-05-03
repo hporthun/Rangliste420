@@ -111,6 +111,12 @@ export type CrewEntry = {
   lastName: string;
   /** Number of season regattas this crew sailed with this helm. */
   count: number;
+  /**
+   * True wenn das Geburtsjahr des Vorschoters/Steuermanns im Stammdatensatz
+   * fehlt — fachliche Info (Auswirkung auf Altersklassen-Filter), wird auch
+   * fuer anonyme Aufrufe ausgeliefert.
+   */
+  birthYearMissing: boolean;
 };
 
 export type RankingRow = {
@@ -238,7 +244,7 @@ export async function computeRankingAction(
     const sailorMap = Object.fromEntries(sailors.map((s) => [s.id, s]));
 
     // Aggregate partner sailors (crew→helm in CREW mode, helm→crew in HELM mode)
-    type PartnerMap = Map<string, { firstName: string; lastName: string; count: number }>;
+    type PartnerMap = Map<string, { firstName: string; lastName: string; count: number; birthYearMissing: boolean }>;
     const sailorPartners = new Map<string, PartnerMap>();
 
     if (scoringUnit === "CREW") {
@@ -250,7 +256,7 @@ export async function computeRankingAction(
         select: {
           crewId: true,
           helmId: true,
-          helm: { select: { id: true, firstName: true, lastName: true } },
+          helm: { select: { id: true, firstName: true, lastName: true, birthYear: true } },
         },
       });
       for (const te of teamEntriesWithHelm) {
@@ -258,7 +264,12 @@ export async function computeRankingAction(
         const map = sailorPartners.get(te.crewId) ?? new Map();
         const existing = map.get(te.helm.id);
         if (existing) existing.count += 1;
-        else map.set(te.helm.id, { firstName: te.helm.firstName, lastName: te.helm.lastName, count: 1 });
+        else map.set(te.helm.id, {
+          firstName: te.helm.firstName,
+          lastName: te.helm.lastName,
+          count: 1,
+          birthYearMissing: te.helm.birthYear == null,
+        });
         sailorPartners.set(te.crewId, map);
       }
     } else {
@@ -271,7 +282,7 @@ export async function computeRankingAction(
         select: {
           helmId: true,
           crewId: true,
-          crew: { select: { id: true, firstName: true, lastName: true } },
+          crew: { select: { id: true, firstName: true, lastName: true, birthYear: true } },
         },
       });
       for (const te of teamEntriesWithCrew) {
@@ -279,7 +290,12 @@ export async function computeRankingAction(
         const map = sailorPartners.get(te.helmId) ?? new Map();
         const existing = map.get(te.crew.id);
         if (existing) existing.count += 1;
-        else map.set(te.crew.id, { firstName: te.crew.firstName, lastName: te.crew.lastName, count: 1 });
+        else map.set(te.crew.id, {
+          firstName: te.crew.firstName,
+          lastName: te.crew.lastName,
+          count: 1,
+          birthYearMissing: te.crew.birthYear == null,
+        });
         sailorPartners.set(te.helmId, map);
       }
     }

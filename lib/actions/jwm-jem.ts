@@ -86,6 +86,7 @@ export type JwmJemDisplayRow = {
     firstName: string;
     lastName: string;
     count: number;
+    birthYearMissing: boolean;
   }[];
 };
 
@@ -240,7 +241,7 @@ export async function computeJwmJemAction(
     ];
     const crewSailors = await db.sailor.findMany({
       where: { id: { in: allCrewIds } },
-      select: { id: true, firstName: true, lastName: true },
+      select: { id: true, firstName: true, lastName: true, birthYear: true },
     });
     const crewMap = Object.fromEntries(crewSailors.map((s) => [s.id, s]));
 
@@ -261,6 +262,7 @@ export async function computeJwmJemAction(
             firstName: s?.firstName ?? "?",
             lastName: s?.lastName ?? "?",
             count: 1,
+            birthYearMissing: s?.birthYear == null,
           };
         })
         .sort(

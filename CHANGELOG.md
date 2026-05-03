@@ -8,6 +8,19 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.21] — 2026-05-03
+
+**Rangliste: "ohne Jahrgang"-Hinweis auch fuer Vorschoter.**
+
+### Neu
+
+- Im Crew-Subtext der Ranglisten-Tabellen erscheint jetzt der gleiche
+  **"ohne Jahrgang"**-Badge wie bei Steuerleuten, sobald das Geburtsjahr
+  des Vorschoters in den Stammdaten fehlt. Das Flag wird auch fuer
+  anonyme Aufrufe ausgeliefert (fachliche Info, kein PII).
+
+---
+
 ## [2026.05.20] — 2026-05-03
 
 **Rangliste: Live-Suche ueber Steuermann, Crew und Verein.**

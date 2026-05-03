@@ -77,6 +77,24 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.21",
+    date: "2026-05-03",
+    title: "Rangliste: „ohne Jahrgang"-Hinweis auch für Vorschoter",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Im Crew-Subtext der Ranglisten-Tabellen erscheint jetzt der gleiche{" "}
+            <strong>„ohne Jahrgang"</strong>-Badge wie bei Steuerleuten, sobald
+            das Geburtsjahr des Vorschoters in den Stammdaten fehlt. Das Flag
+            wird auch für anonyme Aufrufe ausgeliefert (fachliche Info, kein PII).
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.20",
     date: "2026-05-03",
     title: "Rangliste: Live-Suche über Steuermann, Crew und Verein",
