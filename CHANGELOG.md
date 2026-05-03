@@ -8,6 +8,21 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.17] — 2026-05-03
+
+**Rangliste: Liste der Teams unter dem 9-Wertungs-Cutoff.**
+
+### Neu
+
+- Auf jeder DSV-Ranglistenseite (Jahres, Aktuelle, IDJM-Quali) erscheint
+  unter der Haupttabelle die Sektion **„Noch nicht in der Wertung"**.
+  Sie listet alle Steuerleute (bzw. Vorschoter im CREW-Modus), die bereits
+  Wertungen gesammelt, aber noch keine 9 erreicht haben — mit Anzahl
+  `X / 9`, Verein und Crew. Damit ist auf einen Blick zu sehen, wer noch
+  eine Regatta bis zum Cutoff braucht.
+
+---
+
 ## [2026.05.16] — 2026-05-02
 
 **Regattenliste-Import: URL bestehender Regatten wird nachgepflegt.**

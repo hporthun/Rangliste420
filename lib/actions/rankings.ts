@@ -41,7 +41,13 @@ import { db } from "@/lib/db/client";
 import { auth } from "@/lib/auth";
 import { calculateDsvRanking } from "@/lib/scoring/dsv";
 import { calculateIdjmQuali } from "@/lib/scoring/idjm-quali";
-import type { RegattaData, AgeCategory, GenderCategory, HelmRanking } from "@/lib/scoring/dsv";
+import type {
+  RegattaData,
+  AgeCategory,
+  GenderCategory,
+  HelmRanking,
+  BelowCutoffEntry,
+} from "@/lib/scoring/dsv";
 import { revalidatePath } from "next/cache";
 import { broadcastPush } from "@/lib/push/notify";
 
@@ -143,8 +149,24 @@ export type RegattaMeta = {
   startersFromOverride: boolean;
 };
 
+/**
+ * Segler mit Wertungen, aber unter dem 9-Werte-Cutoff der DSV-Rangliste.
+ * Wird auf der Detailseite als "Noch nicht in der Wertung" gezeigt, damit
+ * Trainer/Segler sehen, wie weit sie noch sind und wer ihre Crew war.
+ */
+export type BelowCutoffRow = {
+  sailorId: string;
+  firstName: string;
+  lastName: string;
+  club: string | null;
+  valuesCount: number;
+  partners: CrewEntry[];
+  birthYearMissing: boolean;
+};
+
 export type RankingComputeResult = {
   rows: RankingRow[];
+  belowCutoff: BelowCutoffRow[];
   regattas: RegattaMeta[];
 };
 
@@ -180,6 +202,7 @@ export async function computeRankingAction(
     });
 
     let rankings: HelmRanking[];
+    let belowCutoff: BelowCutoffEntry[];
     if (type === "IDJM") {
       // Issue #53: Alle Altersklassen (inkl. OPEN/U22) sind für IDJM-Quali zulässig.
       const result = calculateIdjmQuali({
@@ -190,6 +213,7 @@ export async function computeRankingAction(
         scoringUnit,
       });
       rankings = result.rankings;
+      belowCutoff = result.belowCutoff;
     } else {
       const result = calculateDsvRanking({
         seasonYear,
@@ -200,10 +224,13 @@ export async function computeRankingAction(
         scoringUnit,
       });
       rankings = result.rankings;
+      belowCutoff = result.belowCutoff;
     }
 
-    // Fetch sailor names for the primary scoring unit
-    const sailorIds = rankings.map((r) => r.sailorId);
+    // Fetch sailor names for the primary scoring unit (rankings + below-cutoff)
+    const sailorIds = Array.from(
+      new Set([...rankings.map((r) => r.sailorId), ...belowCutoff.map((b) => b.sailorId)])
+    );
     const sailors = await db.sailor.findMany({
       where: { id: { in: sailorIds } },
       select: { id: true, firstName: true, lastName: true, club: true, birthYear: true },
@@ -285,6 +312,19 @@ export async function computeRankingAction(
       };
     });
 
+    const belowCutoffRows: BelowCutoffRow[] = belowCutoff.map((b) => {
+      const sailor = sailorMap[b.sailorId];
+      return {
+        sailorId: b.sailorId,
+        firstName: sailor?.firstName ?? "?",
+        lastName: sailor?.lastName ?? "?",
+        club: sailor?.club ?? null,
+        valuesCount: b.valuesCount,
+        partners: partnersFor(b.sailorId),
+        birthYearMissing: sailor?.birthYear == null,
+      };
+    });
+
     const regattaMetas: RegattaMeta[] = regattas.map((reg) => {
       const override = reg.totalStarters != null;
       return {
@@ -298,7 +338,7 @@ export async function computeRankingAction(
       };
     });
 
-    return { ok: true, data: { rows, regattas: regattaMetas } };
+    return { ok: true, data: { rows, belowCutoff: belowCutoffRows, regattas: regattaMetas } };
   } catch (e) {
     return { ok: false, error: String(e) };
   }

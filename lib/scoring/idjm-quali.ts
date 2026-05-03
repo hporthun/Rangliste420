@@ -44,7 +44,11 @@ export function calculateIdjmQuali(input: IdjmQualiInput): DsvRankingResult {
   const result = calculateDsvRanking(dsvInput);
 
   // Apply IDJM R ≥ 25 threshold.
+  // belowCutoff (= < 9 Wertungen) wird unverändert durchgereicht; der zusätzliche
+  // R<25-Filter blendet nur in der Hauptliste aus, ohne diese Helms in
+  // belowCutoff zu verschieben.
   return {
     rankings: result.rankings.filter((r) => r.R >= IDJM_MIN_R),
+    belowCutoff: result.belowCutoff,
   };
 }

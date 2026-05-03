@@ -106,8 +106,23 @@ export type HelmRanking = {
   allValues: RankingValue[];
 };
 
+/**
+ * Sailor mit Wertungen, aber unterhalb der 9-Wertungs-Schwelle der DSV-Rangliste.
+ * Wird auf den Ranglisten-Detailseiten als "Noch nicht in der Wertung" angezeigt,
+ * damit Trainer/Segler sehen, wie weit sie noch sind.
+ */
+export type BelowCutoffEntry = {
+  /** helmId (HELM-Modus) oder crewId (CREW-Modus) */
+  sailorId: string;
+  /** Anzahl bisher gesammelter Wertungen (nach m-Multiplikation) */
+  valuesCount: number;
+  /** Alle Werte sortiert desc — analog zu HelmRanking.allValues */
+  allValues: RankingValue[];
+};
+
 export type DsvRankingResult = {
   rankings: HelmRanking[];
+  belowCutoff: BelowCutoffEntry[];
 };
 
 // ── Core functions ────────────────────────────────────────────────────────────
@@ -206,11 +221,16 @@ export function calculateDsvRanking(input: DsvRankingInput): DsvRankingResult {
   }
 
   const rankings: HelmRanking[] = [];
+  const belowCutoff: BelowCutoffEntry[] = [];
 
   for (const [sailorId, values] of sailorValues) {
-    if (values.length < 9) continue;
-
     const sorted = [...values].sort((a, b) => b.value - a.value);
+
+    if (values.length < 9) {
+      belowCutoff.push({ sailorId, valuesCount: values.length, allValues: sorted });
+      continue;
+    }
+
     const top9 = sorted.slice(0, 9);
     const R = top9.reduce((sum, v) => sum + v.value, 0) / 9;
 
@@ -232,5 +252,8 @@ export function calculateDsvRanking(input: DsvRankingInput): DsvRankingResult {
     r.rank = i + 1;
   });
 
-  return { rankings };
+  // Below-Cutoff: meiste Wertungen zuerst, dann sailorId für deterministische Reihenfolge.
+  belowCutoff.sort((a, b) => b.valuesCount - a.valuesCount || a.sailorId.localeCompare(b.sailorId));
+
+  return { rankings, belowCutoff };
 }

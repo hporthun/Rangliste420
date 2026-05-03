@@ -469,4 +469,49 @@ describe("calculateDsvRanking", () => {
       expect(rankings.find((r) => r.sailorId === helmId)).toBeUndefined();
     });
   });
+
+  describe("belowCutoff", () => {
+    it("Helm mit < 9 Wertungen taucht in belowCutoff statt rankings auf", () => {
+      const helmId = uid();
+      // 2 Regatten mit je 1 WF (m=1) → 2 Wertungen, also unter 9
+      const regattas = buildRegattas(helmId, 2, 10, 1.0);
+      const { rankings, belowCutoff } = calculateDsvRanking(mkInput(regattas));
+      expect(rankings.find((r) => r.sailorId === helmId)).toBeUndefined();
+      const entry = belowCutoff.find((b) => b.sailorId === helmId);
+      expect(entry).toBeDefined();
+      expect(entry!.valuesCount).toBe(2);
+      expect(entry!.allValues).toHaveLength(2);
+    });
+
+    it("Helm mit genau 9 Wertungen → in rankings, nicht in belowCutoff", () => {
+      const helmId = uid();
+      const regattas = buildRegattas(helmId, 9, 10, 1.0);
+      const { rankings, belowCutoff } = calculateDsvRanking(mkInput(regattas));
+      expect(rankings.find((r) => r.sailorId === helmId)).toBeDefined();
+      expect(belowCutoff.find((b) => b.sailorId === helmId)).toBeUndefined();
+    });
+
+    it("belowCutoff sortiert nach valuesCount desc", () => {
+      const a = uid(); // 3 Wertungen
+      const b = uid(); // 5 Wertungen
+      const regattasA = buildRegattas(a, 3, 10, 1.0);
+      const regattasB = buildRegattas(b, 5, 10, 1.0);
+      const { belowCutoff } = calculateDsvRanking(mkInput([...regattasA, ...regattasB]));
+      const ids = belowCutoff.filter((x) => x.sailorId === a || x.sailorId === b).map((x) => x.sailorId);
+      expect(ids).toEqual([b, a]);
+    });
+
+    it("Multiplikator-Wertungen zaehlen in valuesCount (4 Regatten × m=4 → 16, in rankings)", () => {
+      const helmId = uid();
+      // 4-WF-Regatta → m=4. 4 Regatten → 16 Werte; muss in rankings landen.
+      const regattas = Array.from({ length: 4 }, () => {
+        const results: ResultData[] = [mkResult(helmId, 1)];
+        for (let i = 1; i < 10; i++) results.push(mkResult(uid(), i + 1));
+        return mkRegatta(4, false, results, 1.0);
+      });
+      const { rankings, belowCutoff } = calculateDsvRanking(mkInput(regattas));
+      expect(rankings.find((r) => r.sailorId === helmId)).toBeDefined();
+      expect(belowCutoff.find((b) => b.sailorId === helmId)).toBeUndefined();
+    });
+  });
 });

@@ -77,6 +77,27 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.17",
+    date: "2026-05-03",
+    title: "Rangliste: Liste der Teams unter dem 9-Wertungs-Cutoff",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Auf jeder DSV-Ranglistenseite (Jahres, Aktuelle, IDJM-Quali) gibt es
+            jetzt unter der Haupttabelle eine Sektion{" "}
+            <strong>„Noch nicht in der Wertung"</strong>. Sie listet alle
+            Steuerleute (bzw. Vorschoter im CREW-Modus), die bereits Wertungen
+            gesammelt, aber noch keine 9 erreicht haben — mit Anzahl{" "}
+            <code>X / 9</code>, Verein und Crew. Damit ist auf einen Blick zu
+            sehen, wer noch eine Regatta bis zum Cutoff braucht.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.16",
     date: "2026-05-02",
     title: "Regattenliste-Import: URL bestehender Regatten wird nachgepflegt",

@@ -189,6 +189,7 @@ export default async function RanglistePage({ params, searchParams }: Props) {
   }
 
   const rows = result.data.rows;
+  const belowCutoff = result.data.belowCutoff;
 
   return (
     <div className="space-y-5">
@@ -310,6 +311,52 @@ export default async function RanglistePage({ params, searchParams }: Props) {
         <p className="text-xs text-muted-foreground">
           {rows.length} Segler · R = arithmetisches Mittel der 9 besten R_A-Werte
         </p>
+      )}
+
+      {/* Teams unter dem 9-Wertungs-Cutoff: stehen mit Wertungen da, kommen aber
+          nach DSV-RO Anlage 1 §4 erst ab 9 Wertungen in die Wertung. */}
+      {belowCutoff.length > 0 && (
+        <div className="space-y-2">
+          <h2 className="font-semibold text-base text-muted-foreground">
+            Noch nicht in der Wertung
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            Diese {scoringUnit === "CREW" ? "Vorschoter" : "Steuerleute"} haben in
+            diesem Zeitraum bereits gewertet, aber noch keine 9 Wertungen
+            (Mindestanforderung der DSV-Rangliste).
+          </p>
+          <div className="rounded-lg border overflow-x-auto shadow-sm">
+            <table className="w-full text-sm min-w-[320px]">
+              <thead>
+                <tr className="table-head-maritime text-xs text-muted-foreground uppercase">
+                  <th className="px-4 py-2.5 text-left">Name</th>
+                  <th className="px-4 py-2.5 text-left hidden sm:table-cell">Verein</th>
+                  <th className="px-4 py-2.5 text-right">Wertungen</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60 bg-card">
+                {belowCutoff.map((row) => (
+                  <tr key={row.sailorId} className="hover:bg-muted/40 transition-colors">
+                    <td className="px-4 py-3 font-medium">
+                      {row.firstName} {row.lastName}
+                      {row.birthYearMissing && <MissingBirthYearBadge />}
+                      <CrewLabel
+                        crews={row.partners}
+                        prefix={scoringUnit === "CREW" ? "Steuermann" : "Crew"}
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground text-xs hidden sm:table-cell">
+                      {row.club ?? "—"}
+                    </td>
+                    <td className="px-4 py-3 text-right text-muted-foreground text-xs tabular-nums">
+                      {row.valuesCount} / 9
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
     </div>
   );
