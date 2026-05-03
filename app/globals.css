@@ -153,6 +153,7 @@
   /* Hide all UI chrome */
   .maritime-header,
   .print\:hidden,
+  [data-print-hide],
   aside,
   nav,
   footer {

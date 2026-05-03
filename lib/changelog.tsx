@@ -77,6 +77,29 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.22",
+    date: "2026-05-03",
+    title: "Rangliste: Excel-Export und Drucken/PDF für angemeldete Benutzer",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Auf der Ranglisten-Detailseite gibt es zwei neue Aktions-Buttons —
+            sichtbar nur für <strong>angemeldete Benutzer</strong>.{" "}
+            <strong>Excel-Export</strong> lädt eine <code>.xlsx</code> mit
+            Hauptliste, „Noch nicht in der Wertung" und (bei JWM/JEM)
+            Per-Regatta-Slots herunter; URL-Filter (Altersklasse, Gender)
+            werden übernommen. <strong>Drucken / PDF</strong> öffnet den
+            Browser-Druckdialog — das Print-CSS blendet Header-Banner,
+            Filter, Suchfeld und Action-Buttons aus, sodass nur die Tabelle
+            aufs Papier kommt.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.21",
     date: "2026-05-03",
     title: "Rangliste: „ohne Jahrgang“-Hinweis auch für Vorschoter",

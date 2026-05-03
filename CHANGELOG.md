@@ -8,6 +8,23 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.22] — 2026-05-03
+
+**Rangliste: Excel-Export und Drucken/PDF fuer angemeldete Benutzer.**
+
+### Neu
+
+- Auf der Ranglisten-Detailseite gibt es zwei neue Aktions-Buttons —
+  sichtbar nur fuer **angemeldete Benutzer**:
+  - **Excel-Export** lädt eine .xlsx mit Hauptliste, „Noch nicht in der
+    Wertung" und (bei JWM/JEM) Per-Regatta-Slots herunter. Filter aus
+    der URL (Altersklasse, Gender) werden uebernommen.
+  - **Drucken / PDF** ruft den Browser-Druckdialog auf. Das Print-CSS
+    blendet Header-Banner, Filter, Suchfeld und die Action-Buttons aus,
+    damit nur Tabelle + Kennzahlen aufs Papier kommen.
+
+---
+
 ## [2026.05.21] — 2026-05-03
 
 **Rangliste: "ohne Jahrgang"-Hinweis auch fuer Vorschoter.**

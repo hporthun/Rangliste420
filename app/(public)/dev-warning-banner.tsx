@@ -12,7 +12,7 @@ export function DevWarningBanner() {
   return (
     <div
       role="alert"
-      className="border-b border-amber-300 bg-amber-50 text-amber-900"
+      className="border-b border-amber-300 bg-amber-50 text-amber-900 print:hidden"
     >
       <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2 flex items-start gap-2 text-xs sm:text-sm">
         <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-700" />

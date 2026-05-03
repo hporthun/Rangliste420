@@ -8,6 +8,7 @@ import { MissingBirthYearBadge } from "@/components/rankings/missing-birth-year-
 import { BirthYearLabel } from "@/components/rankings/birth-year-label";
 import { RankingFilterBar } from "@/components/rankings/ranking-filter-bar";
 import { RankingsSearch } from "@/components/rankings/rankings-search";
+import { RankingsActions } from "@/components/rankings/rankings-actions";
 import Link from "next/link";
 
 /**
@@ -74,6 +75,14 @@ export default async function RanglistePage({ params, searchParams }: Props) {
     ? (genderParam as string)
     : "";
 
+  // Excel-Download-URL spiegelt den aktuellen Filter wider
+  const exportSearch = new URLSearchParams();
+  if (filterAge) exportSearch.set("age", filterAge);
+  if (filterGender) exportSearch.set("gender", filterGender);
+  const exportSuffix = exportSearch.toString();
+  const exportHref =
+    `/api/rangliste/${id}/export.xlsx` + (exportSuffix ? `?${exportSuffix}` : "");
+
   // ── JWM/JEM Quali branch ───────────────────────────────────────────────────
   if (ranking.type === "JWM_QUALI" || ranking.type === "JEM_QUALI") {
     const effectiveAge = (filterAge || ranking.ageCategory) as JwmJemParams["ageCategory"];
@@ -128,21 +137,22 @@ export default async function RanglistePage({ params, searchParams }: Props) {
             <span>Saison {ranking.seasonStart.getFullYear()}</span>
             <span>Stichtag {ranking.seasonEnd.toLocaleDateString("de-DE")}</span>
           </div>
-          <div className="mt-3">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <Link
               href={`/rangliste/${id}/regatten`}
               className="inline-flex items-center gap-1.5 text-xs text-muted-foreground border rounded px-2.5 py-1 hover:bg-muted/60 transition-colors"
             >
               Verwendete Regatten →
             </Link>
+            {isSignedIn && <RankingsActions exportHref={exportHref} />}
           </div>
         </div>
 
-        {/* Filter bar */}
-        <RankingFilterBar currentAge={filterAge} currentGender={filterGender} />
-
-        {/* Live search filter (Helm + Crew + Verein) */}
-        <RankingsSearch />
+        {/* Filter bar + search — beim Drucken ausblenden */}
+        <div data-print-hide className="space-y-5">
+          <RankingFilterBar currentAge={filterAge} currentGender={filterGender} />
+          <RankingsSearch />
+        </div>
 
         {/* Main ranking */}
         {ranked.length > 0 && (
@@ -251,21 +261,22 @@ export default async function RanglistePage({ params, searchParams }: Props) {
           <span>Saison {ranking.seasonStart.getFullYear()}</span>
           <span>Stichtag {ranking.seasonEnd.toLocaleDateString("de-DE")}</span>
         </div>
-        <div className="mt-3">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
           <Link
             href={`/rangliste/${id}/regatten`}
             className="inline-flex items-center gap-1.5 text-xs text-muted-foreground border rounded px-2.5 py-1 hover:bg-muted/60 transition-colors"
           >
             Verwendete Regatten →
           </Link>
+          {isSignedIn && <RankingsActions exportHref={exportHref} />}
         </div>
       </div>
 
-      {/* Filter bar */}
-      <RankingFilterBar currentAge={filterAge} currentGender={filterGender} />
-
-      {/* Live search filter (Helm + Crew + Verein) */}
-      <RankingsSearch />
+      {/* Filter bar + search — beim Drucken ausblenden */}
+      <div data-print-hide className="space-y-5">
+        <RankingFilterBar currentAge={filterAge} currentGender={filterGender} />
+        <RankingsSearch />
+      </div>
 
       {/* Table + Footer als eine Sucheinheit, damit beide gemeinsam aus-/eingeblendet werden */}
       <div data-search-section className="space-y-3">
