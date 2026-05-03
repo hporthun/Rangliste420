@@ -77,6 +77,25 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.18",
+    date: "2026-05-03",
+    title: "Rangliste: Jahrgang neben dem Seglernamen für angemeldete Benutzer",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Auf den Ranglistenseiten (DSV-Haupttabelle, <em>„Noch nicht in der
+            Wertung"</em>, JWM/JEM-Quali) erscheint hinter jedem Seglernamen
+            jetzt der <strong>Jahrgang</strong> als kleiner Subtext (z. B.{" "}
+            <code>Jg. 2009</code>) — allerdings nur für angemeldete Benutzer.
+            Anonyme Aufrufe bekommen das Geburtsjahr nicht in den Stream.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.17",
     date: "2026-05-03",
     title: "Rangliste: Liste der Teams unter dem 9-Wertungs-Cutoff",

@@ -1,11 +1,31 @@
 import { db } from "@/lib/db/client";
 import { notFound } from "next/navigation";
+import { auth } from "@/lib/auth";
 import { computeRankingAction, type ComputeParams, type RankingType } from "@/lib/actions/rankings";
 import { computeJwmJemAction, type JwmJemParams, type JwmJemDisplayRow } from "@/lib/actions/jwm-jem";
 import { CrewLabel } from "@/components/rankings/crew-label";
 import { MissingBirthYearBadge } from "@/components/rankings/missing-birth-year-badge";
+import { BirthYearLabel } from "@/components/rankings/birth-year-label";
 import { RankingFilterBar } from "@/components/rankings/ranking-filter-bar";
 import Link from "next/link";
+
+/**
+ * Lädt Geburtsjahre für die übergebenen Sailor-IDs — nur dann, wenn ein
+ * Benutzer angemeldet ist. Gibt eine leere Map zurück für Anonyme, sodass
+ * das Geburtsjahr nicht im RSC-Payload landet (Datenschutz, Issue: User-
+ * Wunsch 2026-05-03).
+ */
+async function loadBirthYearsForSignedIn(
+  isSignedIn: boolean,
+  sailorIds: string[]
+): Promise<Map<string, number | null>> {
+  if (!isSignedIn || sailorIds.length === 0) return new Map();
+  const sailors = await db.sailor.findMany({
+    where: { id: { in: Array.from(new Set(sailorIds)) } },
+    select: { id: true, birthYear: true },
+  });
+  return new Map(sailors.map((s) => [s.id, s.birthYear]));
+}
 
 const VALID_AGE_PARAMS = ["U22", "U19", "U17", "U16", "U15"] as const;
 const VALID_GENDER_PARAMS = ["OPEN", "MEN", "MIX", "GIRLS"] as const;
@@ -18,6 +38,12 @@ type Props = {
 export default async function RanglistePage({ params, searchParams }: Props) {
   const { id } = await params;
   const { age: ageParam, gender: genderParam } = await searchParams;
+
+  // Geburtsjahre nur für angemeldete Benutzer einblenden — separater
+  // Lookup auf der Page-Ebene, damit anonyme Aufrufe das Feld gar nicht
+  // erst geladen / serialisiert bekommen.
+  const session = await auth();
+  const isSignedIn = !!session?.user;
 
   const ranking = await db.ranking.findUnique({
     where: { id, isPublic: true },
@@ -76,6 +102,9 @@ export default async function RanglistePage({ params, searchParams }: Props) {
     const { ranked, preliminary, excludedSwap, regattas } = result.data;
     const typeLabel = ranking.type === "JWM_QUALI" ? "JWM-Qualifikation" : "JEM-Qualifikation";
 
+    const jwmJemSailorIds = [...ranked, ...preliminary, ...excludedSwap].map((r) => r.helmId);
+    const birthYearMap = await loadBirthYearsForSignedIn(isSignedIn, jwmJemSailorIds);
+
     return (
       <div className="space-y-5">
         {/* Breadcrumb */}
@@ -112,7 +141,7 @@ export default async function RanglistePage({ params, searchParams }: Props) {
         {ranked.length > 0 && (
           <div className="space-y-2">
             <h2 className="font-semibold text-base">Qualifikationsrangliste</h2>
-            <JwmJemTable rows={ranked} regattas={regattas} />
+            <JwmJemTable rows={ranked} regattas={regattas} birthYearMap={birthYearMap} />
           </div>
         )}
 
@@ -125,7 +154,7 @@ export default async function RanglistePage({ params, searchParams }: Props) {
             <p className="text-xs text-muted-foreground">
               Diese Segler haben bisher nur an einer Regatta teilgenommen.
             </p>
-            <JwmJemTable rows={preliminary} regattas={regattas} />
+            <JwmJemTable rows={preliminary} regattas={regattas} birthYearMap={birthYearMap} />
           </div>
         )}
 
@@ -139,7 +168,7 @@ export default async function RanglistePage({ params, searchParams }: Props) {
               Diese Teams sind nur durch einen ungenehmigten Schottenwechsel
               entstanden und haben kein gewertetes Ergebnis.
             </p>
-            <JwmJemExcludedSwapTable rows={excludedSwap} regattas={regattas} />
+            <JwmJemExcludedSwapTable rows={excludedSwap} regattas={regattas} birthYearMap={birthYearMap} />
           </div>
         )}
 
@@ -190,6 +219,9 @@ export default async function RanglistePage({ params, searchParams }: Props) {
 
   const rows = result.data.rows;
   const belowCutoff = result.data.belowCutoff;
+
+  const dsvSailorIds = [...rows, ...belowCutoff].map((r) => r.sailorId);
+  const birthYearMap = await loadBirthYearsForSignedIn(isSignedIn, dsvSailorIds);
 
   return (
     <div className="space-y-5">
@@ -274,6 +306,7 @@ export default async function RanglistePage({ params, searchParams }: Props) {
                     {row.firstName} {row.lastName}
                   </Link>
                   {row.birthYearMissing && <MissingBirthYearBadge />}
+                  <BirthYearLabel birthYear={birthYearMap.get(row.sailorId) ?? null} />
                   <CrewLabel crews={row.partners} prefix={scoringUnit === "CREW" ? "Steuermann" : "Crew"} />
                 </td>
                 <td className="px-4 py-3 text-muted-foreground text-xs hidden sm:table-cell">
@@ -340,6 +373,7 @@ export default async function RanglistePage({ params, searchParams }: Props) {
                     <td className="px-4 py-3 font-medium">
                       {row.firstName} {row.lastName}
                       {row.birthYearMissing && <MissingBirthYearBadge />}
+                      <BirthYearLabel birthYear={birthYearMap.get(row.sailorId) ?? null} />
                       <CrewLabel
                         crews={row.partners}
                         prefix={scoringUnit === "CREW" ? "Steuermann" : "Crew"}
@@ -374,9 +408,11 @@ type RegattaMeta = {
 function JwmJemTable({
   rows,
   regattas,
+  birthYearMap,
 }: {
   rows: JwmJemDisplayRow[];
   regattas: RegattaMeta[];
+  birthYearMap: Map<string, number | null>;
 }) {
   return (
     <div className="rounded-lg border overflow-x-auto shadow-sm">
@@ -452,6 +488,7 @@ function JwmJemTable({
                   </span>
                 )}
                 {row.birthYearMissing && <MissingBirthYearBadge />}
+                <BirthYearLabel birthYear={birthYearMap.get(row.helmId) ?? null} />
                 <CrewLabel crews={row.crews} />
               </td>
               <td className="px-4 py-3 text-muted-foreground text-xs hidden sm:table-cell">
@@ -501,9 +538,11 @@ function JwmJemTable({
 function JwmJemExcludedSwapTable({
   rows,
   regattas,
+  birthYearMap,
 }: {
   rows: JwmJemDisplayRow[];
   regattas: RegattaMeta[];
+  birthYearMap: Map<string, number | null>;
 }) {
   const regattaById = new Map(regattas.map((r) => [r.id, r]));
   return (
@@ -532,6 +571,7 @@ function JwmJemExcludedSwapTable({
                     neues Team
                   </span>
                   {row.birthYearMissing && <MissingBirthYearBadge />}
+                  <BirthYearLabel birthYear={birthYearMap.get(row.helmId) ?? null} />
                   <CrewLabel crews={row.crews} />
                 </td>
                 <td className="px-4 py-3 text-muted-foreground text-xs hidden sm:table-cell">

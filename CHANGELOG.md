@@ -8,6 +8,20 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.18] — 2026-05-03
+
+**Rangliste: Jahrgang neben dem Seglernamen fuer angemeldete Benutzer.**
+
+### Neu
+
+- Auf den Ranglistenseiten (DSV-Haupttabelle, „Noch nicht in der Wertung",
+  JWM/JEM-Quali) erscheint hinter jedem Seglernamen jetzt der Jahrgang
+  als kleiner Subtext (z. B. **Jg. 2009**) — allerdings nur fuer
+  angemeldete Benutzer. Anonyme Aufrufe bekommen das Geburtsjahr nicht in
+  den RSC-Payload.
+
+---
+
 ## [2026.05.17] — 2026-05-03
 
 **Rangliste: Liste der Teams unter dem 9-Wertungs-Cutoff.**
