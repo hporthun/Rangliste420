@@ -236,6 +236,7 @@ model User {
   lastReadChangelogVersion String?
 
   webAuthnCredentials WebAuthnCredential[]
+  pushSubscriptions   PushSubscription[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -326,11 +327,18 @@ model PushSubscription {
   auth      String
   // Free-form, used to help debugging which device is subscribed
   userAgent String?
+  // null = anonyme Public-Subscription. Gesetzt = Browser einer eingeloggten
+  // Sitzung (Admin/Editor). Wird verwendet, um Update-Notifications nur an
+  // angemeldete Subscriptions zu schicken (Public-Visitors brauchen keine
+  // App-Versions-Pushes; sie abonnieren primaer Ranking-Updates).
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([createdAt])
+  @@index([userId])
 }
 
 // ── PushBroadcastState ────────────────────────────────────────────────────────

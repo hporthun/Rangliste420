@@ -85,6 +85,13 @@ export function PushAccountSection() {
         if (reg) {
           const sub = await reg.pushManager.getSubscription();
           if (sub) {
+            // Bestehende Subscription nachtraeglich an die aktuelle Session
+            // binden (userId in der DB setzen). Best-effort, Fehler ignorieren.
+            void fetch("/api/push/subscribe", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(sub.toJSON()),
+            }).catch(() => {});
             if (!cancelled)
               setState({ kind: "subscribed", endpoint: sub.endpoint });
             return;

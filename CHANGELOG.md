@@ -8,6 +8,34 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.39] — 2026-05-04
+
+**App-Update-Push nur an angemeldete Benutzer.**
+
+### Geaendert
+
+- **App-Update-Notifications** ("App aktualisiert — Neue Version X
+  ist aktiv") gehen ab sofort nur noch an Push-Subscriptions, die mit
+  einer angemeldeten Sitzung verknuepft sind (Admins/Editors).
+  Public-Visitors mit Push-Abo bekommen weiterhin "Neue Rangliste
+  verfuegbar"-Pushes — das ist Inhalt, der sie interessiert — aber
+  kein Versions-Spam mehr, der sie auf den Admin-Changelog wirft.
+- Beim Aufruf der Einstellungs-Seite mit aktiver Sitzung wird die
+  vorhandene Browser-Subscription nachtraeglich an den Benutzer
+  gebunden, sodass auch Bestands-Subscriptions ohne erneutes
+  Aktivieren wieder Update-Pushes erhalten.
+
+### Migration
+
+- Schema: PushSubscription.userId (nullable, FK auf User mit
+  onDelete: SetNull). Bestehende anonyme Subscriptions bleiben
+  erhalten und werden korrekt als "nur Inhalt"-Empfaenger behandelt.
+  Dev: 20260504200029_add_user_to_push_subscription.
+  Prod: 10_push_subscription_user (ALTER TABLE ADD COLUMN IF NOT
+  EXISTS, kein Datenverlust).
+
+---
+
 ## [2026.05.38] — 2026-05-04
 
 **Push-Banner aus dem Public-Bereich entfernt.**

@@ -698,6 +698,9 @@ async function _performRestore(
                   p256dh: p.p256dh as string,
                   auth: p.auth as string,
                   userAgent: p.userAgent != null ? String(p.userAgent) : null,
+                  // Aeltere Backups (vor 2026.5.39) haben kein userId-Feld —
+                  // dann bleibt die Subscription anonym (kein App-Update-Push).
+                  userId: p.userId != null ? String(p.userId) : null,
                   createdAt: toDate(p.createdAt),
                   updatedAt: toDate(p.updatedAt),
                 },

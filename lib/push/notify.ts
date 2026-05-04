@@ -52,14 +52,27 @@ export type BroadcastResult = {
   failed: number;
 };
 
+/**
+ * Optionale Filter, mit denen ein Caller den Empfaengerkreis einschraenken kann.
+ * - "all" (Default): an alle Subscriptions, anonym + eingeloggt.
+ * - "loggedIn": nur Subscriptions mit gesetztem userId — verwendet vom
+ *   App-Update-Broadcast (Public-Visitors brauchen kein "App aktualisiert").
+ */
+export type BroadcastAudience = "all" | "loggedIn";
+
 export async function broadcastPush(
   payload: PushPayload,
+  audience: BroadcastAudience = "all",
 ): Promise<BroadcastResult> {
   if (!configure()) {
     return { delivered: 0, pruned: 0, failed: 0 };
   }
 
   const subs = await db.pushSubscription.findMany({
+    where:
+      audience === "loggedIn"
+        ? { userId: { not: null } }
+        : undefined,
     select: { id: true, endpoint: true, p256dh: true, auth: true },
   });
   if (subs.length === 0) return { delivered: 0, pruned: 0, failed: 0 };

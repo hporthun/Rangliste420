@@ -38,11 +38,16 @@ export async function broadcastNewVersionIfNeeded(): Promise<void> {
     data: { lastPushedVersion: APP_VERSION },
   });
 
-  await broadcastPush({
-    title: "App aktualisiert",
-    body: `Neue Version ${APP_VERSION} ist aktiv.`,
-    url: "/admin/changelog",
-    count: 1,
-    tag: "app-version",
-  });
+  await broadcastPush(
+    {
+      title: "App aktualisiert",
+      body: `Neue Version ${APP_VERSION} ist aktiv.`,
+      url: "/admin/changelog",
+      count: 1,
+      tag: "app-version",
+    },
+    // Nur an angemeldete Subscriptions (Admins/Editors) — Public-Visitors
+    // brauchen kein "App aktualisiert" mit Sprung in den Admin-Changelog.
+    "loggedIn",
+  );
 }

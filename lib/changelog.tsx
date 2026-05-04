@@ -77,6 +77,49 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.39",
+    date: "2026-05-04",
+    title: "App-Update-Push nur an angemeldete Benutzer",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            <strong>App-Update-Notifications</strong> (Title{" "}
+            <em>„App aktualisiert — Neue Version X ist aktiv"</em>) gehen
+            ab sofort <em>nur noch</em> an Push-Subscriptions, die mit einer
+            angemeldeten Sitzung verknüpft sind (Admins/Editors).
+            Public-Visitors mit Push-Abo bekommen weiterhin{" "}
+            <em>„Neue Rangliste verfügbar"</em>-Pushes — das ist Inhalt, der
+            sie interessiert — aber kein Versions-Spam mehr, der sie auf den
+            Admin-Changelog wirft.
+          </>,
+          <>
+            Beim Aufruf der Einstellungs-Seite mit aktiver Sitzung wird die
+            vorhandene Browser-Subscription nachträglich an den Benutzer
+            gebunden, sodass auch <em>Bestands-Subscriptions</em> ohne
+            erneutes Aktivieren wieder Update-Pushes erhalten.
+          </>,
+        ],
+      },
+      {
+        kind: "neu",
+        items: [
+          <>
+            Schema-Erweiterung: <code>PushSubscription.userId</code>{" "}
+            (nullable, FK auf <code>User</code> mit{" "}
+            <code>onDelete: SetNull</code>). Bestehende anonyme Subscriptions
+            bleiben erhalten und werden korrekt als „nur Inhalt"-Empfänger
+            behandelt. Dev-Migration{" "}
+            <code>20260504200029_add_user_to_push_subscription</code>,
+            Prod-Migration <code>10_push_subscription_user</code> (ALTER TABLE
+            ADD COLUMN IF NOT EXISTS, kein Datenverlust).
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.38",
     date: "2026-05-04",
     title: "Push-Banner aus dem Public-Bereich entfernt",
