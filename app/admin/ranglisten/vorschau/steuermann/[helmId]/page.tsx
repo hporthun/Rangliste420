@@ -67,16 +67,25 @@ export default async function SteuermanDetailPage({ params, searchParams }: Prop
 
       <div>
         <h1 className="text-xl font-semibold">
-          Platz {d.rank}: {d.firstName} {d.lastName}
+          {d.inWertung ? `Platz ${d.rank}: ` : ""}
+          {d.firstName} {d.lastName}
         </h1>
         <p className="text-sm text-muted-foreground">
-          {d.club ?? "kein Verein"} · R = {d.R.toFixed(2)} · {type} · {fromLabel} – {toLabel}
+          {d.club ?? "kein Verein"} ·{" "}
+          {d.inWertung
+            ? `R = ${d.R!.toFixed(2)}`
+            : `Noch nicht in der Wertung — ${d.valuesCount} / 9`}{" "}
+          · {type} · {fromLabel} – {toLabel}
         </p>
       </div>
 
-      {/* Top 9 */}
+      {/* Top 9 (in-Wertung) bzw. bisherige Wertungen (noch unter 9) */}
       <div className="space-y-2">
-        <h2 className="text-base font-medium">Einfließende 9 Wertungen</h2>
+        <h2 className="text-base font-medium">
+          {d.inWertung
+            ? `Einfließende ${d.top9.length} Wertungen`
+            : `Bisherige Wertungen (${d.top9.length})`}
+        </h2>
         <div className="rounded-md border overflow-x-auto">
           <table className="w-full text-sm min-w-[600px]">
             <thead className="bg-gray-50 text-xs text-muted-foreground uppercase">
@@ -119,15 +128,17 @@ export default async function SteuermanDetailPage({ params, searchParams }: Prop
                 </tr>
               ))}
             </tbody>
-            <tfoot className="bg-gray-50">
-              <tr>
-                <td colSpan={5} className="px-3 py-2 text-sm font-medium text-right">
-                  R =
-                </td>
-                <td className="px-3 py-2 text-right font-mono font-bold">{d.R.toFixed(2)}</td>
-                <td colSpan={2} />
-              </tr>
-            </tfoot>
+            {d.inWertung && (
+              <tfoot className="bg-gray-50">
+                <tr>
+                  <td colSpan={5} className="px-3 py-2 text-sm font-medium text-right">
+                    R =
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono font-bold">{d.R!.toFixed(2)}</td>
+                  <td colSpan={2} />
+                </tr>
+              </tfoot>
+            )}
           </table>
         </div>
       </div>
