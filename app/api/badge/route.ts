@@ -20,7 +20,11 @@ export const dynamic = "force-dynamic";
 export type BadgeState = {
   latestChangelogVersion: string | null;
   latestRegattaCreatedAt: string | null;
+  latestRegattaId: string | null;
+  latestRegattaName: string | null;
   latestRankingPublishedAt: string | null;
+  latestRankingId: string | null;
+  latestRankingName: string | null;
 };
 
 export async function GET() {
@@ -28,20 +32,24 @@ export async function GET() {
     db.regatta.findFirst({
       where: { isRanglistenRegatta: true },
       orderBy: { createdAt: "desc" },
-      select: { createdAt: true },
+      select: { id: true, name: true, createdAt: true },
     }),
     db.ranking.findFirst({
       where: { isPublic: true, publishedAt: { not: null } },
       orderBy: { publishedAt: "desc" },
-      select: { publishedAt: true },
+      select: { id: true, name: true, publishedAt: true },
     }),
   ]);
 
   const body: BadgeState = {
     latestChangelogVersion: ENTRIES[0]?.version ?? null,
     latestRegattaCreatedAt: latestRegatta?.createdAt.toISOString() ?? null,
+    latestRegattaId: latestRegatta?.id ?? null,
+    latestRegattaName: latestRegatta?.name ?? null,
     latestRankingPublishedAt:
       latestRanking?.publishedAt?.toISOString() ?? null,
+    latestRankingId: latestRanking?.id ?? null,
+    latestRankingName: latestRanking?.name ?? null,
   };
 
   return NextResponse.json(body);

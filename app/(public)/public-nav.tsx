@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Sun, Moon, Monitor } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { useEffect, useState } from "react";
+import { UpdateIndicator } from "@/components/update-indicator";
 
 const navItems = [
   { href: "/rangliste", label: "Ranglisten" },
@@ -77,6 +78,7 @@ export function PublicNav() {
 
       <div className="w-px h-4 bg-white/20 mx-1" />
 
+      <UpdateIndicator />
       <ThemeCycleButton />
     </nav>
   );

@@ -8,6 +8,30 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.36] — 2026-05-04
+
+**Update-Indicator im Header + Push-Klick navigiert zum Ziel.**
+
+### Neu
+
+- **Update-Indicator im Header:** Sobald es eine neue oeffentliche
+  Rangliste, eine neue Regatta oder ein App-Update gibt, erscheint
+  im Kopf der App eine kleine Glocke mit rotem Dot. Klick fuehrt
+  direkt zum Ziel — bei einem einzigen unread-Eintrag oeffnet sich
+  sofort die Detailseite, bei mehreren ein kleines Popover mit Liste.
+  Der "gesehen"-Status ist mit dem bestehenden App-Badge synchron.
+
+### Geaendert
+
+- **Push-Klick wiederverwendet bestehende Tabs:** wer eine
+  Push-Notification anklickt, waehrend die App schon offen ist,
+  landet jetzt im vorhandenen Tab auf der Ziel-Seite (neue Rangliste
+  oder Changelog) — vorher oeffnete sich ein zweiter Tab.
+  Service-Worker-Handler probiert jetzt zuerst Focus + Navigate,
+  faellt nur als letzter Schritt auf openWindow zurueck.
+
+---
+
 ## [2026.05.35] — 2026-05-04
 
 **Push-Aktivierung auf der Konto-Seite + Liste aktualisiert sich nach Duplizieren/Loeschen.**

@@ -77,6 +77,40 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.36",
+    date: "2026-05-04",
+    title: "Update-Indicator im Header + Push-Klick navigiert zum Ziel",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            <strong>Update-Indicator im Header:</strong> Sobald es eine neue
+            öffentliche Rangliste, eine neue Regatta oder ein App-Update gibt,
+            erscheint im Kopf der App eine kleine{" "}
+            <em>Glocke mit rotem Dot</em>. Klick führt direkt zum Ziel — bei
+            einem einzigen unread-Eintrag öffnet sich sofort die Detailseite,
+            bei mehreren ein kleines Popover mit Liste. Der „gesehen"-Status
+            ist mit dem bestehenden App-Badge synchron.
+          </>,
+        ],
+      },
+      {
+        kind: "geändert",
+        items: [
+          <>
+            <strong>Push-Klick wiederverwendet bestehende Tabs:</strong> wer
+            eine Push-Notification anklickt, während die App schon offen ist,
+            landet jetzt im <em>vorhandenen</em> Tab auf der Ziel-Seite (neue
+            Rangliste oder Changelog) — vorher öffnete sich ein zweiter Tab.
+            Service-Worker-Handler probiert jetzt zuerst Focus + Navigate,
+            fällt nur als letzter Schritt auf <code>openWindow</code> zurück.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.35",
     date: "2026-05-04",
     title: "Push-Aktivierung auf der Konto-Seite + Liste aktualisiert sich nach Duplizieren/Löschen",

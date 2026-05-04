@@ -9,7 +9,11 @@ import { compareVersions } from "@/lib/changelog";
 export type BadgeState = {
   latestChangelogVersion: string | null;
   latestRegattaCreatedAt: string | null;
+  latestRegattaId: string | null;
+  latestRegattaName: string | null;
   latestRankingPublishedAt: string | null;
+  latestRankingId: string | null;
+  latestRankingName: string | null;
 };
 
 export type SeenState = {
@@ -61,6 +65,68 @@ export function countNew(state: BadgeState, seen: SeenState): number {
     n++;
   }
   return n;
+}
+
+/**
+ * Eintrag im Update-Indicator-Dropdown.
+ * `kind` markiert die Kategorie, `href` ist das Klick-Ziel (entweder
+ * Detailseite des konkreten Items oder Listing als Fallback).
+ */
+export type UnreadItem = {
+  kind: "ranking" | "regatta" | "changelog";
+  label: string;
+  href: string;
+};
+
+/**
+ * Bestimmt aus state vs. seen die ungelesenen Kategorien — als Liste mit
+ * Anzeige-Label und Sprungziel. Reihenfolge: Ranking, Regatta, Changelog
+ * (typisch wichtigster Inhalt zuerst). Wird vom UpdateIndicator-Banner
+ * verwendet, um pro Kategorie einen Klick-Link anzuzeigen.
+ */
+export function unreadItems(
+  state: BadgeState,
+  seen: SeenState,
+): UnreadItem[] {
+  const items: UnreadItem[] = [];
+  if (
+    state.latestRankingPublishedAt &&
+    (!seen.rankingPublishedAt ||
+      state.latestRankingPublishedAt > seen.rankingPublishedAt)
+  ) {
+    items.push({
+      kind: "ranking",
+      label: state.latestRankingName ?? "Neue Rangliste",
+      href: state.latestRankingId
+        ? `/rangliste/${state.latestRankingId}`
+        : "/rangliste",
+    });
+  }
+  if (
+    state.latestRegattaCreatedAt &&
+    (!seen.regattaCreatedAt ||
+      state.latestRegattaCreatedAt > seen.regattaCreatedAt)
+  ) {
+    items.push({
+      kind: "regatta",
+      label: state.latestRegattaName ?? "Neue Regatta",
+      href: state.latestRegattaId
+        ? `/regatta/${state.latestRegattaId}`
+        : "/regatten",
+    });
+  }
+  if (
+    state.latestChangelogVersion &&
+    (!seen.changelogVersion ||
+      compareVersions(state.latestChangelogVersion, seen.changelogVersion) > 0)
+  ) {
+    items.push({
+      kind: "changelog",
+      label: `App-Update ${state.latestChangelogVersion}`,
+      href: "/admin/changelog",
+    });
+  }
+  return items;
 }
 
 /**

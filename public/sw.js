@@ -260,19 +260,38 @@ self.addEventListener("notificationclick", (event) => {
   const targetUrl =
     (event.notification.data && event.notification.data.url) || "/";
 
-  event.waitUntil(
-    self.clients
-      .matchAll({ type: "window", includeUncontrolled: true })
-      .then((wins) => {
-        for (const w of wins) {
-          // Bestehendes Fenster wiederverwenden, wenn es schon auf der Seite ist
-          if (w.url.endsWith(targetUrl) && "focus" in w) {
-            return w.focus();
-          }
-        }
-        if (self.clients.openWindow) {
-          return self.clients.openWindow(targetUrl);
-        }
-      }),
-  );
+  event.waitUntil((async () => {
+    const wins = await self.clients.matchAll({
+      type: "window",
+      includeUncontrolled: true,
+    });
+
+    // 1) Wenn ein Fenster bereits exakt auf der Ziel-URL steht → nur fokussieren.
+    for (const w of wins) {
+      if (w.url.endsWith(targetUrl) && "focus" in w) {
+        return w.focus();
+      }
+    }
+
+    // 2) Sonst irgendein offenes App-Fenster wiederverwenden, fokussieren UND
+    //    zur Ziel-URL navigieren — so springt der bestehende Tab zur neuen
+    //    Rangliste / zu den Update-Notes, statt einen weiteren Tab zu oeffnen.
+    const sameSite = wins.find((w) => w.url.startsWith(self.registration.scope));
+    if (sameSite) {
+      try {
+        await sameSite.focus();
+      } catch { /* manche Browser lehnen focus ohne User-Geste ab */ }
+      if (typeof sameSite.navigate === "function") {
+        try {
+          await sameSite.navigate(targetUrl);
+          return;
+        } catch { /* navigate kann fehlschlagen, dann faellt es auf openWindow */ }
+      }
+    }
+
+    // 3) Fallback: neues Fenster oeffnen.
+    if (self.clients.openWindow) {
+      return self.clients.openWindow(targetUrl);
+    }
+  })());
 });
