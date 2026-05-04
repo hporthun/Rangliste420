@@ -12,18 +12,23 @@
  * AppBadge (Issue #35) gepflegt — beide bleiben damit konsistent.
  */
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Bell } from "lucide-react";
 import {
   type BadgeState,
   type SeenState,
   EMPTY_SEEN,
+  isFirstTimeUser,
+  seenPatchFor,
   unreadItems,
   type UnreadItem,
 } from "@/lib/badge";
 
 const STORAGE_KEY = "appBadge:seen:v1";
-const POLL_INTERVAL_MS = 5 * 60 * 1000;
+// 60 s — Kompromiss zwischen Frische und Server-Last. Bei eingehendem Push
+// triggert der Service-Worker-postMessage zusaetzlich einen Sofort-Refresh.
+const POLL_INTERVAL_MS = 60 * 1000;
 
 function readSeen(): SeenState {
   if (typeof window === "undefined") return EMPTY_SEEN;
@@ -41,6 +46,15 @@ function readSeen(): SeenState {
   }
 }
 
+function writeSeen(seen: SeenState) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(seen));
+  } catch {
+    /* Quota / private mode — ignorieren */
+  }
+}
+
 const KIND_LABELS: Record<UnreadItem["kind"], string> = {
   ranking: "Neue Rangliste",
   regatta: "Neue Regatta",
@@ -48,19 +62,47 @@ const KIND_LABELS: Record<UnreadItem["kind"], string> = {
 };
 
 export function UpdateIndicator() {
+  const pathname = usePathname();
   const [items, setItems] = useState<UnreadItem[]>([]);
   const [open, setOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
 
-  // Polling: state laden + items berechnen
+  // Polling + Listeners. Pathname ist Dependency, damit der Effekt nach
+  // Navigation neu durchlaeuft und seenPatchFor angewendet wird — z. B. wenn
+  // der Klick auf die Glocke zu /rangliste/[id] navigiert, dort die
+  // ranking-Kategorie als gesehen markiert und die Glocke wieder verschwindet.
   useEffect(() => {
     let cancelled = false;
     let lastState: BadgeState | null = null;
 
     function recompute() {
       if (!lastState) return;
-      setItems(unreadItems(lastState, readSeen()));
+      let seen = readSeen();
+
+      // Erstbesucher: aktuellen Stand als "gesehen" festhalten — sonst
+      // bekommt ein neuer User auf Anhieb eine rote Glocke fuer Inhalte,
+      // die ihm noch nie angekuendigt wurden.
+      if (isFirstTimeUser(seen)) {
+        seen = {
+          changelogVersion: lastState.latestChangelogVersion,
+          regattaCreatedAt: lastState.latestRegattaCreatedAt,
+          rankingPublishedAt: lastState.latestRankingPublishedAt,
+        };
+        writeSeen(seen);
+      }
+
+      // Aktuelle URL → Kategorie als gesehen markieren (wenn der User auf
+      // /rangliste oder /rangliste/[id] landet, gilt die ranking-Kategorie
+      // als gesehen). Identische Logik wie im AppBadge — beide schreiben
+      // in denselben localStorage-Key, deshalb keine Konflikte.
+      const patch = seenPatchFor(pathname ?? "/", lastState);
+      if (patch) {
+        seen = { ...seen, ...patch };
+        writeSeen(seen);
+      }
+
+      setItems(unreadItems(lastState, seen));
     }
 
     async function refresh() {
@@ -83,15 +125,17 @@ export function UpdateIndicator() {
     };
     document.addEventListener("visibilitychange", onVisibility);
 
+    // Storage-Event feuert nur fuer ANDERE Tabs — eigener Tab wird durch
+    // das pathname-trigger oben + manuelle Aufrufe abgedeckt. Dieser
+    // Listener sorgt dafuer, dass das Markieren als gesehen in einem
+    // anderen Tab hier auch durchschlaegt.
     const onStorage = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY) recompute();
     };
     window.addEventListener("storage", onStorage);
 
     // Service-Worker meldet eingehende Push-Notifications via postMessage —
-    // dann sofort frisch ziehen, statt auf den naechsten 5-Minuten-Poll zu
-    // warten. So springt die Glocke direkt nach Eingang einer Push-Nachricht
-    // an, auch wenn der User die Notification gar nicht anklickt.
+    // dann sofort frisch ziehen, statt auf den naechsten Poll zu warten.
     const onSwMessage = (e: MessageEvent) => {
       if (e.data && e.data.type === "PUSH_RECEIVED") {
         void refresh();
@@ -112,7 +156,7 @@ export function UpdateIndicator() {
       }
       window.clearInterval(interval);
     };
-  }, []);
+  }, [pathname]);
 
   // Outside-Click schliesst Popover
   useEffect(() => {

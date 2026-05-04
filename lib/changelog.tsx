@@ -77,6 +77,35 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.41",
+    date: "2026-05-04",
+    title: "Glocke: schneller frischer Stand + verschwindet beim Klick",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            Die Glocke (Update-Indicator) reagierte bisher nicht auf
+            Navigation: nach Klick auf einen Eintrag öffnete sich zwar die
+            Detailseite, die Glocke blieb aber sichtbar — ihr <em>seen</em>-Status
+            wurde nur vom OS-AppBadge im selben Tab fortgeschrieben, der
+            Storage-Event davon erreicht den eigenen Tab aber nicht. Jetzt
+            schreibt die Glocke selbst den seen-Status mit (gleicher
+            localStorage-Key wie der OS-Badge), sodass sie nach Klick wirklich
+            verschwindet.
+          </>,
+          <>
+            Der Poll-Intervall ist von 5 Minuten auf 60 Sekunden verkürzt —
+            damit erscheint die Glocke nach dem Veröffentlichen einer
+            Rangliste auch ohne aktiven Push-Abo deutlich schneller. Mit
+            aktivem Push ist sie weiterhin sofort da (Service-Worker-
+            postMessage-Trigger bleibt unverändert).
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.40",
     date: "2026-05-04",
     title: "Glocke springt sofort an, sobald eine Push-Notification eingeht",

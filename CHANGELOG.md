@@ -8,6 +8,28 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.41] — 2026-05-04
+
+**Glocke: schneller frischer Stand + verschwindet beim Klick.**
+
+### Korrigiert
+
+- Die Glocke (Update-Indicator) reagierte bisher nicht auf
+  Navigation: nach Klick auf einen Eintrag oeffnete sich zwar die
+  Detailseite, die Glocke blieb aber sichtbar — ihr seen-Status
+  wurde nur vom OS-AppBadge im selben Tab fortgeschrieben, der
+  Storage-Event davon erreicht den eigenen Tab aber nicht. Jetzt
+  schreibt die Glocke selbst den seen-Status mit (gleicher
+  localStorage-Key wie der OS-Badge), sodass sie nach Klick
+  wirklich verschwindet.
+- Der Poll-Intervall ist von 5 Minuten auf 60 Sekunden verkuerzt —
+  damit erscheint die Glocke nach dem Veroeffentlichen einer
+  Rangliste auch ohne aktiven Push-Abo deutlich schneller. Mit
+  aktivem Push ist sie weiterhin sofort da (Service-Worker-
+  postMessage-Trigger bleibt unveraendert).
+
+---
+
 ## [2026.05.40] — 2026-05-04
 
 **Glocke springt sofort an, sobald eine Push-Notification eingeht.**
