@@ -8,6 +8,22 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.38] — 2026-05-04
+
+**Push-Banner aus dem Public-Bereich entfernt.**
+
+### Entfernt
+
+- Der dezente "Bei neuen Ranglisten benachrichtigt werden?
+  [Aktivieren] [x]"-Banner unter dem Header ist weg — Push-Aktivierung
+  laeuft jetzt vollstaendig ueber **Einstellungen → Darstellung und
+  Benachrichtigungen** (das Zahnrad-Icon im Header). Das nimmt Druck
+  aus der ersten Bildschirmzeile und macht den Aktivierungs-Schritt
+  zu einer bewussten Aktion auf der Einstellungs-Seite, statt eines
+  wegklickbaren Pop-ups.
+
+---
+
 ## [2026.05.37] — 2026-05-04
 
 **Oeffentliche Einstellungs-Seite mit Darstellung und Push.**

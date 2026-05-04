@@ -77,6 +77,28 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.38",
+    date: "2026-05-04",
+    title: "Push-Banner aus dem Public-Bereich entfernt",
+    changes: [
+      {
+        kind: "entfernt",
+        items: [
+          <>
+            Der dezente <em>„Bei neuen Ranglisten benachrichtigt werden?
+            [Aktivieren] [×]"</em>-Banner unter dem Header ist weg —
+            Push-Aktivierung läuft jetzt vollständig über{" "}
+            <strong>Einstellungen → Darstellung und Benachrichtigungen</strong>{" "}
+            (das Zahnrad-Icon im Header). Das nimmt Druck aus der ersten
+            Bildschirmzeile und macht den Aktivierungs-Schritt zu einer
+            bewussten Aktion auf der Einstellungs-Seite, statt eines
+            wegklickbaren Pop-ups.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.37",
     date: "2026-05-04",
     title: "Öffentliche Einstellungs-Seite mit Darstellung und Push",
