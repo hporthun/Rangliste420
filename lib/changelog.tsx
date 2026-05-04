@@ -79,7 +79,7 @@ export const ENTRIES: ChangelogEntry[] = [
   {
     version: "2026.05.31",
     date: "2026-05-04",
-    title: "Detail-Seite auch für Segler im „Noch nicht in der Wertung"-Block",
+    title: "Detail-Seite auch für Segler im 'Noch nicht in der Wertung'-Block",
     changes: [
       {
         kind: "neu",
