@@ -69,6 +69,16 @@ export async function parsePdf(
 ): Promise<{ format: PdfFormat; result: ParsedRegatta }> {
   // Extract all pages once (pdfjs may detach the ArrayBuffer after this call)
   const pages = await extractPageItems(buffer);
+
+  // Image-only PDF (e.g. scanned or rasterized): pdfjs returns 0 text items
+  // on every page. Detect this up front so we can give a useful hint instead
+  // of the generic "no entries found" later.
+  if (pages.length > 0 && pages.every((p) => p.length === 0)) {
+    throw new Error(
+      'Diese PDF enthält keine Textebene - sie besteht nur aus eingebetteten Bildern (z. B. nach Scan oder Rasterisierung beim Druck). Bitte vorher per OCR (Adobe Acrobat: "Scan & OCR" / "Texterkennung", oder Online-Tools wie ilovepdf.com/ocr-pdf) in eine durchsuchbare PDF umwandeln und dann erneut importieren.'
+    );
+  }
+
   const page1Texts = (pages[0] ?? []).map((it: RawItem) => it.str);
   const format = detectPdfFormat(page1Texts);
 

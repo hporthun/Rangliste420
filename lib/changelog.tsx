@@ -77,6 +77,28 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.23",
+    date: "2026-05-04",
+    title: "Import: klare Fehlermeldung bei Bild-PDFs ohne Textebene",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            Beim PDF-Import wird jetzt erkannt, wenn die Datei keine Textebene
+            hat (reine Bild-PDF, z. B. nach Scan oder Rasterisierung beim
+            Druck). Statt der bisherigen generischen Meldung „Keine
+            Ergebnisse im PDF gefunden" erscheint ein eindeutiger Hinweis:
+            die PDF muss vorher per OCR (Adobe Acrobat:{" "}
+            <em>„Scan & OCR" / „Texterkennung"</em>, oder Online-Tools wie{" "}
+            <code>ilovepdf.com/ocr-pdf</code>) in eine durchsuchbare PDF
+            umgewandelt und dann erneut importiert werden.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.22",
     date: "2026-05-03",
     title: "Rangliste: Excel-Export und Drucken/PDF für angemeldete Benutzer",

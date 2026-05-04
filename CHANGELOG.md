@@ -8,6 +8,22 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.23] — 2026-05-04
+
+**Import: klare Fehlermeldung bei Bild-PDFs ohne Textebene.**
+
+### Geaendert
+
+- Beim PDF-Import wird jetzt erkannt, wenn die Datei keine Textebene hat
+  (reine Bild-PDF, z. B. nach Scan oder Rasterisierung beim Druck).
+  Statt der bisherigen generischen Meldung "Keine Ergebnisse im PDF
+  gefunden" erscheint ein eindeutiger Hinweis: die PDF muss vorher per
+  OCR (Adobe Acrobat: "Scan & OCR" / "Texterkennung", oder Online-Tools
+  wie ilovepdf.com/ocr-pdf) in eine durchsuchbare PDF umgewandelt und
+  dann erneut importiert werden.
+
+---
+
 ## [2026.05.22] — 2026-05-03
 
 **Rangliste: Excel-Export und Drucken/PDF fuer angemeldete Benutzer.**
