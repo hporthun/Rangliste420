@@ -381,8 +381,18 @@ export type HelmDetailData = {
   firstName: string;
   lastName: string;
   club: string | null;
-  rank: number;
-  R: number;
+  /**
+   * true = Segler hat ≥ 9 Wertungen und steht in der Hauptrangliste.
+   *        rank, R, top9 und nonContributing sind dann gesetzt.
+   * false = Segler ist im "Noch nicht in der Wertung"-Block (< 9 Wertungen).
+   *         rank und R sind null, top9 enthaelt alle bisherigen R_A-Werte
+   *         (sortiert desc), nonContributing ist leer.
+   */
+  inWertung: boolean;
+  rank: number | null;
+  R: number | null;
+  /** Anzahl bisheriger Wertungen (nur fuer inWertung=false relevant). */
+  valuesCount: number;
   top9: ValueDetail[];
   nonContributing: ValueDetail[];
   /** Partner history: crew entries in HELM mode, helm entries in CREW mode */
@@ -453,16 +463,31 @@ export async function computeHelmDetailAction(
       dbRegattas.map((r) => [r.id, { name: r.name, date: r.startDate.toISOString() }])
     );
 
+    // Wir holen jetzt rankings UND belowCutoff: ist der Segler nicht in der
+    // Hauptrangliste, kann er trotzdem im "Noch nicht in der Wertung"-Block
+    // (< 9 Wertungen) auftauchen — die Detail-Seite zeigt dann seine bisher
+    // gesammelten R_A-Werte ohne Rang/R.
     let rankings: HelmRanking[];
+    let belowCutoff: BelowCutoffEntry[];
     if (type === "IDJM") {
       // Issue #53: Alle Altersklassen (inkl. OPEN/U22) sind für IDJM-Quali zulässig.
-      rankings = calculateIdjmQuali({ ageCategory, genderCategory, regattas, referenceDate: refDate, scoringUnit }).rankings;
+      const r = calculateIdjmQuali({ ageCategory, genderCategory, regattas, referenceDate: refDate, scoringUnit });
+      rankings = r.rankings;
+      belowCutoff = r.belowCutoff;
     } else {
-      rankings = calculateDsvRanking({ seasonYear, ageCategory, genderCategory, referenceDate: refDate, regattas, scoringUnit }).rankings;
+      const r = calculateDsvRanking({ seasonYear, ageCategory, genderCategory, referenceDate: refDate, regattas, scoringUnit });
+      rankings = r.rankings;
+      belowCutoff = r.belowCutoff;
     }
 
     const entry = rankings.find((r) => r.sailorId === helmId);
-    if (!entry) return { ok: false, error: "Kein Ranglisten-Eintrag für diesen Segler." };
+    const cutoffEntry = entry
+      ? null
+      : belowCutoff.find((c) => c.sailorId === helmId);
+
+    if (!entry && !cutoffEntry) {
+      return { ok: false, error: "Kein Ranglisten-Eintrag fuer diesen Segler." };
+    }
 
     const sailor = await db.sailor.findUnique({
       where: { id: helmId },
@@ -531,6 +556,28 @@ export async function computeHelmDetailAction(
       }));
     }
 
+    if (entry) {
+      return {
+        ok: true,
+        data: {
+          sailorId: helmId,
+          firstName: sailor?.firstName ?? "?",
+          lastName: sailor?.lastName ?? "?",
+          club: sailor?.club ?? null,
+          inWertung: true,
+          rank: entry.rank,
+          R: entry.R,
+          valuesCount: entry.allValues.length,
+          top9: entry.top9.map(toDetail),
+          nonContributing: entry.allValues.slice(9).map(toDetail),
+          partnerHistory,
+        },
+      };
+    }
+
+    // Below-Cutoff: < 9 Wertungen — kein Rang, kein R. allValues sind bereits
+    // desc-sortiert (siehe calculateDsvRanking).
+    const cutoff = cutoffEntry!;
     return {
       ok: true,
       data: {
@@ -538,10 +585,12 @@ export async function computeHelmDetailAction(
         firstName: sailor?.firstName ?? "?",
         lastName: sailor?.lastName ?? "?",
         club: sailor?.club ?? null,
-        rank: entry.rank,
-        R: entry.R,
-        top9: entry.top9.map(toDetail),
-        nonContributing: entry.allValues.slice(9).map(toDetail),
+        inWertung: false,
+        rank: null,
+        R: null,
+        valuesCount: cutoff.valuesCount,
+        top9: cutoff.allValues.map(toDetail),
+        nonContributing: [],
         partnerHistory,
       },
     };

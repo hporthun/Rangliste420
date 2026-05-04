@@ -70,11 +70,17 @@ export default async function PublicSteuermanDetailPage({ params }: Props) {
         ← {ranking.name}
       </Link>
 
-      {/* Header */}
+      {/* Header — fuer in-Wertung: "Platz X", sonst: "Noch nicht in der Wertung"-Badge */}
       <div className="space-y-1">
-        <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
-          Platz {d.rank}
-        </p>
+        {d.inWertung ? (
+          <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+            Platz {d.rank}
+          </p>
+        ) : (
+          <p className="inline-flex items-center text-[10px] uppercase tracking-wide font-semibold px-2 py-0.5 rounded border border-amber-300 bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200">
+            Noch nicht in der Wertung
+          </p>
+        )}
         <h1 className="text-2xl font-semibold">
           {d.firstName} {d.lastName}
         </h1>
@@ -83,28 +89,55 @@ export default async function PublicSteuermanDetailPage({ params }: Props) {
         </p>
       </div>
 
-      {/* R summary card */}
+      {/* Summary card — entweder R (in-Wertung) oder Wertungsfortschritt */}
       <div className="sea-card px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        <div>
-          <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
-            Ranglistenpunktzahl R
-          </p>
-          <p className="text-3xl font-bold font-mono mt-1">{d.R.toFixed(2)}</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Mittel der 9 besten R_A-Werte
-          </p>
-        </div>
-        <div className="text-left sm:text-right text-xs text-muted-foreground">
-          <p>{d.top9.length} einfließende Wertungen</p>
-          {d.nonContributing.length > 0 && (
-            <p>{d.nonContributing.length} weitere (nicht einfließend)</p>
-          )}
-        </div>
+        {d.inWertung ? (
+          <>
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+                Ranglistenpunktzahl R
+              </p>
+              <p className="text-3xl font-bold font-mono mt-1">{d.R!.toFixed(2)}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Mittel der 9 besten R_A-Werte
+              </p>
+            </div>
+            <div className="text-left sm:text-right text-xs text-muted-foreground">
+              <p>{d.top9.length} einfließende Wertungen</p>
+              {d.nonContributing.length > 0 && (
+                <p>{d.nonContributing.length} weitere (nicht einfließend)</p>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+                Wertungs-Fortschritt
+              </p>
+              <p className="text-3xl font-bold font-mono mt-1">
+                {d.valuesCount} <span className="text-muted-foreground/70 text-xl">/ 9</span>
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Mindestanzahl der DSV-Rangliste — noch{" "}
+                <strong>{Math.max(0, 9 - d.valuesCount)}</strong>{" "}
+                {9 - d.valuesCount === 1 ? "Wertung" : "Wertungen"} fehlen.
+              </p>
+            </div>
+            <div className="text-left sm:text-right text-xs text-muted-foreground">
+              <p>R wird erst ab 9 Wertungen berechnet.</p>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Top 9 table */}
+      {/* Werte-Tabelle: in-Wertung -> "Einfliessende 9 Wertungen", sonst -> "Bisherige Wertungen" */}
       <div className="space-y-2">
-        <h2 className="text-base font-semibold">Einfließende {d.top9.length} Wertungen</h2>
+        <h2 className="text-base font-semibold">
+          {d.inWertung
+            ? `Einfließende ${d.top9.length} Wertungen`
+            : `Bisherige Wertungen (${d.top9.length})`}
+        </h2>
         <div className="rounded-lg border overflow-x-auto shadow-sm">
           <table className="w-full text-sm min-w-[600px]">
             <thead>
@@ -152,21 +185,24 @@ export default async function PublicSteuermanDetailPage({ params }: Props) {
                 </tr>
               ))}
             </tbody>
-            <tfoot>
-              <tr className="table-head-maritime">
-                <td colSpan={5} className="px-3 py-2.5 text-sm font-semibold text-right">
-                  R =
-                </td>
-                <td className="px-3 py-2.5 text-right font-mono font-bold text-base">
-                  {d.R.toFixed(2)}
-                </td>
-                <td colSpan={2} />
-              </tr>
-            </tfoot>
+            {d.inWertung && (
+              <tfoot>
+                <tr className="table-head-maritime">
+                  <td colSpan={5} className="px-3 py-2.5 text-sm font-semibold text-right">
+                    R =
+                  </td>
+                  <td className="px-3 py-2.5 text-right font-mono font-bold text-base">
+                    {d.R!.toFixed(2)}
+                  </td>
+                  <td colSpan={2} />
+                </tr>
+              </tfoot>
+            )}
           </table>
         </div>
         <p className="text-xs text-muted-foreground">
-          R_A = f × 100 × ((s + 1 − x) / s) · R = Mittel der 9 besten R_A-Werte
+          R_A = f × 100 × ((s + 1 − x) / s)
+          {d.inWertung && " · R = Mittel der 9 besten R_A-Werte"}
         </p>
       </div>
 

@@ -419,6 +419,7 @@ export default async function RanglistePage({ params, searchParams }: Props) {
                   <th className="px-4 py-2.5 text-left">Name</th>
                   <th className="px-4 py-2.5 text-left hidden sm:table-cell">Verein</th>
                   <th className="px-4 py-2.5 text-right">Wertungen</th>
+                  <th className="px-4 py-2.5 text-right" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60 bg-card">
@@ -426,10 +427,15 @@ export default async function RanglistePage({ params, searchParams }: Props) {
                   <tr
                     key={row.sailorId}
                     data-search={[row.firstName, row.lastName, row.club ?? "", ...row.partners.flatMap((p) => [p.firstName, p.lastName])].join(" ")}
-                    className="hover:bg-muted/40 transition-colors"
+                    className="hover:bg-muted/40 transition-colors group"
                   >
                     <td className="px-4 py-3 font-medium">
-                      {row.firstName} {row.lastName}
+                      <Link
+                        href={`/rangliste/${id}/steuermann/${row.sailorId}`}
+                        className="hover:text-accent transition-colors"
+                      >
+                        {row.firstName} {row.lastName}
+                      </Link>
                       {row.birthYearMissing && <MissingBirthYearBadge />}
                       <BirthYearLabel birthYear={birthYearMap.get(row.sailorId) ?? null} />
                       <CrewLabel
@@ -443,6 +449,15 @@ export default async function RanglistePage({ params, searchParams }: Props) {
                     </td>
                     <td className="px-4 py-3 text-right text-muted-foreground text-xs tabular-nums">
                       {row.valuesCount} / 9
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <Link
+                        href={`/rangliste/${id}/steuermann/${row.sailorId}`}
+                        className="text-xs text-accent/50 group-hover:text-accent transition-colors"
+                        aria-label={`Details ${row.firstName} ${row.lastName}`}
+                      >
+                        →
+                      </Link>
                     </td>
                   </tr>
                 ))}

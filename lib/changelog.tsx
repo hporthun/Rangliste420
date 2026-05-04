@@ -77,6 +77,29 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.31",
+    date: "2026-05-04",
+    title: "Detail-Seite auch für Segler im „Noch nicht in der Wertung"-Block",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Segler, die in der Hauptrangliste noch fehlen, weil sie unter der
+            DSV-Mindestschwelle von 9 Wertungen liegen, sind jetzt auf der
+            Ranglisten-Detailseite ebenfalls verlinkt. Klick auf den Namen
+            (oder den <em>→</em>-Pfeil rechts in der Zeile) öffnet die gleiche
+            Detail-Ansicht wie für gewertete Segler — mit allen bisherigen
+            R_A-Werten, Crew-Historie und Regatta-Details. Statt Rang/R steht
+            oben ein orangefarbenes Badge <em>„Noch nicht in der Wertung"</em>{" "}
+            und im Kopf der Wertungs-Fortschritt (z. B. <code>5 / 9</code>),
+            damit Trainer und Segler sehen, wie viele Wertungen noch fehlen.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.30",
     date: "2026-05-04",
     title: "Manuell vergebene Platzierungen werden nicht mehr überschrieben",

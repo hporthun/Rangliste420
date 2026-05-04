@@ -8,6 +8,24 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.31] — 2026-05-04
+
+**Detail-Seite auch fuer Segler im "Noch nicht in der Wertung"-Block.**
+
+### Neu
+
+- Segler, die in der Hauptrangliste noch fehlen, weil sie unter der
+  DSV-Mindestschwelle von 9 Wertungen liegen, sind jetzt auf der
+  Ranglisten-Detailseite ebenfalls verlinkt. Klick auf den Namen
+  (oder den Pfeil rechts in der Zeile) oeffnet die gleiche
+  Detail-Ansicht wie fuer gewertete Segler — mit allen bisherigen
+  R_A-Werten, Crew-Historie und Regatta-Details. Statt Rang/R steht
+  oben ein orangefarbenes Badge "Noch nicht in der Wertung" und im
+  Kopf der Wertungs-Fortschritt (z. B. 5 / 9), damit Trainer und
+  Segler sehen, wie viele Wertungen noch fehlen.
+
+---
+
 ## [2026.05.30] — 2026-05-04
 
 **Manuell vergebene Platzierungen werden nicht mehr ueberschrieben.**
