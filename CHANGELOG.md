@@ -8,6 +8,23 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.28] — 2026-05-04
+
+**Dark-Mode: Top-3-Platzierungen wieder lesbar.**
+
+### Korrigiert
+
+- Im Dark-Mode war der hellgelbe / hellgraue / hellorange Reihen-
+  Hintergrund der Top-3-Platzierungen mit weisser Schrift kaum
+  lesbar — die Tailwind-Klassen bg-yellow-50/60, bg-slate-50/60 und
+  bg-orange-50/40 haben keinen automatischen Dark-Mode-Equivalent.
+  Jetzt mit passenden dark:-Varianten (yellow-900/30 / slate-700/40
+  / orange-900/25), sodass die Zeilen auf dunklem Card-Hintergrund
+  kontrastreich bleiben. Betrifft sowohl die DSV/IDJM-Tabelle als
+  auch die JWM/JEM-Quali-Tabelle.
+
+---
+
 ## [2026.05.27] — 2026-05-04
 
 **Handbuch aktualisiert · Entwurfs-Vorschau fuer Admin/Editor.**

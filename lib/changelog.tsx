@@ -77,6 +77,30 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.28",
+    date: "2026-05-04",
+    title: "Dark-Mode: Top-3-Platzierungen wieder lesbar",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            Im Dark-Mode war der hellgelbe / hellgraue / hellorange Reihen-
+            Hintergrund der Top-3-Platzierungen mit weißer Schrift kaum
+            lesbar — die Tailwind-Klassen <code>bg-yellow-50/60</code>{" "}
+            <code>bg-slate-50/60</code> und <code>bg-orange-50/40</code>
+            haben keinen automatischen Dark-Mode-Equivalent.
+            Jetzt mit passenden <code>dark:</code>-Varianten
+            (<code>yellow-900/30</code> / <code>slate-700/40</code> /{" "}
+            <code>orange-900/25</code>), sodass die Zeilen auf dunklem Card-
+            Hintergrund kontrastreich bleiben. Betrifft sowohl die
+            DSV/IDJM-Tabelle als auch die JWM/JEM-Quali-Tabelle.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.27",
     date: "2026-05-04",
     title: "Handbuch aktualisiert · Entwurfs-Vorschau für Admin/Editor",

@@ -319,11 +319,11 @@ export default async function RanglistePage({ params, searchParams }: Props) {
                 data-search={[row.firstName, row.lastName, row.club ?? "", ...row.partners.flatMap((p) => [p.firstName, p.lastName])].join(" ")}
                 className={`hover:bg-muted/40 transition-colors group ${
                   idx === 0
-                    ? "bg-yellow-50/60"
+                    ? "bg-yellow-50/60 dark:bg-yellow-900/30"
                     : idx === 1
-                    ? "bg-slate-50/60"
+                    ? "bg-slate-50/60 dark:bg-slate-700/40"
                     : idx === 2
-                    ? "bg-orange-50/40"
+                    ? "bg-orange-50/40 dark:bg-orange-900/25"
                     : ""
                 }`}
               >
@@ -503,11 +503,11 @@ function JwmJemTable({
               data-search={[row.firstName, row.lastName, row.club ?? "", ...row.crews.flatMap((c) => [c.firstName, c.lastName])].join(" ")}
               className={`hover:bg-muted/40 transition-colors group ${
                 idx === 0 && row.rank !== null
-                  ? "bg-yellow-50/60"
+                  ? "bg-yellow-50/60 dark:bg-yellow-900/30"
                   : idx === 1 && row.rank !== null
-                  ? "bg-slate-50/60"
+                  ? "bg-slate-50/60 dark:bg-slate-700/40"
                   : idx === 2 && row.rank !== null
-                  ? "bg-orange-50/40"
+                  ? "bg-orange-50/40 dark:bg-orange-900/25"
                   : ""
               }`}
             >
