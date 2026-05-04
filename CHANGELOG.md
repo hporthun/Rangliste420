@@ -8,6 +8,27 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.37] — 2026-05-04
+
+**Oeffentliche Einstellungs-Seite mit Darstellung und Push.**
+
+### Neu
+
+- Neue Seite /einstellungen im oeffentlichen Bereich mit dem
+  Abschnitt **Darstellung und Benachrichtigungen**: Theme-Picker
+  (Hell / Dunkel / Auto) und ein dauerhafter Aktivieren / Abbestellen-
+  Button fuer Push-Benachrichtigungen. So laesst sich Push auch nach
+  Banner-Dismiss jederzeit wieder einschalten — und auf iPhone/iPad
+  ohne PWA bekommst du einen klaren Hinweis, was zu tun ist.
+
+### Geaendert
+
+- Im Public-Header wurde der dreistufige Theme-Cycle-Button durch
+  ein dezentes Zahnrad-Icon ersetzt — Klick oeffnet die
+  Einstellungs-Seite, dort gibt es das volle Hell/Dunkel/Auto-Panel.
+
+---
+
 ## [2026.05.36] — 2026-05-04
 
 **Update-Indicator im Header + Push-Klick navigiert zum Ziel.**

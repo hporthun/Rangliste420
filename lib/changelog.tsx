@@ -77,6 +77,39 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.37",
+    date: "2026-05-04",
+    title: "Öffentliche Einstellungs-Seite mit Darstellung und Push",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Neue Seite <code>/einstellungen</code> im öffentlichen Bereich
+            mit dem Abschnitt <strong>Darstellung und Benachrichtigungen</strong>:
+            Theme-Picker (Hell / Dunkel / Auto) und ein dauerhafter{" "}
+            <em>Aktivieren / Abbestellen</em>-Button für Push-Benachrichtigungen.
+            So lässt sich Push auch nach Banner-Dismiss jederzeit wieder
+            einschalten — und auf iPhone/iPad ohne PWA bekommst du einen klaren
+            Hinweis, was zu tun ist.
+          </>,
+        ],
+      },
+      {
+        kind: "geändert",
+        items: [
+          <>
+            Im Public-Header wurde der dreistufige Theme-Cycle-Button durch
+            ein dezentes <strong>Zahnrad-Icon</strong> ersetzt — Klick öffnet
+            die Einstellungs-Seite, dort gibt es das volle Hell/Dunkel/Auto-
+            Panel. Ein Klick weniger im Header, mehr Platz für den
+            Update-Indicator.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.36",
     date: "2026-05-04",
     title: "Update-Indicator im Header + Push-Klick navigiert zum Ziel",
