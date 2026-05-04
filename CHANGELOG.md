@@ -8,6 +8,24 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.34] — 2026-05-04
+
+**Logos auch offline verfuegbar.**
+
+### Korrigiert
+
+- Der Service-Worker-Cache hat das 420er-Logo bisher nicht erfasst,
+  weil Next.js es ueber die Bild-Optimierungs-Pipeline
+  (`/_next/image?url=…`) ausliefert und der SW-Filter nur Pfade mit
+  den Endungen `.png`/`.svg` usw. erkannt hat. Im Offline-Modus
+  wurde das Logo dadurch nicht angezeigt, obwohl die Seite selbst
+  aus dem Cache kam. Jetzt erfasst der SW auch saemtliche
+  `/_next/image`-Anfragen (Stale-While-Revalidate), sodass das Logo
+  nach dem ersten Online-Aufruf einer beliebigen oeffentlichen Seite
+  dauerhaft offline verfuegbar bleibt.
+
+---
+
 ## [2026.05.33] — 2026-05-04
 
 **Rangliste duplizieren.**

@@ -107,9 +107,14 @@ self.addEventListener("fetch", (event) => {
   }
 
   // Bilder/Icons → stale-while-revalidate (schnell + selbst-aktualisierend).
+  // /_next/image ist die Next.js-Image-Optimization-Pipeline; das Header-Logo
+  // und alle <Image>-Aufrufe laufen darueber und liefern z.B.
+  //   /_next/image?url=%2Flogo-420.png&w=256&q=75
+  // — der Pfad endet nicht auf .png, deshalb explizit als Praefix mit-listen.
   if (
     /\.(png|jpe?g|gif|webp|svg|ico)$/i.test(url.pathname) ||
-    url.pathname === "/manifest.webmanifest"
+    url.pathname === "/manifest.webmanifest" ||
+    url.pathname.startsWith("/_next/image")
   ) {
     event.respondWith(staleWhileRevalidate(req, IMG_CACHE));
     return;

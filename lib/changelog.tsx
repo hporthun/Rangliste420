@@ -77,6 +77,30 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.34",
+    date: "2026-05-04",
+    title: "Logos auch offline verfügbar",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            Der Service-Worker-Cache hat das 420er-Logo bisher nicht erfasst,
+            weil Next.js es über die Bild-Optimierungs-Pipeline (
+            <code>/_next/image?url=…</code>) ausliefert und der SW-Filter nur
+            Pfade mit den Endungen <code>.png</code>/<code>.svg</code>
+            usw. erkannt hat. Im Offline-Modus wurde das Logo dadurch nicht
+            angezeigt, obwohl die Seite selbst aus dem Cache kam. Jetzt
+            erfasst der SW auch sämtliche <code>/_next/image</code>-Anfragen
+            (Stale-While-Revalidate), sodass das Logo nach dem ersten Online-
+            Aufruf einer beliebigen öffentlichen Seite dauerhaft offline
+            verfügbar bleibt.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.33",
     date: "2026-05-04",
     title: "Rangliste duplizieren",
