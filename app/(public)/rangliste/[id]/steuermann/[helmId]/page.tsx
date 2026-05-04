@@ -1,5 +1,6 @@
 import { db } from "@/lib/db/client";
 import { notFound } from "next/navigation";
+import { auth } from "@/lib/auth";
 import { computeHelmDetailAction, type ComputeParams, type RankingType } from "@/lib/actions/rankings";
 import Link from "next/link";
 
@@ -8,8 +9,13 @@ type Props = { params: Promise<{ id: string; helmId: string }> };
 export default async function PublicSteuermanDetailPage({ params }: Props) {
   const { id, helmId } = await params;
 
+  const session = await auth();
+  const isSignedIn = !!session?.user;
+
+  // Drafts (isPublic=false) sind fuer angemeldete Benutzer einsehbar,
+  // anonyme Aufrufe sehen 404 — gleiche Regel wie auf der Detailseite.
   const ranking = await db.ranking.findUnique({
-    where: { id, isPublic: true },
+    where: { id },
     select: {
       id: true,
       name: true,
@@ -19,10 +25,12 @@ export default async function PublicSteuermanDetailPage({ params }: Props) {
       seasonStart: true,
       seasonEnd: true,
       scoringUnit: true,
+      isPublic: true,
     },
   });
 
   if (!ranking) notFound();
+  if (!ranking.isPublic && !isSignedIn) notFound();
 
   const computeParams: ComputeParams = {
     type: ranking.type as RankingType,

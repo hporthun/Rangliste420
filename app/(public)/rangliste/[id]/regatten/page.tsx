@@ -1,5 +1,6 @@
 import { db } from "@/lib/db/client";
 import { notFound } from "next/navigation";
+import { auth } from "@/lib/auth";
 import Link from "next/link";
 
 type Props = { params: Promise<{ id: string }> };
@@ -16,19 +17,26 @@ function dateRange(start: Date, end: Date) {
 export default async function RanglisteRegatttenPage({ params }: Props) {
   const { id } = await params;
 
+  const session = await auth();
+  const isSignedIn = !!session?.user;
+
+  // Drafts (isPublic=false) sind fuer angemeldete Benutzer einsehbar,
+  // anonyme Aufrufe sehen 404 — gleiche Regel wie auf der Detailseite.
   const ranking = await db.ranking.findUnique({
-    where: { id, isPublic: true },
+    where: { id },
     select: {
       id: true,
       name: true,
       type: true,
       seasonStart: true,
       seasonEnd: true,
+      isPublic: true,
       rankingRegattas: { select: { regattaId: true } },
     },
   });
 
   if (!ranking) notFound();
+  if (!ranking.isPublic && !isSignedIn) notFound();
 
   const isJwmJem =
     ranking.type === "JWM_QUALI" || ranking.type === "JEM_QUALI";

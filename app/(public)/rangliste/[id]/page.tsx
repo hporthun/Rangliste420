@@ -47,8 +47,12 @@ export default async function RanglistePage({ params, searchParams }: Props) {
   const session = await auth();
   const isSignedIn = !!session?.user;
 
+  // Drafts (isPublic=false) werden für angemeldete Benutzer (Admin/Editor)
+  // ebenfalls geladen, damit sie eine Vorschau direkt auf der oeffentlichen
+  // Detailseite sehen koennen — anonymen Aufrufen wird die Rangliste
+  // weiterhin als 404 versteckt.
   const ranking = await db.ranking.findUnique({
-    where: { id, isPublic: true },
+    where: { id },
     select: {
       id: true,
       name: true,
@@ -59,6 +63,7 @@ export default async function RanglistePage({ params, searchParams }: Props) {
       seasonEnd: true,
       scoringRule: true,
       scoringUnit: true,
+      isPublic: true,
       rankingRegattas: {
         select: { regattaId: true },
       },
@@ -66,6 +71,7 @@ export default async function RanglistePage({ params, searchParams }: Props) {
   });
 
   if (!ranking) notFound();
+  if (!ranking.isPublic && !isSignedIn) notFound();
 
   // Parse + validate filter URL params
   const filterAge = VALID_AGE_PARAMS.includes(ageParam as (typeof VALID_AGE_PARAMS)[number])
@@ -130,7 +136,14 @@ export default async function RanglistePage({ params, searchParams }: Props) {
 
         {/* Header */}
         <div className="rounded-xl border bg-gradient-to-br from-card to-muted/40 px-5 py-4 shadow-sm">
-          <h1 className="text-xl font-bold">{ranking.name}</h1>
+          <div className="flex items-start gap-3 flex-wrap">
+            <h1 className="text-xl font-bold">{ranking.name}</h1>
+            {!ranking.isPublic && (
+              <span className="text-[10px] uppercase tracking-wide font-semibold px-2 py-0.5 rounded border border-amber-300 bg-amber-50 text-amber-800">
+                Entwurf — nicht öffentlich
+              </span>
+            )}
+          </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-xs text-muted-foreground">
             <span>{typeLabel}</span>
             <span>{effectiveAge} / {effectiveGender}</span>
@@ -255,7 +268,14 @@ export default async function RanglistePage({ params, searchParams }: Props) {
 
       {/* Header */}
       <div className="rounded-xl border bg-gradient-to-br from-card to-muted/40 px-5 py-4 shadow-sm">
-        <h1 className="text-xl font-bold">{ranking.name}</h1>
+        <div className="flex items-start gap-3 flex-wrap">
+          <h1 className="text-xl font-bold">{ranking.name}</h1>
+          {!ranking.isPublic && (
+            <span className="text-[10px] uppercase tracking-wide font-semibold px-2 py-0.5 rounded border border-amber-300 bg-amber-50 text-amber-800">
+              Entwurf — nicht öffentlich
+            </span>
+          )}
+        </div>
         <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-xs text-muted-foreground">
           <span>{effectiveAge} / {effectiveGender}</span>
           <span>Saison {ranking.seasonStart.getFullYear()}</span>

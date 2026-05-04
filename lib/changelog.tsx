@@ -77,6 +77,43 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.27",
+    date: "2026-05-04",
+    title: "Handbuch aktualisiert · Entwurfs-Vorschau für Admin/Editor",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            <strong>Entwurfs-Vorschau:</strong> Als angemeldeter Admin oder Editor kannst
+            du Ranglisten-Entwürfe (nicht-öffentlich) jetzt direkt auf der öffentlichen
+            Detailseite ansehen. Ein orangefarbenes Badge{" "}
+            <em>„Entwurf — nicht öffentlich"</em> zeigt den Status. Anonyme Aufrufe
+            bekommen die Seite weiterhin als 404 — der Entwurf bleibt also versteckt,
+            bis er aktiv freigeschaltet wird. Auch in der Listenansicht{" "}
+            <code>/rangliste</code> tauchen Entwürfe nur für angemeldete Benutzer auf.
+          </>,
+        ],
+      },
+      {
+        kind: "geändert",
+        items: [
+          <>
+            <strong>Handbuch generalüberholt:</strong> Altersklasse <code>U22</code> in
+            allen Aufzählungen ergänzt, Gender-Bezeichnungen auf{" "}
+            <em>Mädchen / Mix / Jungen</em> umgestellt, IDJM-Quali-Beschreibung
+            korrigiert (Saisonstichtag statt Regatta-Startdatum als Alters-Referenz),
+            Multiplikator-Tabelle um „6+ ohne Mehrtages-Ausschreibung" ergänzt,
+            Tiebreak-Hinweis präzisiert, JWM/JEM-Algorithmus mit Re-Ranking,
+            Gewichtungsformel und Schottenwechsel-Sonderregel ausführlich beschrieben,
+            neues Kapitel <em>„Push-Benachrichtigungen"</em> mit allen ausgelieferten
+            Ereignissen.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.26",
     date: "2026-05-04",
     title: "Rangliste: redundanten Gender-Filter-Eintrag entfernt",

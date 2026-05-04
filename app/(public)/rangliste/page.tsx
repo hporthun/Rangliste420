@@ -1,4 +1,5 @@
 import { db } from "@/lib/db/client";
+import { auth } from "@/lib/auth";
 import Link from "next/link";
 
 type Props = { searchParams: Promise<{ year?: string }> };
@@ -22,8 +23,13 @@ const QUALI_TYPES = new Set(["IDJM", "JWM_QUALI", "JEM_QUALI"]);
 export default async function RanglisteIndexPage({ searchParams }: Props) {
   const { year: yearParam } = await searchParams;
 
+  const session = await auth();
+  const isSignedIn = !!session?.user;
+
+  // Angemeldete Benutzer (Admin/Editor) sehen auch Entwuerfe in der
+  // Listenansicht — als zusaetzliche Section unten gerendert.
   const rankings = await db.ranking.findMany({
-    where: { isPublic: true },
+    where: isSignedIn ? {} : { isPublic: true },
     orderBy: [{ sortOrder: "asc" }, { publishedAt: "desc" }],
     select: {
       id: true,
@@ -34,6 +40,7 @@ export default async function RanglisteIndexPage({ searchParams }: Props) {
       seasonStart: true,
       seasonEnd: true,
       publishedAt: true,
+      isPublic: true,
     },
   });
 
@@ -126,6 +133,7 @@ type RankingItem = {
   ageCategory: string;
   genderCategory: string;
   publishedAt: Date | null;
+  isPublic: boolean;
 };
 
 function RankingList({ items }: { items: RankingItem[] }) {
@@ -138,7 +146,14 @@ function RankingList({ items }: { items: RankingItem[] }) {
           className="flex items-center justify-between px-5 py-4 bg-card hover:bg-muted/40 transition-colors group"
         >
           <div className="space-y-1.5 min-w-0">
-            <p className="font-medium text-sm leading-tight">{r.name}</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="font-medium text-sm leading-tight">{r.name}</p>
+              {!r.isPublic && (
+                <span className="text-[10px] uppercase tracking-wide font-semibold px-1.5 py-0.5 rounded border border-amber-300 bg-amber-50 text-amber-800">
+                  Entwurf
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-2 flex-wrap">
               <span
                 className={`text-[10px] font-semibold uppercase tracking-wide border rounded px-1.5 py-0.5 ${

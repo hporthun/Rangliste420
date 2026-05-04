@@ -8,6 +8,32 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.27] — 2026-05-04
+
+**Handbuch aktualisiert · Entwurfs-Vorschau fuer Admin/Editor.**
+
+### Neu
+
+- **Entwurfs-Vorschau:** Als angemeldeter Admin oder Editor koennen
+  Ranglisten-Entwuerfe (nicht-oeffentlich) jetzt direkt auf der oeffentlichen
+  Detailseite angesehen werden. Ein orangefarbenes Badge "Entwurf — nicht
+  oeffentlich" zeigt den Status. Anonyme Aufrufe sehen die Seite weiterhin
+  als 404, der Entwurf bleibt versteckt bis zur Freischaltung. Auch in der
+  Listenansicht /rangliste tauchen Entwuerfe nur fuer angemeldete Benutzer auf.
+
+### Geaendert
+
+- **Handbuch generalueberholt:** Altersklasse U22 in allen Aufzaehlungen
+  ergaenzt; Gender-Bezeichnungen auf Maedchen / Mix / Jungen umgestellt;
+  IDJM-Quali-Beschreibung korrigiert (Saisonstichtag statt
+  Regatta-Startdatum als Alters-Referenz); Multiplikator-Tabelle um
+  "6+ ohne Mehrtages-Ausschreibung" ergaenzt; Tiebreak-Hinweis praezisiert;
+  JWM/JEM-Algorithmus mit Re-Ranking, Gewichtungsformel und
+  Schottenwechsel-Sonderregel ausfuehrlich beschrieben; neues Kapitel
+  "Push-Benachrichtigungen" mit allen ausgelieferten Ereignissen.
+
+---
+
 ## [2026.05.26] — 2026-05-04
 
 **Rangliste: redundanten Gender-Filter-Eintrag entfernt.**

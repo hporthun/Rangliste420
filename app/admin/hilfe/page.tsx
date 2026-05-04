@@ -23,6 +23,8 @@ const TOC = [
   { id: "ranglisten-tiebreak","label": "Tiebreak",                  level: 2 },
   { id: "ranglisten-idjm",   label: "IDJM-Quali",                   level: 2 },
   { id: "ranglisten-jwmjem", label: "JWM/JEM-Quali",                level: 2 },
+  { id: "ranglisten-entwurf",label: "Entwurf & Veröffentlichung",   level: 2 },
+  { id: "push",              label: "Push-Benachrichtigungen",      level: 1 },
   { id: "wartung",           label: "Wartung",                      level: 1 },
   { id: "wartung-backup",    label: "Datensicherung",               level: 2 },
   { id: "wartung-restore",   label: "Rücksicherung",                level: 2 },
@@ -302,8 +304,9 @@ function MultiplierTable() {
     { races: "1 Wettfahrt", m: 1, bar: 1 },
     { races: "2 Wettfahrten", m: 2, bar: 2 },
     { races: "3 Wettfahrten", m: 3, bar: 3 },
-    { races: "4–5 Wettfahrten", m: 4, bar: 4 },
-    { races: "≥ 6 Wettfahrten + Mehrtages-Ausschreibung", m: 5, bar: 5 },
+    { races: "4 – 5 Wettfahrten", m: 4, bar: 4 },
+    { races: "≥ 6 Wettfahrten ohne Mehrtages-Ausschreibung", m: 4, bar: 4 },
+    { races: "≥ 6 Wettfahrten mit Mehrtages-Ausschreibung", m: 5, bar: 5 },
   ];
   return (
     <div className="my-3 rounded-lg border overflow-hidden">
@@ -316,8 +319,8 @@ function MultiplierTable() {
           </tr>
         </thead>
         <tbody className="divide-y divide-border/60 bg-card">
-          {rows.map((r) => (
-            <tr key={r.m} className={r.m === 5 ? "bg-blue-50/50" : ""}>
+          {rows.map((r, idx) => (
+            <tr key={idx} className={r.m === 5 ? "bg-blue-50/50" : ""}>
               <td className="px-3 py-2 text-sm text-muted-foreground">{r.races}</td>
               <td className="px-3 py-2 text-right font-mono font-bold tabular-nums">{r.m}</td>
               <td className="px-3 py-2 hidden sm:table-cell">
@@ -451,8 +454,8 @@ export default function HilfePage() {
         <H2 id="segler-stammdaten">Stammdaten & Felder</H2>
         <Ul>
           <Li><strong>Vorname / Nachname</strong> – Pflichtfelder; werden beim Import per Fuzzy-Matching gesucht.</Li>
-          <Li><strong>Geburtsjahr</strong> – Basis für Altersklassen-Zuordnung (U15–U19). Stichtag ist der 31.12. des Saison­jahres.</Li>
-          <Li><strong>Geschlecht</strong> – M / F; erforderlich für Gender-gefilterte Ranglisten (Männer, Mix, Girls).</Li>
+          <Li><strong>Geburtsjahr</strong> – Basis für Altersklassen-Zuordnung (U15 – U22). Es zählt nur das Jahr: <Code>Saisonjahr − Geburtsjahr ≤ MaxAlter</Code> (U15: 14, U16: 15, U17: 16, U19: 18, U22: 21).</Li>
+          <Li><strong>Geschlecht</strong> – M / F; erforderlich für Gender-gefilterte Ranglisten (Mädchen, Mix, Jungen).</Li>
           <Li><strong>Verein</strong> – Wird beim Import aus den Manage2Sail-Daten übernommen, sofern noch nicht gesetzt.</Li>
           <Li><strong>Segelnummer</strong> – Optionale Lizenznummer; verbessert das Fuzzy-Matching (+0,05 Bonus).</Li>
           <Li><strong>Staatsangehörigkeit</strong> – Standard: GER. Ausländische Segler können importiert werden, fließen aber nur mit deutschen Booten in die Rangliste ein.</Li>
@@ -466,12 +469,10 @@ export default function HilfePage() {
           dazu hinterlegen.
         </P>
         <P>
-          Für die Filter <strong>Männer</strong>, <strong>Mix</strong> und <strong>Girls</strong>
-          müssen <em>beide</em> Mannschafts­mitglieder das Kriterium erfüllen. Bei der IDJM-Quali
-          gilt das Alterskriterium zusätzlich am <em>Tag der Regatta</em> – wechselt also der
-          Vorschoter zwischen zwei Regatten und das jüngere Crew-Mitglied erfüllt die Altersgrenze
-          nicht mehr, fällt diese eine Wertung aus dem Filter, ohne dass die Jahresrangliste
-          betroffen ist.
+          Für die Filter <strong>Mädchen</strong>, <strong>Mix</strong> und <strong>Jungen</strong>
+          müssen <em>beide</em> Mannschafts­mitglieder das Kriterium erfüllen. Fehlt bei einem der
+          beiden das Geschlecht in den Stammdaten, fällt das Boot in jeder nicht-Open-Kategorie
+          aus dem Filter raus.
         </P>
 
         <H2 id="segler-altnamen">Alternative Namen</H2>
@@ -626,16 +627,21 @@ export default function HilfePage() {
             üblicherweise 14 Tage vor einem Meldeschluss abgerufen.
           </Li>
           <Li>
-            <strong>IDJM-Quali</strong> – Gefilterte aktuelle Rangliste: nur U19 und U16,
-            nur Boote mit R ≥ 25. Referenzdatum für das Alter ist der jeweilige Regatta-Start.
+            <strong>IDJM-Quali</strong> – Gefilterte aktuelle Rangliste: Altersfilter frei
+            wählbar (U15 / U16 / U17 / U19 / U22 / Open), nur Boote mit R ≥ 25.
+            Alters-Referenz ist der Saisonstichtag — gleiche Regel wie bei der
+            Jahresrangliste.
           </Li>
         </Ul>
         <P>
           Altersklassen: <Code>U15</Code> (max. 14 Jahre), <Code>U16</Code> (max. 15),{" "}
-          <Code>U17</Code> (max. 16), <Code>U19</Code> (max. 18), <Code>Open</Code> (alle).
-          Stichtag ist jeweils der 31.12. des Saison­jahres. Fehlt bei einem der beiden
-          Mannschafts­mitglieder Geburtsjahr oder Geschlecht, erscheint das Boot in
-          gefilterten Kategorien nicht.
+          <Code>U17</Code> (max. 16), <Code>U19</Code> (max. 18), <Code>U22</Code> (max. 21),{" "}
+          <Code>Open</Code> (alle). Maßgeblich ist das <strong>Jahr</strong>:{" "}
+          <Code>Saisonjahr − Geburtsjahr ≤ MaxAlter</Code> — der genaue Tag spielt keine Rolle.
+          Stichtag-Datum: Jahresrangliste 30.11., Aktuelle Rangliste das heutige Datum,
+          IDJM-Quali das Saisonende, JWM/JEM-Quali der konfigurierbare Stichtag (Default 31.12.).
+          Fehlt bei einem der beiden Mannschafts­mitglieder Geburtsjahr oder Geschlecht,
+          erscheint das Boot in gefilterten Kategorien nicht.
         </P>
 
         <H2 id="ranglisten-formel">DSV-Formel (RO Anlage 1 §2, gültig ab 01.01.2026)</H2>
@@ -666,42 +672,154 @@ export default function HilfePage() {
         </Hint>
 
         <H2 id="ranglisten-tiebreak">Tiebreak</H2>
-        <P>Bei gleichem R wird nach folgenden Kriterien aufgelöst:</P>
+        <P>Bei gleichem R wird nach folgenden Kriterien (in dieser Reihenfolge) aufgelöst:</P>
         <Ul>
-          <Li>Stufe 1: Höchster einzelner R_A-Wert unter den 9 einfließenden Wertungen</Li>
-          <Li>Stufe 2: Anzahl der einfließenden Wertungen (mehr = besser)</Li>
+          <Li>Stufe 1: Höchster einzelner R_A-Wert unter den 9 einfließenden Wertungen.</Li>
+          <Li>Stufe 2: Anzahl Wertungen in der Werteliste insgesamt (mehr = besser).</Li>
         </Ul>
+        <P>
+          Hinweis: vor diesen beiden Stufen entscheidet selbstverständlich R selbst — die
+          Tiebreak-Stufen greifen nur bei exaktem R-Gleichstand.
+        </P>
 
         <H2 id="ranglisten-idjm">IDJM-Quali</H2>
         <P>
-          Der IDJM-Quali-Filter verwendet für die Alters­prüfung <strong>den Start­termin
-          der jeweiligen Regatta</strong> als Referenz­datum – nicht den 31.12. der Saison.
-          Ein Boot, dessen Vorschoter bei einer frühen Regatta noch unter 19 war, bei einer
-          späteren aber 19 wurde, verliert die spätere Wertung im IDJM-Filter (erscheint
-          aber weiterhin in der Jahres­rangliste).
+          Die IDJM-Quali ist eine <strong>gefilterte Aktuelle Rangliste</strong> — gleiche
+          DSV-Berechnung wie die Jahresrangliste, plus zwei Zusatzfilter:
         </P>
-        <P>
-          Mindest-R für die IDJM-Quali-Liste: <strong>25 Punkte</strong>.
-        </P>
+        <Ul>
+          <Li>
+            <strong>Altersfilter</strong> frei wählbar (U15 / U16 / U17 / U19 / U22 / Open).
+            Alters-Referenz ist der Saisonstichtag, nicht der jeweilige Regatta-Start.
+          </Li>
+          <Li>
+            <strong>Mindest-R = 25 Punkte</strong>: Boote mit R &lt; 25 erscheinen nicht in
+            der Hauptliste, tauchen aber im Block <em>„Noch nicht in der Wertung"</em> auf.
+          </Li>
+        </Ul>
 
         <H2 id="ranglisten-jwmjem">JWM/JEM-Quali</H2>
         <P>
           Die JWM- und JEM-Qualifikation der 420er-Klasse folgt einer eigenen Sonderregel der
-          Klassen­vereinigung (nicht DSV-RO). Sie wird im Admin-Bereich unter{" "}
-          <strong>Ranglisten → JWM/JEM-Quali berechnen</strong> aufgerufen.
+          Klassen­vereinigung (<strong>nicht</strong> DSV-Ranglistenordnung). Sie wird im
+          Admin-Bereich unter <strong>Ranglisten → JWM/JEM-Quali berechnen</strong> aufgerufen.
         </P>
+        <P>Das Verfahren in vier Schritten:</P>
         <Ul>
-          <Li>Bis zu 3 ausgewählte Quali-Regatten</Li>
-          <Li>Pro Steuermann zählen die <strong>besten 2</strong> Ergebnisse, gewichtet</Li>
-          <Li>Filter nach Altersklasse (U15–U19, Open) und Gender</Li>
-          <Li>Nur deutsche Boote werden gewertet (für die JWM/JEM-Nominierung)</Li>
+          <Li>
+            <strong>Setup</strong> — Typ (JWM/JEM), Altersklasse (U15 – U22, Open), Gender,
+            Stichtag und bis zu <strong>3 Quali-Regatten</strong> wählen. Standardmäßig
+            zählen <em>nur deutsche Boote</em> (für die JWM/JEM-Nominierung).
+          </Li>
+          <Li>
+            <strong>Re-Ranking auf „nur Deutsche"</strong> — wenn nur deutsche Boote zählen,
+            werden ausländische Boote pro Regatta entfernt und die Plätze neu vergeben. Beispiel:
+            Ein deutsches Boot war Gesamt-7., aber Plätze 2/4/6 waren ausländisch → der
+            <strong> deutsche Platz ist 4</strong>. Auch die Starter­zahl wird entsprechend
+            reduziert.
+          </Li>
+          <Li>
+            <strong>Gewichteter Platz pro Regatta</strong>:{" "}
+            <Code>weighted = finalRank × (maxStarters / startersDieserRegatta)</Code>.
+            <Code>maxStarters</Code> ist die Starter­zahl der größten der drei Regatten.
+            Effekt: ein Vorderplatz in einer schwach besetzten Regatta wird abgewertet, weil
+            der Bruch &gt; 1 wird.
+          </Li>
+          <Li>
+            <strong>Quali-Score = Summe der 2 niedrigsten weighted-Werte</strong>.
+            Niedriger = besser. Tiebreak: 1) niedrigster einzelner weighted-Wert,
+            2) mehr gewertete Regatten.
+          </Li>
+        </Ul>
+        <P>Drei Sektionen in der Ergebnis-Anzeige:</P>
+        <Ul>
+          <Li>
+            <strong>Hauptliste</strong> — Teams mit ≥ 2 gewerteten Regatten, sortiert nach
+            qualiScore.
+          </Li>
+          <Li>
+            <strong>Vorläufig</strong> — Teams mit genau 1 gewerteten Regatta (Zwischenstand,
+            noch nicht qualifizierbar).
+          </Li>
+          <Li>
+            <strong>Ausgeschlossen wegen Wechsel</strong> — Teams, deren einziger Eintrag
+            wegen ungenehmigtem Schottenwechsel rausfällt (siehe unten).
+          </Li>
         </Ul>
         <P>
-          Im Eingabeformular wählst du Typ (JWM-Quali / JEM-Quali), Altersklasse, Gender,
-          Stichtag und bis zu 3 Regatten aus. Anschließend zeigt die Tabelle die berechnete
-          Rangliste mit Original-Platz, gewichtetem Score und der Markierung, welche der
-          Wertungen tatsächlich zählen.
+          <strong>Schottenwechsel-Sonderregel:</strong> pro Helm ist genau{" "}
+          <em>ein</em> genehmigter Schottenwechsel zulässig — beide Crews zählen dann zum
+          gleichen Team. Ein <em>ungenehmigter</em> Wechsel startet ein neues Team; die
+          Wechsel-Regatta selbst wird für das neue Team komplett ausgeschlossen
+          (kein Platz, keine Punkte, zählt auch nicht in die Starterzahl). Ein zweiter
+          Wechsel — egal ob genehmigt oder nicht — startet ebenfalls ein neues Team.
+          Ein Helm kann also mehrfach in der Quali-Liste auftauchen, jeweils mit
+          unterschiedlichen Crew-Zuordnungen.
         </P>
+
+        <H2 id="ranglisten-entwurf">Entwurf &amp; Veröffentlichung</H2>
+        <P>
+          Jede gespeicherte Rangliste ist zunächst ein <strong>Entwurf</strong> (nicht
+          öffentlich) und erhält in der Admin-Liste den orangefarbenen Status{" "}
+          <em>„Entwurf"</em>. Erst durch Klick auf den Toggle in der Status-Spalte wird sie
+          auf <em>„Veröffentlicht"</em> umgeschaltet — ab diesem Moment erscheint sie auf
+          der Vereinswebsite unter <Code>/rangliste</Code>.
+        </P>
+        <Hint>
+          <strong>Vorschau im Entwurf:</strong> Als angemeldeter Admin oder Editor kannst du
+          eine Entwurfs-Rangliste auch direkt auf der öffentlichen Detailseite ansehen
+          (<Code>/rangliste/[id]</Code>) — der Link <em>„Ansehen →"</em> in der Admin-Liste
+          funktioniert auch für Entwürfe. Ein orangefarbenes Badge{" "}
+          <em>„Entwurf — nicht öffentlich"</em> macht deutlich, dass die Rangliste
+          (noch) nicht für die Allgemeinheit sichtbar ist. Anonyme Aufrufe sehen die Seite
+          weiterhin als 404 — der Entwurf bleibt also versteckt, bis du ihn explizit
+          freischaltest.
+        </Hint>
+        <P>
+          In der öffentlichen Listenansicht <Code>/rangliste</Code> tauchen Entwürfe nur
+          dann auf, wenn du angemeldet bist — jeweils mit einem kleinen Entwurf-Badge neben
+          dem Namen. Anonyme Aufrufe bekommen ausschließlich veröffentlichte Ranglisten
+          zu sehen.
+        </P>
+
+        {/* ── Push-Benachrichtigungen ────────────────────────────────────────── */}
+        <H1 id="push">Push-Benachrichtigungen</H1>
+        <P>
+          Die App kann den Browser-Push-Kanal nutzen, um über zwei Ereignisse zu informieren —
+          ohne dass die Seite geöffnet sein muss. Voraussetzung: der Benutzer hat einmalig
+          „Benachrichtigungen erlauben" bestätigt.
+        </P>
+        <Ul>
+          <Li>
+            <strong>Neue Rangliste verfügbar</strong> — sobald ein Entwurf auf{" "}
+            <em>„Veröffentlicht"</em> umgeschaltet wird (per <Code>publishRankingAction</Code>),
+            geht ein Broadcast an alle Abos. Titel: „Neue Rangliste verfügbar", Text:
+            der Listenname, Zielklick führt zur Detailseite. Ein erneutes Veröffentlichen
+            derselben Liste oder das Zurücknehmen löst keinen weiteren Push aus.
+          </Li>
+          <Li>
+            <strong>App aktualisiert</strong> — bei jedem Server-Start prüft die App
+            (<Code>broadcastNewVersionIfNeeded</Code>) gegen die in der DB gespeicherte
+            <em> letzte ausgelieferte Version</em>. Ist die deployte Version höher,
+            geht ein Broadcast „App aktualisiert — Neue Version <Code>X.Y.Z</Code> ist aktiv"
+            heraus, mit Klick zur Changelog-Seite. Die Marke wird per Unique-Constraint
+            gepflegt, sodass auch in Multi-Instance-Setups (Vercel) jede Version
+            <strong> genau einmal</strong> beworben wird.
+          </Li>
+        </Ul>
+        <P>
+          Tote Subscriptions (HTTP 404 / 410) werden bei jedem Broadcast automatisch aus der
+          DB entfernt, damit die Liste nicht über die Zeit wächst. Fehler beim Senden
+          bremsen weder den Action-Pfad (Veröffentlichen scheitert nie wegen Push) noch den
+          Server-Boot.
+        </P>
+        <Warn>
+          Damit Push überhaupt funktioniert, müssen die VAPID-Schlüssel in der
+          Server-Umgebung gesetzt sein (<Code>VAPID_PUBLIC_KEY</Code>,{" "}
+          <Code>VAPID_PRIVATE_KEY</Code>, <Code>VAPID_SUBJECT</Code>). Ohne Konfiguration
+          ist der Push-Pfad ein No-Op — die App funktioniert weiterhin, aber kein Browser
+          bekommt Notifications.
+        </Warn>
 
         {/* ── Wartung ────────────────────────────────────────────────────────── */}
         <H1 id="wartung">Wartung</H1>
