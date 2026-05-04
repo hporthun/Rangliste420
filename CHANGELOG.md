@@ -8,6 +8,27 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.32] — 2026-05-04
+
+**Offline-Lesen fuer die oeffentliche App.**
+
+### Neu
+
+- **Offline-Modus fuer Ranglisten und Regatten:** Die oeffentliche App
+  funktioniert jetzt auch ohne Netz. Beim ersten Online-Besuch werden
+  im Hintergrund alle veroeffentlichten Ranglisten, Regatta-Detailseiten
+  und alle Steuermann-Detailseiten aus diesen Ranglisten in den lokalen
+  Cache geladen — danach sind sie auch ohne Verbindung erreichbar,
+  ideal am Regatta-Ort mit schwachem LTE. Wer trotzdem auf eine bisher
+  nicht erfasste Seite navigiert, sieht eine kurze Offline-Hinweisseite.
+  Admin-Bereich, Auth und API werden bewusst NICHT gecacht — dort
+  braucht es stets Live-Daten und gueltige Sessions. Realisiert als
+  Erweiterung des bestehenden Service Workers (public/sw.js) plus
+  /api/offline-manifest fuer die Liste der zu cachenden URLs;
+  Push-Benachrichtigungen bleiben unveraendert.
+
+---
+
 ## [2026.05.31] — 2026-05-04
 
 **Detail-Seite auch fuer Segler im "Noch nicht in der Wertung"-Block.**

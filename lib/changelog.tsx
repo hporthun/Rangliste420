@@ -77,6 +77,31 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.32",
+    date: "2026-05-04",
+    title: "Offline-Lesen für die öffentliche App",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            <strong>Offline-Modus für Ranglisten und Regatten:</strong> Die
+            öffentliche App funktioniert jetzt auch ohne Netz. Beim ersten
+            Online-Besuch werden im Hintergrund alle veröffentlichten
+            Ranglisten, Regatta-Detailseiten und alle Steuermann-
+            Detailseiten aus diesen Ranglisten in den lokalen Cache
+            geladen — danach sind sie auch ohne Verbindung erreichbar,
+            ideal am Regatta-Ort mit schwachem LTE. Wer trotzdem auf
+            eine bisher nicht erfasste Seite navigiert, sieht eine kurze
+            Offline-Hinweisseite. Admin-Bereich, Auth und API werden
+            bewusst <em>nicht</em> gecacht — dort braucht es stets Live-
+            Daten und gültige Sessions.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.31",
     date: "2026-05-04",
     title: "Detail-Seite auch für Segler im 'Noch nicht in der Wertung'-Block",

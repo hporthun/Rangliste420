@@ -5,6 +5,8 @@ import { cookies } from "next/headers";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AppBadge } from "@/components/app-badge";
+import { SwRegister } from "@/components/sw-register";
+import { OfflinePrefetcher } from "@/components/offline-prefetcher";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -78,6 +80,8 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <AppBadge />
+          <SwRegister />
+          <OfflinePrefetcher />
           {children}
         </ThemeProvider>
       </body>

@@ -13,7 +13,9 @@ const csp = [
   "img-src 'self' data: blob:",
   "font-src 'self'",
   "connect-src 'self'",
-  "worker-src blob:",
+  // 'self' für den Offline-Service-Worker (/sw.js), blob: für die
+  // pdf.js-WebWorker, die als Blob-URLs erzeugt werden.
+  "worker-src 'self' blob:",
   "frame-ancestors 'none'",
 ].join("; ");
 
