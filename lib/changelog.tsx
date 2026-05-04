@@ -77,6 +77,27 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.24",
+    date: "2026-05-04",
+    title: "Backups: chronologische Sortierung auf Vercel Blob",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            Die Liste der gespeicherten Backups war auf der Produktiv-Umgebung
+            (Vercel Blob) nicht chronologisch sortiert, sondern alphabetisch
+            nach Wochentag-Namen — Folge eines{" "}
+            <code>Date.toString()</code>-Aufrufs, der „Sat May 04 …" liefert
+            statt eines ISO-Strings. Lokal (Filesystem-Backend) war die
+            Sortierung schon immer korrekt. Jetzt werden auch Blob-Backups
+            wieder neueste-zuerst angezeigt.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.23",
     date: "2026-05-04",
     title: "Import: klare Fehlermeldung bei Bild-PDFs ohne Textebene",

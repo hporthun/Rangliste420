@@ -298,7 +298,10 @@ async function blobList(): Promise<StoredBackup[]> {
       } catch { /* default false */ }
       out.push({
         filename,
-        createdAt: b.uploadedAt.toString(),
+        // Must be ISO format (YYYY-MM-DD…) so that lexical sort below matches
+        // chronological order. Date.prototype.toString() yields "Sat May 04 …"
+        // which sorts alphabetically by weekday name and breaks the order.
+        createdAt: new Date(b.uploadedAt).toISOString(),
         size: b.size,
         isEncrypted,
         comment: metas.get(filename),

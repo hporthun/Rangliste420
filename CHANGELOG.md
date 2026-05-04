@@ -8,6 +8,21 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.24] — 2026-05-04
+
+**Backups: chronologische Sortierung auf Vercel Blob.**
+
+### Korrigiert
+
+- Die Liste der gespeicherten Backups war auf der Produktiv-Umgebung
+  (Vercel Blob) nicht chronologisch sortiert, sondern alphabetisch nach
+  Wochentag-Namen — Folge eines Date.toString()-Aufrufs, der "Sat May
+  04 ..." liefert statt eines ISO-Strings. Lokal (Filesystem-Backend)
+  war die Sortierung schon immer korrekt. Jetzt werden auch Blob-Backups
+  wieder neueste-zuerst angezeigt.
+
+---
+
 ## [2026.05.23] — 2026-05-04
 
 **Import: klare Fehlermeldung bei Bild-PDFs ohne Textebene.**
