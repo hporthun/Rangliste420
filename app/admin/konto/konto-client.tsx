@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { startRegistration } from "@simplewebauthn/browser";
 import {
-  User, Mail, Lock, ShieldCheck, Shield, Fingerprint,
+  User, Mail, Lock, ShieldCheck, Shield, Fingerprint, Bell,
   Eye, EyeOff, Plus, Trash2, CheckCircle2, AlertTriangle, Pencil,
 } from "lucide-react";
 import {
@@ -17,6 +17,7 @@ import {
   deletePasskeyAction,
   renamePasskeyAction,
 } from "@/lib/actions/account";
+import { PushAccountSection } from "@/components/admin/push-account-section";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -581,6 +582,9 @@ export function KontoClient({ username, email, totpEnabled, passkeys }: Props) {
       <PasswordSection />
       <TotpSection initialEnabled={totpEnabled} />
       <PasskeySection initialPasskeys={passkeys} />
+      <Section icon={Bell} title="Push-Benachrichtigungen">
+        <PushAccountSection />
+      </Section>
     </div>
   );
 }

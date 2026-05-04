@@ -77,6 +77,40 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.35",
+    date: "2026-05-04",
+    title: "Push-Aktivierung auf der Konto-Seite + Liste aktualisiert sich nach Duplizieren/Löschen",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Auf der <strong>Konto-Seite</strong> gibt es einen neuen Abschnitt{" "}
+            <em>„Push-Benachrichtigungen"</em> — auch wer den Banner mit{" "}
+            <em>„Nicht jetzt"</em> weggeklickt hat, kann von dort aus jederzeit
+            wieder aktivieren oder abbestellen. Auf iPhone/iPad ohne installierte
+            PWA erscheint statt der Schaltfläche eine Schritt-für-Schritt-
+            Anleitung zum Hinzufügen zum Home-Bildschirm; bei blockierter
+            Browser-Berechtigung ein Hinweis zum Zurücksetzen.
+          </>,
+        ],
+      },
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            <strong>Ranglisten-Liste aktualisiert sich nach Duplizieren oder
+            Löschen sofort.</strong> Vorher behielt das Admin-Listing wegen
+            cached Local-State den Stand vor der Änderung — man musste die Seite
+            manuell neu laden. Jetzt synchronisiert die Sortable-Liste
+            zuverlässig mit den Server-Daten nach jedem{" "}
+            <code>router.refresh()</code>.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.34",
     date: "2026-05-04",
     title: "Logos auch offline verfügbar",

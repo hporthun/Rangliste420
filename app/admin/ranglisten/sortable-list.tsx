@@ -33,6 +33,17 @@ export function RankingsSortableList({ initialRows }: { initialRows: RankingRow[
   const [qualilisten, setQualilisten] = useState(
     () => initialRows.filter((r) => QUALI_TYPES.has(r.type))
   );
+  // Derived-State-Pattern: bei einem router.refresh() bekommen wir frische
+  // initialRows als Prop — wir vergleichen mit dem zuletzt gesehenen Stand und
+  // synchronisieren das lokale State waehrend des Renderns. Damit zeigt die
+  // Liste nach Duplizieren oder Loeschen sofort den Server-Stand, ohne dass ein
+  // useEffect-Zyklus dazwischenliegt.
+  const [prevInitial, setPrevInitial] = useState(initialRows);
+  if (prevInitial !== initialRows) {
+    setPrevInitial(initialRows);
+    setRanglisten(initialRows.filter((r) => !QUALI_TYPES.has(r.type)));
+    setQualilisten(initialRows.filter((r) => QUALI_TYPES.has(r.type)));
+  }
   const [, startTransition] = useTransition();
 
   function persist(rl: RankingRow[], ql: RankingRow[]) {

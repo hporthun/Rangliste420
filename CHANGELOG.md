@@ -8,6 +8,30 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.35] — 2026-05-04
+
+**Push-Aktivierung auf der Konto-Seite + Liste aktualisiert sich nach Duplizieren/Loeschen.**
+
+### Neu
+
+- Auf der Konto-Seite gibt es einen neuen Abschnitt
+  "Push-Benachrichtigungen" — auch wer den Banner mit "Nicht jetzt"
+  weggeklickt hat, kann von dort aus jederzeit wieder aktivieren oder
+  abbestellen. Auf iPhone/iPad ohne installierte PWA erscheint statt
+  der Schaltflaeche eine Schritt-fuer-Schritt-Anleitung zum
+  Hinzufuegen zum Home-Bildschirm; bei blockierter Browser-Berechtigung
+  ein Hinweis zum Zuruecksetzen.
+
+### Korrigiert
+
+- **Ranglisten-Liste aktualisiert sich nach Duplizieren oder Loeschen
+  sofort.** Vorher behielt das Admin-Listing wegen cached Local-State
+  den Stand vor der Aenderung — man musste die Seite manuell neu
+  laden. Jetzt synchronisiert die Sortable-Liste zuverlaessig mit den
+  Server-Daten nach jedem router.refresh() (Derived-State-Pattern).
+
+---
+
 ## [2026.05.34] — 2026-05-04
 
 **Logos auch offline verfuegbar.**
