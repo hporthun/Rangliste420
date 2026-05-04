@@ -821,6 +821,41 @@ export default function HilfePage() {
           bekommt Notifications.
         </Warn>
 
+        <P>
+          <strong>Aktivierung</strong>: Im Browser erscheint nach dem ersten Besuch der
+          öffentlichen Seite ein dezenter Banner unter dem Header{" "}
+          <em>„Bei neuen Ranglisten oder Regatten benachrichtigt werden? [Aktivieren]"</em>.
+          Klick aktiviert den Service Worker und legt die Subscription in der DB an.
+          Wer auf <em>„Nicht jetzt"</em> klickt, bekommt den Banner 30 Tage nicht mehr;
+          ein erneutes Aktivieren geht über die Konto-Seite (siehe unten).
+        </P>
+
+        <Hint>
+          <strong>iPhone / iPad (iOS Safari):</strong> Web-Push funktioniert auf iOS{" "}
+          <strong>nur</strong>, wenn die Webseite{" "}
+          <strong>als PWA über „Zum Home-Bildschirm hinzufügen"</strong> installiert
+          wurde — und die App dann <em>aus diesem Home-Screen-Icon</em> heraus
+          geöffnet wird. Im normalen Safari-Tab ist <Code>PushManager</Code> nicht
+          verfügbar; dann erscheint der Aktivierungs-Banner gar nicht erst und der
+          Push-Schalter auf der Konto-Seite zeigt einen Hinweis. Voraussetzung außerdem:
+          iOS 16.4 oder neuer.
+        </Hint>
+        <Ul>
+          <Li>
+            <strong>Schritt 1</strong>: in Safari die Adresse <Code>https://…</Code>{" "}
+            der Anwendung öffnen.
+          </Li>
+          <Li>
+            <strong>Schritt 2</strong>: Teilen-Button (Quadrat mit Pfeil nach oben) →{" "}
+            <em>„Zum Home-Bildschirm"</em> → <em>Hinzufügen</em>.
+          </Li>
+          <Li>
+            <strong>Schritt 3</strong>: Auf dem Home-Bildschirm das neue Icon antippen
+            (nicht den Safari-Tab benutzen!) → der Banner / die Aktivierungs-Schaltfläche
+            erscheint und Push lässt sich einschalten.
+          </Li>
+        </Ul>
+
         {/* ── Wartung ────────────────────────────────────────────────────────── */}
         <H1 id="wartung">Wartung</H1>
 

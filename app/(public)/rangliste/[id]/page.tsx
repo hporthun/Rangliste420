@@ -147,7 +147,11 @@ export default async function RanglistePage({ params, searchParams }: Props) {
           <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-xs text-muted-foreground">
             <span>{typeLabel}</span>
             <span>{effectiveAge} / {effectiveGender}</span>
-            <span>Saison {ranking.seasonStart.getFullYear()}</span>
+            {/* Saison-Jahr aus dem Stichtag (seasonEnd), nicht aus seasonStart:
+                bei JWM/JEM-Quali ist seasonStart der Termin der ersten ausgewaehlten
+                Quali-Regatta (kann in das Vorjahr fallen, z. B. Dezember 2025), waehrend
+                die Quali fachlich zur Saison des Stichtags gehoert (z. B. 31.12.2026). */}
+            <span>Saison {ranking.seasonEnd.getFullYear()}</span>
             <span>Stichtag {ranking.seasonEnd.toLocaleDateString("de-DE")}</span>
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -278,7 +282,10 @@ export default async function RanglistePage({ params, searchParams }: Props) {
         </div>
         <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-xs text-muted-foreground">
           <span>{effectiveAge} / {effectiveGender}</span>
-          <span>Saison {ranking.seasonStart.getFullYear()}</span>
+          {/* Saison-Jahr aus dem Stichtag (seasonEnd), nicht aus seasonStart:
+              bei JWM/JEM-Quali ist seasonStart der Termin der ersten ausgewaehlten
+              Quali-Regatta (kann in das Vorjahr fallen). */}
+          <span>Saison {ranking.seasonEnd.getFullYear()}</span>
           <span>Stichtag {ranking.seasonEnd.toLocaleDateString("de-DE")}</span>
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2">

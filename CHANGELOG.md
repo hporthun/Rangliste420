@@ -8,6 +8,32 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.29] — 2026-05-04
+
+**Saison-Anzeige korrigiert · iOS-Push-Hinweis im Handbuch.**
+
+### Korrigiert
+
+- **Saison-Anzeige im Detailheader:** Bei JWM/JEM-Quali wurde
+  faelschlich das Jahr der ersten ausgewaehlten Quali-Regatta als
+  "Saison" angezeigt — bei einer Quali fuer 2026, deren erste Regatta
+  im Dezember 2025 lag, stand also "Saison 2025" im Header. Jetzt
+  wird das Jahr aus dem Stichtag (seasonEnd) abgeleitet. Betrifft
+  sowohl die DSV/IDJM-Detailseite als auch JWM/JEM-Quali.
+
+### Geaendert
+
+- **Handbuch um iOS-Push-Hinweis ergaenzt:** Im Kapitel
+  "Push-Benachrichtigungen" stehen jetzt die iOS-spezifischen
+  Voraussetzungen: Web-Push funktioniert auf iPhone/iPad nur, wenn
+  die Webseite ueber "Zum Home-Bildschirm hinzufuegen" als PWA
+  installiert und aus diesem Icon heraus geoeffnet wurde. Im
+  normalen Safari-Tab ist PushManager nicht verfuegbar — der
+  Aktivierungs-Banner erscheint dann gar nicht erst. Schritt-fuer-
+  Schritt-Anleitung im Handbuch.
+
+---
+
 ## [2026.05.28] — 2026-05-04
 
 **Dark-Mode: Top-3-Platzierungen wieder lesbar.**

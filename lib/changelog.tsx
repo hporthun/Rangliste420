@@ -77,6 +77,42 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.29",
+    date: "2026-05-04",
+    title: "Saison-Anzeige korrigiert · iOS-Push-Hinweis im Handbuch",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            <strong>Saison-Anzeige im Detailheader:</strong> Bei JWM/JEM-Quali
+            wurde fälschlich das Jahr der ersten ausgewählten Quali-Regatta als
+            „Saison" angezeigt — bei einer Quali für 2026, deren erste Regatta
+            im Dezember 2025 lag, stand also „Saison 2025" im Header. Jetzt wird
+            das Jahr aus dem Stichtag (<code>seasonEnd</code>) abgeleitet, sodass
+            die Quali für die Saison gezeigt wird, zu der sie fachlich gehört.
+            Betrifft sowohl die DSV/IDJM-Detailseite als auch JWM/JEM-Quali.
+          </>,
+        ],
+      },
+      {
+        kind: "geändert",
+        items: [
+          <>
+            <strong>Handbuch um iOS-Push-Hinweis ergänzt:</strong> Im Kapitel{" "}
+            <em>„Push-Benachrichtigungen"</em> stehen jetzt die iOS-spezifischen
+            Voraussetzungen: Web-Push funktioniert auf iPhone/iPad nur, wenn
+            die Webseite über <em>„Zum Home-Bildschirm hinzufügen"</em> als PWA
+            installiert und aus diesem Icon heraus geöffnet wurde. Im normalen
+            Safari-Tab ist <code>PushManager</code> nicht verfügbar — der
+            Aktivierungs-Banner erscheint dann gar nicht erst. Schritt-für-Schritt-
+            Anleitung im Handbuch.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.28",
     date: "2026-05-04",
     title: "Dark-Mode: Top-3-Platzierungen wieder lesbar",
