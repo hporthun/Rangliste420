@@ -1,6 +1,6 @@
 {
   "name": "420ranking",
-  "version": "2026.5.32",
+  "version": "2026.5.33",
   "private": true,
   "scripts": {
     "dev": "next dev",

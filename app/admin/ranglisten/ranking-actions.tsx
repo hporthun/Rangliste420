@@ -2,8 +2,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, Trash2, Check, X, Loader2, Settings2 } from "lucide-react";
-import { deleteRankingAction, renameRankingAction } from "@/lib/actions/rankings";
+import { Pencil, Trash2, Check, X, Loader2, Settings2, Copy } from "lucide-react";
+import {
+  deleteRankingAction,
+  duplicateRankingAction,
+  renameRankingAction,
+} from "@/lib/actions/rankings";
 import Link from "next/link";
 
 function editHref(id: string, type: string | undefined): string | null {
@@ -53,6 +57,19 @@ export function RankingActions({ id, name, type }: { id: string; name: string; t
     } else {
       setError(res.error);
       setMode("idle");
+    }
+  }
+
+  async function handleDuplicate() {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    const res = await duplicateRankingAction(id);
+    setBusy(false);
+    if (res.ok) {
+      router.refresh();
+    } else {
+      setError(res.error);
     }
   }
 
@@ -147,6 +164,15 @@ export function RankingActions({ id, name, type }: { id: string; name: string; t
           )}
           <button
             type="button"
+            onClick={handleDuplicate}
+            disabled={busy}
+            title="Duplizieren — als neuer Entwurf"
+            className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-50"
+          >
+            {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Copy className="h-3.5 w-3.5" />}
+          </button>
+          <button
+            type="button"
             onClick={() => setMode("rename")}
             title="Umbenennen"
             className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
@@ -162,6 +188,9 @@ export function RankingActions({ id, name, type }: { id: string; name: string; t
             <Trash2 className="h-3.5 w-3.5" />
           </button>
         </div>
+        {error && (
+          <p className="text-[11px] text-red-600 mt-1">{error}</p>
+        )}
       </td>
     </>
   );

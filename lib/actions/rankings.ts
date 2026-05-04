@@ -741,6 +741,63 @@ export async function getRankingForEditAction(
   };
 }
 
+/**
+ * Dupliziert eine bestehende Rangliste als neuen Entwurf — nuetzlich, um
+ * z. B. die letztjaehrige Jahresrangliste als Vorlage fuer die neue Saison
+ * zu uebernehmen, ohne Type/Kategorien neu auswaehlen zu muessen. Der Klon
+ * bekommt den Namen mit Suffix " (Kopie)", isPublic=false und einen
+ * sortOrder-Wert direkt nach dem Original; alle RankingRegatta-Links werden
+ * 1:1 mitkopiert.
+ */
+export async function duplicateRankingAction(
+  id: string
+): Promise<{ ok: true; data: { id: string } } | { ok: false; error: string }> {
+  const session = await auth();
+  if (!session) return { ok: false, error: "Nicht angemeldet." };
+  try {
+    const src = await db.ranking.findUnique({
+      where: { id },
+      include: { rankingRegattas: { select: { regattaId: true, weight: true } } },
+    });
+    if (!src) return { ok: false, error: "Rangliste nicht gefunden." };
+
+    // sortOrder direkt nach dem Original einsortieren — alle nachfolgenden
+    // Eintraege ruecken einen Platz nach hinten, damit der Klon visuell
+    // direkt unter seinem Vorlage-Eintrag landet.
+    await db.ranking.updateMany({
+      where: { sortOrder: { gt: src.sortOrder } },
+      data: { sortOrder: { increment: 1 } },
+    });
+
+    const created = await db.ranking.create({
+      data: {
+        name: `${src.name} (Kopie)`,
+        type: src.type,
+        seasonStart: src.seasonStart,
+        seasonEnd: src.seasonEnd,
+        ageCategory: src.ageCategory,
+        genderCategory: src.genderCategory,
+        scoringRule: src.scoringRule,
+        scoringUnit: src.scoringUnit,
+        isPublic: false,
+        publishedAt: null,
+        sortOrder: src.sortOrder + 1,
+        rankingRegattas: {
+          create: src.rankingRegattas.map((rr) => ({
+            regattaId: rr.regattaId,
+            weight: rr.weight,
+          })),
+        },
+      },
+    });
+
+    revalidatePath("/admin/ranglisten");
+    return { ok: true, data: { id: created.id } };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+
 export async function deleteRankingAction(
   id: string
 ): Promise<{ ok: true } | { ok: false; error: string }> {

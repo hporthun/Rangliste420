@@ -77,6 +77,29 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.33",
+    date: "2026-05-04",
+    title: "Rangliste duplizieren",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Im Admin-Listing der Ranglisten gibt es einen neuen{" "}
+            <strong>Kopier-Button</strong> (zwischen Bearbeiten und Umbenennen).
+            Klick erzeugt einen Klon der Rangliste mit Suffix{" "}
+            <em>(Kopie)</em> direkt unter dem Original — alle Parameter (Typ,
+            Saison, Altersklasse, Gender, Scoring-Unit) und die verknüpften
+            Regatten werden 1:1 übernommen, der Klon ist immer ein{" "}
+            <em>Entwurf</em> (nicht öffentlich). Praktisch, um z. B. die
+            letztjährige Jahresrangliste als Vorlage für die neue Saison zu
+            nutzen — danach nur noch Saison/Datum anpassen und neu berechnen.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.32",
     date: "2026-05-04",
     title: "Offline-Lesen für die öffentliche App",

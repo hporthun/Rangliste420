@@ -8,6 +8,24 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.33] — 2026-05-04
+
+**Rangliste duplizieren.**
+
+### Neu
+
+- Im Admin-Listing der Ranglisten gibt es einen neuen Kopier-Button
+  (zwischen Bearbeiten und Umbenennen). Klick erzeugt einen Klon
+  der Rangliste mit Suffix "(Kopie)" direkt unter dem Original —
+  alle Parameter (Typ, Saison, Altersklasse, Gender, Scoring-Unit)
+  und die verknuepften Regatten werden 1:1 uebernommen, der Klon
+  ist immer ein Entwurf (nicht oeffentlich). Praktisch, um z. B.
+  die letztjaehrige Jahresrangliste als Vorlage fuer die neue
+  Saison zu nutzen — danach nur noch Saison/Datum anpassen und
+  neu berechnen.
+
+---
+
 ## [2026.05.32] — 2026-05-04
 
 **Offline-Lesen fuer die oeffentliche App.**
