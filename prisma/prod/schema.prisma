@@ -122,6 +122,11 @@ model Result {
   // true if boat reached start area but never crossed finish (DNS/BFD/OCS)
   // such boats get R_A = 0 but count in s and m-fold in value list
   inStartArea Boolean  @default(false)
+  // true wenn finalRank vom Admin manuell vergeben wurde — schuetzt den Rang
+  // gegen Auto-Reranking durch rerankRegatta beim Editieren anderer Eintraege
+  // derselben Regatta. Wird ausschliesslich von der manuellen Bearbeitungs-UI
+  // gesetzt; der Import setzt es nie.
+  isRankManual Boolean  @default(false)
 
   regatta   Regatta   @relation(fields: [regattaId], references: [id], onDelete: Cascade)
   teamEntry TeamEntry @relation(fields: [teamEntryId], references: [id], onDelete: Cascade)

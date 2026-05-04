@@ -18,6 +18,13 @@ type Props = {
   initialSailNumber: string | null;
   initialInStartArea: boolean;
   initialFinalRank: number | null;
+  /**
+   * true = der Eintrag hat einen manuell vergebenen Rang (Result.isRankManual).
+   * Steuert die Vorbelegung des Rang-Inputs: bei false bleibt das Feld leer
+   * (Auto-Modus), damit ein Speichern ohne Aenderung den Rang nicht versehentlich
+   * auf "manuell" flippt.
+   */
+  initialIsRankManual?: boolean;
   numRaces: number;
   initialRaceScores: RaceScore[];
 };
@@ -30,13 +37,22 @@ export function EditTeamEntry({
   initialSailNumber,
   initialInStartArea,
   initialFinalRank,
+  initialIsRankManual = false,
   numRaces,
   initialRaceScores,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [sailNumber, setSailNumber] = useState(initialSailNumber ?? "");
   const [inStartArea, setInStartArea] = useState(initialInStartArea);
-  const [rankInput, setRankInput] = useState(initialFinalRank != null ? String(initialFinalRank) : "");
+  // Rank-Input nur vorbelegen, wenn der gespeicherte Rang explizit manuell war.
+  // Sonst leer lassen — die Spalte zeigt den auto-berechneten Rang ohnehin an.
+  // So bleibt das Auto-Reranking aktiv, wenn der Admin den Eintrag oeffnet,
+  // andere Felder editiert und ohne Aenderung am Rang speichert.
+  const [rankInput, setRankInput] = useState(
+    initialIsRankManual && initialFinalRank != null
+      ? String(initialFinalRank)
+      : "",
+  );
   const [scores, setScores] = useState<RaceScore[]>(() => {
     // Ensure we have an entry for every race 1..numRaces
     return Array.from({ length: numRaces }, (_, i) => {
@@ -87,7 +103,11 @@ export function EditTeamEntry({
     setOpen(false);
     setSailNumber(initialSailNumber ?? "");
     setInStartArea(initialInStartArea);
-    setRankInput(initialFinalRank != null ? String(initialFinalRank) : "");
+    setRankInput(
+      initialIsRankManual && initialFinalRank != null
+        ? String(initialFinalRank)
+        : "",
+    );
     setScores(
       Array.from({ length: numRaces }, (_, i) => {
         const existing = initialRaceScores.find((s) => s.race === i + 1);

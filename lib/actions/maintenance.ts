@@ -549,6 +549,8 @@ async function _performRestore(
                 finalPoints: r.finalPoints != null ? toDecimalStr(r.finalPoints) : null,
                 racePoints: toJsonStr(r.racePoints),
                 inStartArea: !!r.inStartArea,
+                // Aeltere Backups (vor 2026.5.30) haben das Feld nicht — defaulten auf false.
+                isRankManual: !!r.isRankManual,
                 createdAt: toDate(r.createdAt),
                 updatedAt: toDate(r.updatedAt),
               },

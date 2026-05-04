@@ -8,6 +8,41 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.30] — 2026-05-04
+
+**Manuell vergebene Platzierungen werden nicht mehr ueberschrieben.**
+
+### Korrigiert
+
+- Wenn der Admin auf der Regatta-Detailseite einen Eintrag mit
+  manueller Platzierung anlegt, blieb dieser Rang bisher zwar beim
+  Speichern erhalten — sobald aber ein anderer Eintrag derselben
+  Regatta editiert wurde, lief das Auto-Reranking ueber alle
+  Eintraege und ueberschrieb auch die manuell gesetzte Platzierung.
+  Jetzt schuetzt ein neues Schema-Feld `Result.isRankManual` den
+  Rang dauerhaft: beim Auto-Reranking werden manuell vergebene
+  Slots uebersprungen, die anderen Eintraege bekommen automatisch
+  die freien Plaetze.
+
+### Geaendert
+
+- Im "Eintrag bearbeiten"-Dialog ist das Rang-Feld nur noch dann
+  vorbelegt, wenn die Platzierung tatsaechlich als manuell
+  markiert ist. Bei automatisch berechneten Plaetzen bleibt das
+  Feld leer (Placeholder "leer = automatisch") — so kippt ein
+  einfaches Speichern ohne Aenderung den Rang nicht versehentlich
+  auf manuell.
+
+### Migration
+
+- Schema-Aenderung: `Result.isRankManual: Boolean @default(false)`.
+  Dev-Migration: 20260504151907_add_is_rank_manual_to_result.
+  Prod-Migration: 9_result_is_rank_manual (ALTER TABLE ADD COLUMN
+  IF NOT EXISTS, default false). Bestehende Eintraege erhalten
+  automatisch false und werden weiterhin auto-gerankt.
+
+---
+
 ## [2026.05.29] — 2026-05-04
 
 **Saison-Anzeige korrigiert · iOS-Push-Hinweis im Handbuch.**

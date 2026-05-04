@@ -73,6 +73,7 @@ export default async function EditRegattaPage({ params }: Props) {
             finalPoints: true,
             racePoints: true,
             inStartArea: true,
+            isRankManual: true,
           },
         },
       },
@@ -264,6 +265,7 @@ export default async function EditRegattaPage({ params }: Props) {
                           initialSailNumber={e.sailNumber ?? null}
                           initialInStartArea={e.result?.inStartArea ?? false}
                           initialFinalRank={e.result?.finalRank ?? null}
+                          initialIsRankManual={e.result?.isRankManual ?? false}
                           numRaces={numRaces}
                           initialRaceScores={e.racePoints.map((rp) => ({
                             ...rp,

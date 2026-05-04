@@ -125,18 +125,21 @@ export async function updateTeamEntryAction(
               racePoints: JSON.stringify(raceScores),
               finalPoints,
               inStartArea,
-              // Rang nur explizit setzen wenn übergeben; bei null → Neuberechnung unten
-              ...(manualRank != null ? { finalRank: manualRank } : {}),
+              // manualRank == number  -> finalRank fixieren, isRankManual=true
+              // manualRank == null    -> Auto-Modus: Flag clearen, rerank vergibt unten neu
+              ...(manualRank != null
+                ? { finalRank: manualRank, isRankManual: true }
+                : { isRankManual: false }),
             },
           }),
         ]
       : []),
   ]);
 
-  // Auto-Reranking nur wenn kein manueller Rang gesetzt wurde
-  if (manualRank == null) {
-    await rerankRegatta(regattaId);
-  }
+  // rerankRegatta laeuft IMMER — die Funktion respektiert isRankManual=true
+  // und ueberschreibt nur Auto-Eintraege. So sind die Auto-Plaetze konsistent,
+  // egal ob der Admin gerade einen manuellen Rang gesetzt oder geloescht hat.
+  await rerankRegatta(regattaId);
 
   revalidatePath(`/admin/regatten/${regattaId}`);
   return { ok: true };
@@ -232,25 +235,68 @@ export async function addTeamEntryAction(
   return { ok: true };
 }
 
-// Vergibt allen Results einer Regatta neue Platzierungen nach finalPoints asc.
-// Gleichstand → gleicher Rang, nächster Rang überspringt entsprechend.
+// Vergibt allen NICHT-MANUELL gerankten Results einer Regatta neue
+// Platzierungen nach finalPoints aufsteigend. Eintraege mit
+// `isRankManual = true` behalten ihren explizit gesetzten finalRank,
+// und ihre Rank-Slots werden bei der Auto-Vergabe uebersprungen.
+//
+// Beispiel: 5 Boote, A ist manuell auf Rang 3 fixiert. Rest sortiert nach
+// finalPoints: B(5), C(8), D(10), E(15) -> B=1, C=2, A=3 (manuell), D=4, E=5.
+//
+// Gleichstand bei Auto-Eintraegen: gleicher Rang, naechster Slot wird
+// entsprechend uebersprungen (analog zum bisherigen Verhalten).
 async function rerankRegatta(regattaId: string) {
   const results = await db.result.findMany({
     where: { regattaId },
-    select: { id: true, finalPoints: true },
+    select: { id: true, finalPoints: true, finalRank: true, isRankManual: true },
   });
 
-  const ranked = results
-    .filter((r) => r.finalPoints !== null)
+  // Zaehlen, wie viele Eintraege ueberhaupt einen Rang bekommen koennen
+  // (also einen finalPoints-Wert haben oder bereits manuell gerankt sind).
+  const total = results.filter(
+    (r) => r.finalPoints !== null || r.isRankManual,
+  ).length;
+
+  // Slots, die manuell belegt sind — duerfen vom Auto-Reranking nicht ueberschrieben
+  // und nicht doppelt vergeben werden.
+  const manualSlots = new Set<number>(
+    results
+      .filter((r) => r.isRankManual && r.finalRank !== null)
+      .map((r) => r.finalRank!),
+  );
+
+  // Verfuegbare Slots fuer Auto-Eintraege: 1..total ohne manuelle Belegungen.
+  const availableRanks: number[] = [];
+  for (let r = 1; r <= total; r++) {
+    if (!manualSlots.has(r)) availableRanks.push(r);
+  }
+
+  // Auto-Eintraege sortiert nach finalPoints asc.
+  const auto = results
+    .filter((r) => !r.isRankManual && r.finalPoints !== null)
     .sort((a, b) => Number(a.finalPoints) - Number(b.finalPoints));
 
-  let rank = 1;
+  // Rang aus availableRanks zuweisen, mit Tie-Handling: gleiche finalPoints
+  // bekommen den gleichen Rang, der naechste freie Slot wird entsprechend
+  // uebersprungen (matching das bisherige Verhalten).
+  let prevPoints: number | null = null;
+  let prevAssigned: number | null = null;
+
   await Promise.all(
-    ranked.map((r, i) => {
-      if (i > 0 && Number(ranked[i].finalPoints) !== Number(ranked[i - 1].finalPoints)) {
-        rank = i + 1;
+    auto.map((r, i) => {
+      const p = Number(r.finalPoints);
+      let rank: number;
+      if (prevAssigned !== null && p === prevPoints) {
+        rank = prevAssigned;
+      } else {
+        rank = availableRanks[i] ?? total + 1;
+        prevAssigned = rank;
       }
-      return db.result.update({ where: { id: r.id }, data: { finalRank: rank } });
-    })
+      prevPoints = p;
+      return db.result.update({
+        where: { id: r.id },
+        data: { finalRank: rank },
+      });
+    }),
   );
 }

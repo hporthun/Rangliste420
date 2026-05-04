@@ -77,6 +77,40 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.30",
+    date: "2026-05-04",
+    title: "Manuell vergebene Platzierungen werden nicht mehr überschrieben",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            Wenn der Admin auf der Regatta-Detailseite einen Eintrag <em>„Platzierung
+            manuell"</em> setzt, blieb diese Platzierung bisher zwar beim Speichern
+            erhalten — aber sobald ein <strong>anderer</strong> Eintrag derselben
+            Regatta editiert wurde, lief das Auto-Reranking über alle Eintraege
+            und überschrieb auch die manuell gesetzte Platzierung. Jetzt schützt ein
+            neues Schema-Feld <code>Result.isRankManual</code> den Rang dauerhaft:
+            beim Auto-Reranking werden manuell vergebene Slots übersprungen, die
+            anderen Eintraege bekommen automatisch die freien Plätze.
+          </>,
+        ],
+      },
+      {
+        kind: "geändert",
+        items: [
+          <>
+            Im <em>„Eintrag bearbeiten"</em>-Dialog ist das Rang-Feld nur noch dann
+            vorbelegt, wenn die Platzierung tatsächlich als <em>manuell</em> markiert
+            ist. Bei automatisch berechneten Plaetzen bleibt das Feld leer
+            (Placeholder „leer = automatisch") — so kippt ein einfaches Speichern
+            ohne Aenderung den Rang nicht versehentlich auf <em>manuell</em>.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.29",
     date: "2026-05-04",
     title: "Saison-Anzeige korrigiert · iOS-Push-Hinweis im Handbuch",
