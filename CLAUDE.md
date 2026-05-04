@@ -79,7 +79,11 @@ Ergänzend `PLAN_1.md` für die ursprüngliche Spezifikation:
 
 - Kleine, atomare Commits
 - Präfixe: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`
-- Vor Commit: `npm run lint` und `npm run test`
+- Vor Commit alle drei laufen lassen: `npm run lint`, `npm run typecheck`,
+  `npm run test`. Lint + Tests allein finden TypeScript-Fehler nicht — ohne
+  `typecheck` rutschen veraltete Aufrufstellen nach Schema- oder Action-
+  Return-Type-Änderungen durch und brechen erst auf Vercel beim
+  `next build`-Type-Check ab.
 - Branches: `main` immer deploybar, Features in `feature/kurzname`
 - **Push auf Gitea**: das `origin`-Remote ist Gitea, der Push braucht
   Token-Auth via URL:
