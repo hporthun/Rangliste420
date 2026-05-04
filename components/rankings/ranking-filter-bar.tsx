@@ -14,9 +14,9 @@ const AGE_OPTIONS = [
 const GENDER_OPTIONS = [
   { value: "", label: "Alle Kategorien" },
   { value: "OPEN", label: "Open" },
-  { value: "MEN", label: "Jungen" },
-  { value: "MIX", label: "Mix" },
   { value: "GIRLS", label: "Mädchen" },
+  { value: "MIX", label: "Mix" },
+  { value: "MEN", label: "Jungen" },
 ] as const;
 
 type Props = {

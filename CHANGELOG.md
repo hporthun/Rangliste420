@@ -8,6 +8,19 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.25] — 2026-05-04
+
+**Rangliste: neue Reihenfolge im Gender-Filter.**
+
+### Geaendert
+
+- Im Gender-Filter der Ranglisten-Detailseiten ist die Reihenfolge jetzt
+  **Open / Maedchen / Mix / Jungen** (vorher Open / Jungen / Mix /
+  Maedchen). Werte und Filterlogik bleiben unveraendert — nur die
+  Anordnung im Dropdown ist neu.
+
+---
+
 ## [2026.05.24] — 2026-05-04
 
 **Backups: chronologische Sortierung auf Vercel Blob.**

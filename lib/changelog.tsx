@@ -77,6 +77,24 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.25",
+    date: "2026-05-04",
+    title: "Rangliste: neue Reihenfolge im Gender-Filter",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            Im Gender-Filter der Ranglisten-Detailseiten ist die Reihenfolge
+            jetzt <strong>Open / Mädchen / Mix / Jungen</strong> (vorher
+            Open / Jungen / Mix / Mädchen). Werte und Filterlogik bleiben
+            unverändert — nur die Anordnung im Dropdown ist neu.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.24",
     date: "2026-05-04",
     title: "Backups: chronologische Sortierung auf Vercel Blob",
