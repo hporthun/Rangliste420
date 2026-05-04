@@ -77,6 +77,28 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.40",
+    date: "2026-05-04",
+    title: "Glocke springt sofort an, sobald eine Push-Notification eingeht",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            Sobald eine Push-Notification beim Browser ankommt, schickt der
+            Service Worker jetzt eine <code>postMessage</code>-Nachricht an
+            alle offenen Tabs. Der <strong>Update-Indicator (Glocke)</strong>{" "}
+            und der <strong>OS-AppBadge</strong> reagieren darauf und ziehen
+            sofort den frischen Badge-State von <code>/api/badge</code> — ohne
+            auf den 5-Minuten-Poll zu warten. So sieht man bei einem offenen
+            Browser-Tab unmittelbar, dass es eine neue Rangliste oder ein
+            App-Update gibt, auch wenn man die Notification gar nicht anklickt.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.39",
     date: "2026-05-04",
     title: "App-Update-Push nur an angemeldete Benutzer",

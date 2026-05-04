@@ -252,6 +252,26 @@ self.addEventListener("push", (event) => {
     }
   }
 
+  // Allen offenen Tabs Bescheid geben, damit Glocke (UpdateIndicator) und
+  // OS-AppBadge sofort frisch ziehen — sonst muesste der naechste 5-Minuten-
+  // Poll abgewartet werden.
+  tasks.push(
+    self.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((wins) => {
+        for (const w of wins) {
+          try {
+            w.postMessage({
+              type: "PUSH_RECEIVED",
+              tag: data.tag || "ranking-update",
+              url: data.url || "/",
+            });
+          } catch { /* einzelne Clients ignorieren */ }
+        }
+      })
+      .catch(() => undefined),
+  );
+
   event.waitUntil(Promise.all(tasks));
 });
 

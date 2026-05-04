@@ -88,12 +88,28 @@ export function UpdateIndicator() {
     };
     window.addEventListener("storage", onStorage);
 
+    // Service-Worker meldet eingehende Push-Notifications via postMessage —
+    // dann sofort frisch ziehen, statt auf den naechsten 5-Minuten-Poll zu
+    // warten. So springt die Glocke direkt nach Eingang einer Push-Nachricht
+    // an, auch wenn der User die Notification gar nicht anklickt.
+    const onSwMessage = (e: MessageEvent) => {
+      if (e.data && e.data.type === "PUSH_RECEIVED") {
+        void refresh();
+      }
+    };
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.addEventListener("message", onSwMessage);
+    }
+
     const interval = window.setInterval(refresh, POLL_INTERVAL_MS);
 
     return () => {
       cancelled = true;
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("storage", onStorage);
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.removeEventListener("message", onSwMessage);
+      }
       window.clearInterval(interval);
     };
   }, []);

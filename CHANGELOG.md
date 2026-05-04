@@ -8,6 +8,23 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.40] — 2026-05-04
+
+**Glocke springt sofort an, sobald eine Push-Notification eingeht.**
+
+### Geaendert
+
+- Sobald eine Push-Notification beim Browser ankommt, schickt der
+  Service Worker jetzt eine postMessage-Nachricht an alle offenen
+  Tabs. Der **Update-Indicator (Glocke)** und der **OS-AppBadge**
+  reagieren darauf und ziehen sofort den frischen Badge-State von
+  /api/badge — ohne auf den 5-Minuten-Poll zu warten. So sieht man
+  bei einem offenen Browser-Tab unmittelbar, dass es eine neue
+  Rangliste oder ein App-Update gibt, auch wenn man die Notification
+  gar nicht anklickt.
+
+---
+
 ## [2026.05.39] — 2026-05-04
 
 **App-Update-Push nur an angemeldete Benutzer.**
