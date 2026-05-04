@@ -77,6 +77,26 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.26",
+    date: "2026-05-04",
+    title: "Rangliste: redundanten Gender-Filter-Eintrag entfernt",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            Im Gender-Filter der Ranglisten-Detailseiten wurde der
+            Eintrag <em>„Alle Kategorien"</em> entfernt — fachlich
+            identisch mit <strong>Open</strong> (die DSV-Filterregel
+            für OPEN trifft auf jedes Boot zu). Das Dropdown zeigt jetzt
+            nur noch die vier Kategorien <strong>Open / Mädchen / Mix /
+            Jungen</strong>.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.25",
     date: "2026-05-04",
     title: "Rangliste: neue Reihenfolge im Gender-Filter",

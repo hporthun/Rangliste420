@@ -11,8 +11,10 @@ const AGE_OPTIONS = [
   { value: "U15", label: "U15" },
 ] as const;
 
+// "OPEN" deckt fachlich bereits alle Kategorien ab (matchesGenderCategory
+// liefert für OPEN immer true), deshalb gibt es keinen separaten Eintrag
+// "Alle Kategorien" mehr.
 const GENDER_OPTIONS = [
-  { value: "", label: "Alle Kategorien" },
   { value: "OPEN", label: "Open" },
   { value: "GIRLS", label: "Mädchen" },
   { value: "MIX", label: "Mix" },
@@ -53,7 +55,9 @@ export function RankingFilterBar({ currentAge, currentGender }: Props) {
         ))}
       </select>
       <select
-        value={currentGender}
+        // Leerer URL-Param == kein Override → Default-Anzeige "Open",
+        // damit der Controlled-Component-Wert immer in den Optionen liegt.
+        value={currentGender || "OPEN"}
         onChange={(e) => navigate(currentAge, e.target.value)}
         className="border rounded px-2 py-1 bg-background text-foreground hover:border-foreground/40 transition-colors cursor-pointer text-xs"
       >

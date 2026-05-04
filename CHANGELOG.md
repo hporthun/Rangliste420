@@ -8,6 +8,19 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.26] — 2026-05-04
+
+**Rangliste: redundanten Gender-Filter-Eintrag entfernt.**
+
+### Geaendert
+
+- Im Gender-Filter der Ranglisten-Detailseiten wurde der Eintrag "Alle
+  Kategorien" entfernt — fachlich identisch mit **Open** (die DSV-
+  Filterregel fuer OPEN trifft auf jedes Boot zu). Das Dropdown zeigt
+  jetzt nur noch die vier Kategorien **Open / Maedchen / Mix / Jungen**.
+
+---
+
 ## [2026.05.25] — 2026-05-04
 
 **Rangliste: neue Reihenfolge im Gender-Filter.**
