@@ -1,3 +1,5 @@
+import { detectInStartArea } from "./pdf-utils";
+
 export type ParsedRaceScore = {
   race: number;
   points: number;
@@ -107,9 +109,8 @@ export function parsePaste(text: string): ParsedRegatta {
 
   function commitEntry() {
     if (helmLastName) {
-      const inStartAreaSuggestion = raceScores.some((s) =>
-        ["DNS", "BFD", "OCS"].includes(s.code ?? "")
-      );
+      // Single source of truth: lib/import/pdf-utils.ts (Issue #60).
+      const inStartAreaSuggestion = detectInStartArea(raceScores);
       entries.push({
         rank,
         sailNumber,

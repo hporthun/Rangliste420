@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { ParsedRegatta } from "@/lib/import/manage2sail-paste";
+import { IN_START_AREA_CODES } from "@/lib/import/pdf-utils";
 
 type Props = {
   parsedData: ParsedRegatta;
@@ -9,7 +10,10 @@ type Props = {
   onBack: () => void;
 };
 
-const IN_START_CODES = new Set(["DNS", "BFD", "OCS"]);
+// Lokales Alias auf die einzig wahre Quelle (Issue #60). Wir brauchen den
+// Set hier zweifach: Default-Vorbelegung der Checkbox UND
+// Badge-Highlighting im Codes-Spalten-Renderer.
+const IN_START_CODES = IN_START_AREA_CODES;
 
 function getSuggestedInStartArea(entry: ParsedRegatta["entries"][number]): boolean {
   return entry.raceScores.some((s) => IN_START_CODES.has(s.code ?? ""));
@@ -41,9 +45,9 @@ export function StartareaStep({ parsedData, onComplete, onBack }: Props) {
       <div>
         <h2 className="text-base font-semibold mb-1">Startgebiet-Review</h2>
         <p className="text-sm text-muted-foreground">
-          Boote, die ins Startgebiet kamen aber nicht ins Ziel kamen (DNS/BFD/OCS), erhalten
-          R_A&nbsp;=&nbsp;0, zählen aber in s. Vorschläge sind auf Basis der Penalty-Codes
-          vorbelegt.
+          Boote, die ins Startgebiet kamen aber nicht ins Ziel kamen
+          (DNS/BFD/OCS/UFD), erhalten R_A&nbsp;=&nbsp;0, zählen aber in s.
+          Vorschläge sind auf Basis der Penalty-Codes vorbelegt.
         </p>
       </div>
 

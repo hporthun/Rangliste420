@@ -4,6 +4,7 @@
  * Uses X-position column detection since PDF text items lack logical structure.
  */
 import type { ParsedRaceScore, ParsedEntry, ParsedRegatta } from "./manage2sail-paste";
+import { detectInStartArea } from "./pdf-utils";
 
 const PENALTY_CODES = new Set(["DNC", "DNS", "DNF", "DSQ", "BFD", "OCS", "RET", "WFD"]);
 
@@ -165,9 +166,8 @@ export async function parsePdfBuffer(buffer: ArrayBuffer | Uint8Array): Promise<
       }
     }
 
-    const inStartAreaSuggestion = raceScores.some((s) =>
-      ["DNS", "BFD", "OCS"].includes(s.code ?? "")
-    );
+    // Single source of truth: lib/import/pdf-utils.ts (Issue #60).
+    const inStartAreaSuggestion = detectInStartArea(raceScores);
 
     entries.push({
       rank: block.rank,

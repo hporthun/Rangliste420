@@ -112,10 +112,27 @@ export function parseDecimal(s: string): number {
   return parseFloat(s.replace(",", ".").trim());
 }
 
+/**
+ * Race-Codes, fuer die wir defaultmaessig "Boot kam ins Startgebiet"
+ * vorschlagen — siehe docs/business-rules.md §2.1 + Issue #60:
+ *
+ *   - OCS / BFD / UFD: Frühstart-DSQs (RRS A11). Boot war definitiv im
+ *     Startgebiet (sonst kein OCS/BFD/UFD moeglich).
+ *   - DNS: "Did Not Start". Wir behandeln das defensiv als "im
+ *     Startgebiet" — viele Auswertungen markieren so Boote, die
+ *     erschienen sind aber nicht ueber die Linie kamen. Der Admin
+ *     kann den Default im Wizard pro Eintrag toggeln.
+ *
+ * Single source of truth: alle Parser und der Import-Wizard
+ * (components/import-wizard/startarea-step.tsx) importieren genau
+ * diese Konstante / detectInStartArea-Helper.
+ */
+export const IN_START_AREA_CODES = new Set(["DNS", "BFD", "OCS", "UFD"]);
+
 /** Suggest inStartArea based on penalty codes in race scores. */
 export function detectInStartArea(scores: ParsedRaceScore[]): boolean {
   return scores.some((s) =>
-    ["DNS", "BFD", "OCS", "UFD"].includes((s.code ?? "").toUpperCase())
+    IN_START_AREA_CODES.has((s.code ?? "").toUpperCase())
   );
 }
 

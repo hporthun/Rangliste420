@@ -61,8 +61,26 @@ const s = regatta.totalStarters ?? regatta.results.length;
 Admin auf der Regatta-Detailseite manuell korrigiert werden.
 
 **Sonderfall „nur Startgebiet"**: Boote mit `inStartArea = true` und
-`finalRank = null` (DNS/BFD/OCS) bekommen `R_A = 0`, zählen aber
-m-fach in der Werteliste.
+`finalRank = null` bekommen `R_A = 0`, zählen aber m-fach in der
+Werteliste.
+
+Beim Import schlägt der Wizard die `inStartArea`-Checkbox automatisch
+für folgende Race-Codes vor (RRS A11):
+
+| Code | Bedeutung | Default |
+|---|---|---|
+| `OCS` | On Course Side at start (Frühstart, Recall ignoriert) | ✅ |
+| `BFD` | Black Flag Disqualification (Frühstart unter Black Flag) | ✅ |
+| `UFD` | U-Flag Disqualification (Frühstart unter U-Flag) | ✅ |
+| `DNS` | Did Not Start (defensiv: erschienen, aber nicht über die Linie) | ✅ |
+| `DNC` | Did Not Come (gar nicht erschienen) | ❌ |
+| `DNF` | Did Not Finish (gestartet, aber nicht ins Ziel — gehört in den normalen Pool) | ❌ |
+| `DSQ` `RET` `WFD` | gestartet, dann disqualifiziert/zurückgezogen | ❌ |
+
+Der Default ist nur ein Vorschlag — der Admin kann pro Eintrag
+toggeln. Single source of truth ist `IN_START_AREA_CODES` in
+`lib/import/pdf-utils.ts`; Parser und Wizard importieren beide von
+dort. Issue #60 für die Begründung der DNS-Aufnahme.
 
 **R-Wert**: arithmetisches Mittel der **9 besten R_A-Werte** des Helms.
 Mit weniger als 9 Wertungen → kein Listeneintrag.
