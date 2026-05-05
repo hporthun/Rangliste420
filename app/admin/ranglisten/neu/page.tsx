@@ -98,6 +98,11 @@ export default async function NeueRanglistePage({ searchParams }: Props) {
             <p className="text-sm text-muted-foreground">
               {result.data.rows.length} Segler · {result.data.regattas.length} Regatten
             </p>
+            {result.data.rows.length === 0 ? (
+              <div className="rounded-md border bg-card px-4 py-6 text-center text-muted-foreground text-sm">
+                Keine Segler mit ≥ 9 Wertungen gefunden.
+              </div>
+            ) : (
             <div className="rounded-md border overflow-x-auto">
               <table className="w-full text-sm min-w-[480px]">
                 <thead className="bg-gray-50 text-xs text-muted-foreground uppercase">
@@ -127,16 +132,10 @@ export default async function NeueRanglistePage({ searchParams }: Props) {
                       </td>
                     </tr>
                   ))}
-                  {result.data.rows.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="px-4 py-6 text-center text-muted-foreground text-sm">
-                        Keine Segler mit ≥ 9 Wertungen gefunden.
-                      </td>
-                    </tr>
-                  )}
                 </tbody>
               </table>
             </div>
+            )}
           </div>
         </>
       )}

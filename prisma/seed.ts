@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { createPrismaClient } from "../lib/db/client";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";

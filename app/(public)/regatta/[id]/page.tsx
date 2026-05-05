@@ -97,6 +97,11 @@ export default async function RegattaDetailPage({ params }: Props) {
       </div>
 
       {/* Results table */}
+      {regatta.results.length === 0 ? (
+        <div className="rounded-lg border bg-card shadow-sm px-4 py-8 text-center text-muted-foreground text-sm">
+          Noch keine Ergebnisse importiert.
+        </div>
+      ) : (
       <div className="rounded-lg border overflow-x-auto shadow-sm">
         <table className="w-full text-sm min-w-[520px]">
           <thead>
@@ -145,16 +150,10 @@ export default async function RegattaDetailPage({ params }: Props) {
                 </tr>
               );
             })}
-            {regatta.results.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground text-sm">
-                  Noch keine Ergebnisse importiert.
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
+      )}
 
       <p className="text-xs text-muted-foreground">
         R_A = f × 100 × ((s + 1 − x) / s) = {f.toFixed(2)} × 100 × (({s} + 1 − x) / {s}).

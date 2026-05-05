@@ -93,6 +93,15 @@ export function RegattaTableWithSync({ regattas, year, q }: Props) {
       </div>
 
       {/* Table */}
+      {regattas.length === 0 ? (
+        <div className="rounded border bg-card px-3 py-6 text-center text-sm text-muted-foreground">
+          {q
+            ? `Keine Regatten für „${q}"${year !== "all" ? ` in ${year}` : ""} gefunden.`
+            : year === "all"
+            ? "Noch keine Regatten angelegt."
+            : `Keine Regatten in ${year}.`}
+        </div>
+      ) : (
       <div className="overflow-x-auto rounded border">
         <table className="w-full text-sm min-w-[560px]">
           <thead className="bg-muted/50">
@@ -178,20 +187,10 @@ export function RegattaTableWithSync({ regattas, year, q }: Props) {
                 </tr>
               );
             })}
-            {regattas.length === 0 && (
-              <tr>
-                <td colSpan={7} className="px-3 py-6 text-center text-muted-foreground">
-                  {q
-                    ? `Keine Regatten für „${q}"${year !== "all" ? ` in ${year}` : ""} gefunden.`
-                    : year === "all"
-                    ? "Noch keine Regatten angelegt."
-                    : `Keine Regatten in ${year}.`}
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }

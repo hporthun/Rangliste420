@@ -131,6 +131,14 @@ export default async function SeglerPage({ searchParams }: Props) {
         </div>
       )}
 
+      {sailors.length === 0 ? (
+        <div
+          className="rounded border bg-card px-3 py-6 text-center text-sm text-muted-foreground"
+          data-tour="segler-tabelle"
+        >
+          {q ? `Keine Segler für „${q}" gefunden.` : "Noch keine Segler angelegt."}
+        </div>
+      ) : (
       <div className="overflow-x-auto rounded border" data-tour="segler-tabelle">
         <table className="w-full text-sm min-w-[480px]">
           <thead className="bg-muted/50">
@@ -183,16 +191,10 @@ export default async function SeglerPage({ searchParams }: Props) {
                 </tr>
               );
             })}
-            {sailors.length === 0 && (
-              <tr>
-                <td colSpan={7} className="px-3 py-6 text-center text-muted-foreground">
-                  {q ? `Keine Segler für „${q}" gefunden.` : "Noch keine Segler angelegt."}
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }

@@ -103,6 +103,11 @@ export default async function RanglisteRegatttenPage({ params }: Props) {
       </div>
 
       {/* Table */}
+      {regattas.length === 0 ? (
+        <div className="rounded-lg border bg-card shadow-sm px-4 py-10 text-center text-muted-foreground text-sm">
+          Keine Regatten gefunden.
+        </div>
+      ) : (
       <div className="rounded-lg border overflow-x-auto shadow-sm">
         <table className="w-full text-sm min-w-[480px]">
           <thead>
@@ -164,16 +169,10 @@ export default async function RanglisteRegatttenPage({ params }: Props) {
                 </td>
               </tr>
             ))}
-            {regattas.length === 0 && (
-              <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground text-sm">
-                  Keine Regatten gefunden.
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
+      )}
 
       {regattas.length > 0 && (
         <p className="text-xs text-muted-foreground">

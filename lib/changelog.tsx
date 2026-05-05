@@ -77,6 +77,32 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.52",
+    date: "2026-05-05",
+    title: "Mobile-Empty-States kein horizontales Scrollen mehr",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            Auf schmalen Viewports (≤ 375px) wurden Empty-State-Texte in
+            Tabellen mit fester Mindestbreite (z.&nbsp;B. „Keine
+            Ranglistenregatten für 2026 vorhanden") abgeschnitten und
+            erforderten horizontales Scrollen. Empty-States werden jetzt
+            außerhalb der Tabelle als eigene Card gerendert. Betrifft die
+            öffentlichen Regatten-Listen sowie Admin-Segler-,
+            Regattenabgleich- und Ranglisten-Vorschau-Tabellen.
+          </>,
+          <>
+            <code>prisma/seed.ts</code> lädt jetzt <code>dotenv/config</code>,
+            damit <code>npm run db:seed</code> in frischen Worktrees
+            zuverlässig den richtigen Driver-Adapter wählt.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.51",
     date: "2026-05-05",
     title: "Prisma 6 → 7 mit Driver-Adapter",

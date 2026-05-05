@@ -8,6 +8,29 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.52] — 2026-05-05
+
+**Mobile-Empty-States kein horizontales Scrollen mehr.**
+
+### Korrigiert
+
+- Auf schmalen Viewports (<= 375px) wurden Empty-State-Texte in
+  Tabellen mit fester Mindestbreite abgeschnitten und erforderten
+  horizontales Scrollen. Empty-States werden jetzt ausserhalb der
+  Tabelle als eigene Card gerendert. Betrifft:
+  - `app/(public)/regatten/page.tsx`
+  - `app/(public)/rangliste/[id]/regatten/page.tsx`
+  - `app/(public)/regatta/[id]/page.tsx`
+  - `app/admin/segler/page.tsx`
+  - `app/admin/ranglisten/neu/page.tsx`
+  - `components/admin/regatta-table-sync.tsx`
+- `prisma/seed.ts` laedt jetzt `dotenv/config`, damit
+  `npm run db:seed` in frischen Worktrees zuverlaessig den richtigen
+  Driver-Adapter waehlt (sonst war `DATABASE_URL` undefiniert und der
+  Seed lief in den pg-Adapter statt sqlite).
+
+---
+
 ## [2026.05.51] — 2026-05-05
 
 **Prisma 6 -> 7 mit Driver-Adapter (Schritt 2 von 2).**
