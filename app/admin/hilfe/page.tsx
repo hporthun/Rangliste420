@@ -708,7 +708,7 @@ export default function HilfePage() {
         <Ul>
           <Li>
             <strong>Setup</strong> — Typ (JWM/JEM), Altersklasse (U15 – U22, Open), Gender,
-            Stichtag und bis zu <strong>3 Quali-Regatten</strong> wählen. Standardmäßig
+            Stichtag und bis zu <strong>4 Quali-Regatten</strong> wählen. Standardmäßig
             zählen <em>nur deutsche Boote</em> (für die JWM/JEM-Nominierung).
           </Li>
           <Li>
@@ -721,7 +721,7 @@ export default function HilfePage() {
           <Li>
             <strong>Gewichteter Platz pro Regatta</strong>:{" "}
             <Code>weighted = finalRank × (maxStarters / startersDieserRegatta)</Code>.
-            <Code>maxStarters</Code> ist die Starter­zahl der größten der drei Regatten.
+            <Code>maxStarters</Code> ist die Starter­zahl der größten der ausgewählten Regatten.
             Effekt: ein Vorderplatz in einer schwach besetzten Regatta wird abgewertet, weil
             der Bruch &gt; 1 wird.
           </Li>

@@ -4,7 +4,7 @@
  * Gültig für Saison 2026.
  *
  * Regel:
- * - Bis zu 3 Regatten werden ausgewählt.
+ * - Bis zu 4 Regatten werden ausgewählt.
  * - Gewichteter Platz: weightedScore = finalRank × (maxStarters / thisRegattaStarters)
  * - qualiScore = Summe der 2 besten (niedrigsten) weightedScores
  * - ≥ 2 Ergebnisse → Hauptrangliste (qualiScore aufsteigend)

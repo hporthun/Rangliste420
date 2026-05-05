@@ -3,7 +3,7 @@
  *
  * Klassen-spezifische Sonderregel der 420er-KV (siehe
  * `docs/business-rules.md` §2.4 + §2.5). Anders als die DSV-Rangliste:
- * - 3 Regatten ausgewählt, beste 2 zählen
+ * - bis zu 4 Regatten ausgewählt, beste 2 zählen
  * - Gewichteter Score: `finalRank × (maxStarters / startersThisRegatta)`
  * - `germanOnly: true` (nur GER-Helms)
  * - **Schottenwechsel-Regel**: pro Helm 1× genehmigter Wechsel; sonst
@@ -176,8 +176,8 @@ export async function computeJwmJemAction(
     if (regattaIds.length === 0) {
       return { ok: false, error: "Mindestens eine Regatta muss ausgewählt sein." };
     }
-    if (regattaIds.length > 3) {
-      return { ok: false, error: "Maximal 3 Regatten können ausgewählt werden." };
+    if (regattaIds.length > 4) {
+      return { ok: false, error: "Maximal 4 Regatten können ausgewählt werden." };
     }
 
     const regattas = (await fetchRegattasByIds(regattaIds)).sort(
@@ -337,8 +337,8 @@ export async function saveJwmJemAction(
     if (regattaIds.length === 0) {
       return { ok: false, error: "Mindestens eine Regatta muss ausgewählt sein." };
     }
-    if (regattaIds.length > 3) {
-      return { ok: false, error: "Maximal 3 Regatten können ausgewählt werden." };
+    if (regattaIds.length > 4) {
+      return { ok: false, error: "Maximal 4 Regatten können ausgewählt werden." };
     }
 
     const regattas = await db.regatta.findMany({

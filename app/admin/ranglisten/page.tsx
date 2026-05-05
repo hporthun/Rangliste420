@@ -25,7 +25,7 @@ const RANGLISTEN_TOUR: TourStep[] = [
     target: '[data-tour="ranglisten-jwmjem"]',
     title: "JWM/JEM-Qualifikation",
     content:
-      "Klassenspezifische Sonderregel der 420er-KV: bis zu 3 Regatten auswählen, " +
+      "Klassenspezifische Sonderregel der 420er-KV: bis zu 4 Regatten auswählen, " +
       "die 2 besten gewichteten Platzierungen werden addiert. " +
       "Nur Steuerleute mit GER-Nationalität zählen.",
     placement: "bottom-end",

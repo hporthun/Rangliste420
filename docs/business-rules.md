@@ -118,7 +118,7 @@ weightedScore = finalRank × (maxStarters / startersThisRegatta)
 qualiScore    = Summe der 2 besten (niedrigsten) weightedScores
 ```
 
-- Bis zu 3 Regatten ausgewählt, beste 2 zählen
+- Bis zu 4 Regatten ausgewählt, beste 2 zählen
 - Nur Helms mit `Sailor.nationality = "GER"` (`germanOnly: true`
   in der Compute-Action)
 - Tiebreak: 1) niedrigster bester Einzel-weightedScore,

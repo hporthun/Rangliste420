@@ -77,6 +77,25 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.54",
+    date: "2026-05-05",
+    title: "JWM/JEM-Quali: bis zu 4 Regatten auswählbar",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            Beim Speichern und Berechnen einer JWM/JEM-Qualifikationsrangliste
+            warf die Server-Action mit „Maximal 3 Regatten können ausgewählt
+            werden" ab. Limit auf <strong>4 Regatten</strong> angehoben. Die
+            Wertung bleibt unverändert: weiterhin werden die{" "}
+            <strong>2 besten gewichteten Platzierungen</strong> addiert.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.53",
     date: "2026-05-05",
     title: "PDF-Import: englische Velaware-Variante",

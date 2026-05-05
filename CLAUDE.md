@@ -192,7 +192,7 @@ R_A = f × 100 × ((s + 1 − x) / s)
 - **Jahresrangliste**: 30.11., Regatten des Kalenderjahrs — gespeichert als Snapshot
 - **Aktuelle Rangliste**: 14 Tage vor Meldeschluss — **on-demand**, nicht gespeichert
 - **IDJM-Quali**: Gefilterte aktuelle Rangliste (U19/U16, R ≥ 25)
-- **JWM/JEM-Quali**: Klassenspezifische Sonderregel (3 Regatten, beste 2, nur Deutsche)
+- **JWM/JEM-Quali**: Klassenspezifische Sonderregel (bis zu 4 Regatten, beste 2, nur Deutsche)
 
 ### Fuzzy-Matching beim Import
 

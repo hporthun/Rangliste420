@@ -102,7 +102,7 @@ export default async function JwmJemPage({ searchParams }: Props) {
               : "JWM/JEM-Qualifikationsrangliste berechnen"}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Klassenspezifische Sonderregel (420er-Klassenvereinigung). Bis zu 3
+            Klassenspezifische Sonderregel (420er-Klassenvereinigung). Bis zu 4
             Regatten, beste 2 gewichtet.
           </p>
         </div>
@@ -153,7 +153,7 @@ export default async function JwmJemPage({ searchParams }: Props) {
         {/* Regatta checkboxes with year + name filter */}
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground uppercase">
-            Regatten auswählen (max. 3)
+            Regatten auswählen (max. 4)
           </p>
           {allRegattas.length === 0 ? (
             <p className="text-sm text-muted-foreground">

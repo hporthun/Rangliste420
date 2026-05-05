@@ -8,6 +8,22 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.54] — 2026-05-05
+
+**JWM/JEM-Quali: bis zu 4 Regatten auswählbar.**
+
+### Korrigiert
+
+- Beim Speichern und Berechnen einer JWM/JEM-Qualifikationsrangliste
+  warf die Server-Action mit „Maximal 3 Regatten können ausgewählt
+  werden" ab. Limit auf 4 Regatten angehoben (Compute-Action und
+  Save-Action). Die Wertung bleibt unverändert: weiterhin werden die
+  **2 besten gewichteten Platzierungen** addiert.
+- UI-Texte, Onboarding-Tour und Hilfe-Seite passen jetzt durchgängig
+  zur neuen Obergrenze.
+
+---
+
 ## [2026.05.53] — 2026-05-05
 
 **Neuer PDF-Parser für englische Velaware-Exporte.**
