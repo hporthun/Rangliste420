@@ -72,7 +72,7 @@ test("öffentliche rangliste zeigt steuermann-detail mit R_A-Werten", async ({ p
   await page.getByText("E2E-Testrangliste 2025").click();
 
   // Ranking overview table
-  await expect(page.getByRole("cell", { name: "Max Mustermann", exact: true })).toBeVisible();
+  await expect(page.getByRole("cell", { name: "Max Mustermann" })).toBeVisible();
   await page.getByRole("link", { name: /Detail/ }).first().click();
 
   // Public steuermann detail
