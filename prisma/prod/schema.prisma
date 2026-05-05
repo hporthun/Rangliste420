@@ -8,17 +8,15 @@
 //             && next build
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../../generated/prisma"
 }
 
 datasource db {
-  // Pooled connection (PgBouncer) — used by the application at runtime.
-  // For Neon the pooled URL ends with `-pooler.<region>.neon.tech`.
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  // Direct (non-pooled) connection — required by Prisma Migrate.
-  // Falls back to DATABASE_URL when DATABASE_URL_UNPOOLED is unset.
-  directUrl = env("DATABASE_URL_UNPOOLED")
+  // Pooled (Application-Runtime) und Unpooled (Migrate) Connection-URLs
+  // sind in Prisma 7 nicht mehr im Schema, sondern in prisma.config.ts
+  // bzw. werden vom Driver-Adapter zur Laufzeit aus DATABASE_URL gelesen.
+  provider = "postgresql"
 }
 
 model Sailor {

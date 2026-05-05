@@ -1,8 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import { createPrismaClient } from "../lib/db/client";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
-const db = new PrismaClient();
+const db = createPrismaClient();
 
 async function main() {
   const email = "hajo@porthun.de";

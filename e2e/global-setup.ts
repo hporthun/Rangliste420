@@ -1,4 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../generated/prisma/client";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import bcrypt from "bcryptjs";
 import * as fs from "fs";
 import * as path from "path";
@@ -11,7 +12,10 @@ export default async function globalSetup() {
 
   // By now the webServer has run `npx prisma migrate deploy` so tables exist.
   // GlobalSetup only seeds the data.
-  const db = new PrismaClient({ datasourceUrl: TEST_DB_URL });
+  // Prisma 7: Adapter trägt die URL (datasourceUrl-Option entfällt).
+  const db = new PrismaClient({
+    adapter: new PrismaBetterSqlite3({ url: TEST_DB_URL }),
+  });
 
   try {
     // Clean slate — FK-safe delete order

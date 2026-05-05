@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import type { Sailor } from "@prisma/client";
+import type { Sailor } from "@/generated/prisma/client";
 
 type Props = {
   action: (data: FormData) => Promise<{ ok: boolean; error?: unknown }>;
