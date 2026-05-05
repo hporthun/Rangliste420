@@ -8,6 +8,35 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.50] — 2026-05-05
+
+**Prisma 5 -> 6 (Schritt 1 von 2).**
+
+### Geaendert
+
+- **Issue #63 (PR 1/2)**: Prisma-ORM von 5.22 auf 6.19.3 gehoben.
+  Drop-in-Bump fuer unser Schema — keine Daten-Migration und
+  keine Code-Aenderungen noetig:
+  - Kein `Bytes`-Feld im Schema (kein `Buffer`/`Uint8Array`-Wechsel)
+  - Keine `$use`-Middleware (keine Client-Extensions noetig)
+  - Keine impliziten m-n-Relationen (alle Junction-Tables wie
+    `RankingRegatta` haben explizite `@@id` — daher kein
+    PG-Primary-Key-Auto-Migration-Fall)
+  - Keine `findUniqueOrThrow`/`findFirstOrThrow`-Aufrufe
+    (kein `P2025`-Catch-Update noetig)
+  - Keine reservierten Modellnamen (`async`/`await`/`using`)
+- Beide Schemas (`prisma/schema.prisma` SQLite,
+  `prisma/prod/schema.prisma` PostgreSQL) generieren ohne Drift.
+
+### Hinweis
+
+Prisma 6 zeigt eine Deprecation-Warnung fuer den
+`package.json#prisma`-Block (Seed-Hook). Der wird mit Schritt 6 -> 7
+nach `prisma.config.ts` umziehen — separate Migration, nicht in
+diesem Release.
+
+---
+
 ## [2026.05.49] — 2026-05-05
 
 **Passkey-Library auf Stand 13.x.**

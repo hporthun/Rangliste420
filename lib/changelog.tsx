@@ -77,6 +77,29 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.50",
+    date: "2026-05-05",
+    title: "Prisma 5 → 6 (Schritt 1 von 2)",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            <strong>Issue #63 (PR 1/2)</strong>: Prisma-ORM von
+            5.22 auf 6.19.3 gehoben. Drop-in-Bump für unser Schema —
+            keine Daten-Migration, keine Code-Änderungen nötig
+            (kein <code>Bytes</code>-Feld, keine{" "}
+            <code>$use</code>-Middleware, keine impliziten m-n-
+            Relationen, keine <code>findUniqueOrThrow</code>-
+            Aufrufe). Beide Schemas (dev SQLite, prod PostgreSQL)
+            generieren ohne Drift. Schritt 6 → 7 folgt separat
+            (Generator-Wechsel + Driver-Adapter, größere Migration).
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.49",
     date: "2026-05-05",
     title: "Passkey-Library auf Stand 13.x",
