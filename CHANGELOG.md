@@ -8,6 +8,21 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.55] — 2026-05-05
+
+**Suchfeld in den Ranglisten zeigt nur noch ein Löschkreuz.**
+
+### Korrigiert
+
+- Im Suchfeld auf den Ranglisten-Detailseiten erschienen unter
+  Chrome/Safari/Edge zwei Löschkreuze nebeneinander: das eigene
+  ✕-Icon der Komponente und zusätzlich das vom Browser eingebaute
+  Clear-Symbol bei `<input type="search">`. Die nativen Buttons
+  werden jetzt global per CSS ausgeblendet — die Custom-Buttons
+  bleiben erhalten.
+
+---
+
 ## [2026.05.54] — 2026-05-05
 
 **JWM/JEM-Quali: bis zu 4 Regatten auswählbar.**

@@ -315,6 +315,26 @@
   }
 }
 
+/* Native Clear-Button bei <input type="search"> ausblenden — wir
+   rendern eigene Clear-Buttons (Konsistenz mit type="text"-Suchen),
+   sonst erscheinen in Chrome/Safari/Edge zwei Loeschkreuze.
+   `display: none` ist zuverlaessiger als `appearance: none`, das
+   Cancel-Button reagiert auf appearance-Reset nicht in allen Engines. */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+input[type="search"]::-ms-clear,
+input[type="search"]::-ms-reveal {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 @layer components {
   /* ── Inputs ──────────────────────────────────────────────────────────── */
   .input {

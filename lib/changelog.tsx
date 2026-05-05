@@ -77,6 +77,26 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.55",
+    date: "2026-05-05",
+    title: "Suchfeld zeigt nur noch ein Löschkreuz",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            Im Suchfeld auf den Ranglisten-Detailseiten erschienen unter
+            Chrome, Safari und Edge zwei Löschkreuze nebeneinander: das
+            eigene ✕-Icon der Komponente und zusätzlich das vom Browser
+            eingebaute Clear-Symbol bei <code>type=&quot;search&quot;</code>.
+            Die nativen Buttons werden jetzt global per CSS ausgeblendet,
+            sodass nur noch das Custom-Icon sichtbar ist.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.54",
     date: "2026-05-05",
     title: "JWM/JEM-Quali: bis zu 4 Regatten auswählbar",
