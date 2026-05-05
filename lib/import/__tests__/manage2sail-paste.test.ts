@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "fs";
 import { resolve } from "path";
-import { parsePaste } from "../manage2sail-paste";
+import { parseName, parsePaste } from "../manage2sail-paste";
 
 const fixture = readFileSync(
   resolve(__dirname, "../__fixtures__/wapo2026-paste.txt"),
@@ -106,5 +106,56 @@ describe("parsePaste edge cases", () => {
   it("returns empty entries for header-only input", () => {
     const headerOnly = "Nr\tSegel Nummer\t\nMannschaft\nVerein\tT.\tN.\tR1\tR2\n";
     expect(parsePaste(headerOnly).entries).toHaveLength(0);
+  });
+});
+
+describe("parseName (Issue #65: Initialen-Edge-Cases)", () => {
+  it("Initial mit Punkt: 'Eckhard A. SCHMIDT'", () => {
+    expect(parseName("Eckhard A. SCHMIDT")).toEqual({
+      firstName: "Eckhard A.",
+      lastName: "SCHMIDT",
+    });
+  });
+
+  it("Single-Letter-Initialen am Anfang: 'A M SCHMIDT'", () => {
+    expect(parseName("A M SCHMIDT")).toEqual({
+      firstName: "A M",
+      lastName: "SCHMIDT",
+    });
+  });
+
+  it("All-caps Doppel-Nachname: 'Jean Claude PETIT DUPONT'", () => {
+    expect(parseName("Jean Claude PETIT DUPONT")).toEqual({
+      firstName: "Jean Claude",
+      lastName: "PETIT DUPONT",
+    });
+  });
+
+  it("Hyphenated firstName: 'Klaus-Dieter MÜLLER'", () => {
+    expect(parseName("Klaus-Dieter MÜLLER")).toEqual({
+      firstName: "Klaus-Dieter",
+      lastName: "MÜLLER",
+    });
+  });
+
+  it("Nobiliar-Partikel all-caps: 'Hans-Peter VON KRUSE'", () => {
+    expect(parseName("Hans-Peter VON KRUSE")).toEqual({
+      firstName: "Hans-Peter",
+      lastName: "VON KRUSE",
+    });
+  });
+
+  it("Mehrteiliges Nobiliar-Partikel: 'Klaus VON DER MARK'", () => {
+    expect(parseName("Klaus VON DER MARK")).toEqual({
+      firstName: "Klaus",
+      lastName: "VON DER MARK",
+    });
+  });
+
+  it("Initial mit Punkt zwischen Vor- und Nachnamen: 'Ali B. CABRAL'", () => {
+    expect(parseName("Ali B. CABRAL")).toEqual({
+      firstName: "Ali B.",
+      lastName: "CABRAL",
+    });
   });
 });

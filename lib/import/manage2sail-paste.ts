@@ -54,12 +54,16 @@ const SAIL_RE = /^\s*((?:[A-Z]{3}\s+)?\d{4,6})\s*$/;
 const CLUB_TOTALS_RE = /^(.+?)\t([\d.]+)\t([\d.]+)\t?$/;
 
 /** Splits "Firstname(s) LASTNAME" → { firstName, lastName }. LASTNAME is all-uppercase. */
-function parseName(raw: string): { firstName: string; lastName: string } {
+export function parseName(raw: string): { firstName: string; lastName: string } {
   const parts = raw.trim().split(/\s+/);
   let lastNameStart = parts.length - 1;
   for (let i = 0; i < parts.length; i++) {
     const w = parts[i];
-    if (w === w.toUpperCase() && /[A-ZÄÖÜ]/.test(w)) {
+    // Single-Letter-Initialen ("A", "M") und Initialen mit Punkt ("A.")
+    // sind Vornamen-Abkürzungen, nicht der Anfang des Nachnamens.
+    // Erst all-caps-Worte mit ≥ 2 Buchstaben starten den Nachnamen.
+    const letterCount = w.replace(/[^A-Za-zÄÖÜäöüß]/g, "").length;
+    if (letterCount >= 2 && w === w.toUpperCase() && /[A-ZÄÖÜ]/.test(w)) {
       lastNameStart = i;
       break;
     }
