@@ -8,6 +8,31 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.53] — 2026-05-05
+
+**Neuer PDF-Parser für englische Velaware-Exporte.**
+
+### Neu
+
+- PDF-Import erkennt jetzt auch Velaware-Ergebnislisten mit englischen
+  Spaltenüberschriften (`Rank | nat | sailno | Helmsman | Crew |
+  birthdate | m/f | club | R1…Rn | Netto`). Solche Listen tauchen z. B.
+  bei Regatten in Italien („5 Lupo Cup 420" / Circolo Vela Torbole) auf
+  und scheiterten bisher mit „Keine Ergebnisse im PDF gefunden", weil
+  der Auto-Detect nur die italienische Variante (Stichwort `Punti`)
+  kannte.
+- Nationalitäts-Filter zieht aus der separaten `nat`-Spalte deutsche
+  Crews heraus; ausländische Teilnehmer zählen weiter in `s` für die
+  DSV-Formel (siehe `docs/business-rules.md` §3.4).
+
+### Bekannt
+
+- Sonderzeichen in Club-Namen aus betroffenen PDFs erscheinen teils
+  doppelt encodiert (z. B. `Grünau` → `GrÃ¼nau`). Tracked in
+  Issue #66.
+
+---
+
 ## [2026.05.52] — 2026-05-05
 
 **Mobile-Empty-States kein horizontales Scrollen mehr.**

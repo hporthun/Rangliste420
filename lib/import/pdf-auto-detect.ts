@@ -7,7 +7,8 @@
  *   2. Sailwave    – page-1 item with text "crewname" (case-insensitive)
  *   3. SailResults – page-1 item with text "flight"
  *   4. Velaware    – page-1 item with text "punti" (Italian scoring)
- *   5. unknown     – tries all parsers and returns first with entries
+ *   5. Velaware EN – page-1 items "helmsman" + "crew" + "netto" (English variant)
+ *   6. unknown     – tries all parsers and returns first with entries
  */
 
 import type { ParsedEntry, ParsedRegatta } from "./manage2sail-paste";
@@ -49,6 +50,7 @@ export type PdfFormat =
   | "sailwave"
   | "sailresults"
   | "velaware"
+  | "velaware-en"
   | "unknown";
 
 /**
@@ -61,6 +63,10 @@ export function detectPdfFormat(page1Texts: string[]): PdfFormat {
   if (set.has("crewname")) return "sailwave";
   if (set.has("flight")) return "sailresults";
   if (set.has("punti")) return "velaware";
+  // English Velaware export (e.g. Circolo Vela Torbole "Lupo Cup"): the
+  // "punti" header is replaced by "Netto", and helm/crew sit in their own
+  // columns. Distinct enough to detect by "Helmsman" + "Netto".
+  if (set.has("helmsman") && set.has("netto")) return "velaware-en";
   return "unknown";
 }
 
@@ -100,6 +106,9 @@ export async function parsePdf(
   } else if (format === "velaware") {
     const { parsePages } = await import("./velaware-pdf");
     result = filterGerman(parsePages(pages));
+  } else if (format === "velaware-en") {
+    const { parsePages } = await import("./velaware-en-pdf");
+    result = filterGerman(parsePages(pages));
   } else {
     // Unknown format: try all parsers and take the first with entries
     const parsers = [
@@ -107,6 +116,7 @@ export async function parsePdf(
       () => import("./sailwave-pdf").then((m) => filterGerman(m.parsePages(pages))),
       () => import("./sailresults-pdf").then((m) => filterGerman(m.parsePages(pages))),
       () => import("./velaware-pdf").then((m) => filterGerman(m.parsePages(pages))),
+      () => import("./velaware-en-pdf").then((m) => filterGerman(m.parsePages(pages))),
     ];
     for (const tryParser of parsers) {
       try {
@@ -123,7 +133,7 @@ export async function parsePdf(
 
   if (!result || result.entries.length === 0) {
     throw new Error(
-      "Keine Ergebnisse im PDF gefunden (oder keine deutschen Teilnehmer). Unterstützte Formate: Velaware, SailResults (Carnival), Sailwave, Sailwave 2.38+."
+      "Keine Ergebnisse im PDF gefunden (oder keine deutschen Teilnehmer). Unterstützte Formate: Velaware (IT/EN), SailResults (Carnival), Sailwave, Sailwave 2.38+."
     );
   }
 

@@ -36,6 +36,36 @@ describe("parsePdf – image-only PDF", () => {
   });
 });
 
+describe("detectPdfFormat – format detection by header keywords", () => {
+  it("Italian Velaware → 'velaware' (Punti)", async () => {
+    const { detectPdfFormat } = await import("../pdf-auto-detect");
+    expect(detectPdfFormat(["Nº", "Numero velico", "Nome", "Punti"])).toBe(
+      "velaware"
+    );
+  });
+
+  it("English Velaware → 'velaware-en' (Helmsman + Netto)", async () => {
+    const { detectPdfFormat } = await import("../pdf-auto-detect");
+    expect(
+      detectPdfFormat([
+        "Rank",
+        "nat",
+        "sailno",
+        "Helmsman",
+        "Crew",
+        "Netto",
+      ])
+    ).toBe("velaware-en");
+  });
+
+  it("Sailwave2 keyword takes priority over later checks", async () => {
+    const { detectPdfFormat } = await import("../pdf-auto-detect");
+    expect(detectPdfFormat(["Crewman 1 Name", "Helmsman", "Netto"])).toBe(
+      "sailwave2"
+    );
+  });
+});
+
 describe("filterGerman – totalStarters bleibt Pre-Filter (Issue #55)", () => {
   it("totalStarters spiegelt die Gesamtzahl, nicht die GER-gefilterte Anzahl", async () => {
     const { filterGerman } = await import("../pdf-auto-detect");

@@ -77,6 +77,33 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.53",
+    date: "2026-05-05",
+    title: "PDF-Import: englische Velaware-Variante",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Der PDF-Import erkennt jetzt auch Velaware-Ergebnislisten mit
+            englischen Spaltenüberschriften (<code>Rank | nat | sailno |
+            Helmsman | Crew | birthdate | m/f | club | R1…Rn | Netto</code>).
+            Solche Listen tauchen z.&nbsp;B. bei Regatten in Italien („5 Lupo
+            Cup 420" / Circolo Vela Torbole) auf und scheiterten bisher mit
+            „Keine Ergebnisse im PDF gefunden", weil der Auto-Detect nur die
+            italienische Variante (Stichwort <code>Punti</code>) kannte.
+          </>,
+          <>
+            Der NAT-Filter wertet die separate <code>nat</code>-Spalte aus,
+            so dass deutsche Crews korrekt herausgezogen werden und die
+            ausländische Gesamtteilnehmerzahl weiterhin in <code>s</code>{" "}
+            für die DSV-Formel zählt.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.52",
     date: "2026-05-05",
     title: "Mobile-Empty-States kein horizontales Scrollen mehr",
