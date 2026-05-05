@@ -8,6 +8,35 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.48] — 2026-05-05
+
+**Import-Robustheit & E2E-Stabilitaet.**
+
+### Korrigiert
+
+- **Issue #65**: `parseName` im Manage2Sail-Paste-Parser
+  (`lib/import/manage2sail-paste.ts`) behandelte Single-Letter-
+  Initialen ("A", "M") und Initialen mit Punkt ("A.") als Anfang
+  des Nachnamens, weil sie die all-caps-Bedingung erfuellen.
+  Resultat: "Eckhard A. SCHMIDT" wurde zu Vorname "Eckhard" +
+  Nachname "A. SCHMIDT". Jetzt: Worte mit < 2 Buchstaben werden
+  als Vornamen-Abkuerzungen uebersprungen — bestehende Faelle
+  (hyphenated firstName, Nobiliar-Partikel `VON`/`VAN`,
+  mehrteilige Nachnamen) bleiben unveraendert.
+- **Issue #62**: `e2e/ranking.spec.ts:75` schlug reproduzierbar
+  fehl, weil das `MissingBirthYearBadge` ("ohne Jahrgang") seit
+  Issue #52 inline neben dem Namen rendert und der
+  exact-Cell-Match dadurch brach. `exact: true` entfernt,
+  konsistent zur Admin-Preview-Erwartung in derselben Datei.
+
+### Neu
+
+- 7 dedizierte `parseName`-Edge-Case-Tests in
+  `lib/import/__tests__/manage2sail-paste.test.ts`
+  (Issue #65). `parseName` ist jetzt exportiert.
+
+---
+
 ## [2026.05.47] — 2026-05-05
 
 **inStartArea-Heuristik vereinheitlicht.**

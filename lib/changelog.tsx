@@ -77,6 +77,33 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.48",
+    date: "2026-05-05",
+    title: "Import-Robustheit & E2E-Stabilität",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            <strong>Issue #65</strong>: Der Manage2Sail-Paste-Parser
+            zerlegte Namen mit Initialen falsch.{" "}
+            <code>"Eckhard A. SCHMIDT"</code> wurde z.B. zu Vorname{" "}
+            <code>"Eckhard"</code> + Nachname{" "}
+            <code>"A. SCHMIDT"</code>. Jetzt werden Single-Letter-
+            Initialen und Initialen mit Punkt korrekt als Vornamen-
+            Abkürzungen erkannt.
+          </>,
+          <>
+            <strong>Issue #62</strong>: Ein E2E-Test in{" "}
+            <code>ranking.spec.ts</code> schlug fehl, weil das{" "}
+            <code>"ohne Jahrgang"</code>-Badge in der öffentlichen
+            Ranglistentabelle den exakten Cell-Match brach.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.47",
     date: "2026-05-05",
     title: "inStartArea-Heuristik vereinheitlicht",
