@@ -61,20 +61,14 @@ export type DsvRankingInput = {
   ageCategory: AgeCategory;
   genderCategory: GenderCategory;
   /**
-   * Age check reference date.
-   * Jahresrangliste: new Date(seasonYear, 11, 31)
-   * Wird ignoriert wenn `useRegattaDateForAge: true`.
+   * Age check reference date. Das gesamte Saisonjahr gilt — ausgewertet
+   * wird nur der Jahr-Teil (`getFullYear()`). Beispiele:
+   *   Jahresrangliste:    new Date(seasonYear, 11, 31)
+   *   Aktuelle Rangliste: new Date()
+   *   IDJM-Quali:         Saisonstichtag (siehe docs/business-rules.md §2.3)
    */
   referenceDate: Date;
   regattas: RegattaData[];
-  /**
-   * Wenn true, wird das Alterskriterium pro Regatta gegen `regatta.startDate`
-   * geprüft statt gegen `referenceDate` (IDJM-Quali-Modus, siehe MO Anlage
-   * Jugend MO 10). Wichtig: `s` = Gesamtteilnehmerzahl bleibt unverändert,
-   * d.h. ausländische Boote zählen weiterhin in s und x — nur die
-   * Helm/Crew-Filterung läuft pro Regatta.
-   */
-  useRegattaDateForAge?: boolean;
   /**
    * Gruppiert die Rangliste nach Steuermann (HELM, Standard) oder
    * nach Vorschoter (CREW). Einträge ohne bekannte crewId werden in
@@ -164,7 +158,7 @@ export function calculateRAForResult(
  * Pass pre-fetched regattas with their results.
  */
 export function calculateDsvRanking(input: DsvRankingInput): DsvRankingResult {
-  const { ageCategory, genderCategory, referenceDate, regattas, useRegattaDateForAge, scoringUnit = "HELM" } = input;
+  const { ageCategory, genderCategory, referenceDate, regattas, scoringUnit = "HELM" } = input;
 
   const sailorValues = new Map<string, RankingValue[]>();
 
@@ -181,16 +175,10 @@ export function calculateDsvRanking(input: DsvRankingInput): DsvRankingResult {
 
     if (s === 0 || m === 0) continue;
 
-    // Für IDJM-Quali (useRegattaDateForAge): pro Regatta wird das
-    // Alterskriterium gegen regatta.startDate geprüft, sodass eine
-    // Crew, die im Saisonverlauf zu alt wurde, nicht mehr für spätere
-    // Regatten zählt.
-    const ageRef = useRegattaDateForAge ? regatta.startDate : referenceDate;
-
     for (const result of regatta.results) {
       const { teamEntry } = result;
 
-      if (!matchesAgeCategory(teamEntry, ageCategory, ageRef)) continue;
+      if (!matchesAgeCategory(teamEntry, ageCategory, referenceDate)) continue;
       if (!matchesGenderCategory(teamEntry, genderCategory)) continue;
 
       // Single source of truth für die "inStartArea = R_A 0"-Logik.

@@ -47,7 +47,7 @@
 │   │   ├── dsv.ts                 # Kernformel + calculateDsvRanking
 │   │   ├── multiplier.ts          # m-Staffel
 │   │   ├── filters.ts             # matchesAgeCategory / matchesGenderCategory
-│   │   ├── idjm-quali.ts          # IDJM-Wrapper (per-regatta age + R≥25)
+│   │   ├── idjm-quali.ts          # IDJM-Wrapper (Saisonstichtag-Age + R ≥ 25)
 │   │   └── jwm-jem-quali.ts       # JWM/JEM mit Schottenwechsel-Partitionierung
 │   ├── import/                    # Pure Functions: Parser + Fuzzy-Matching
 │   │   ├── manage2sail-paste.ts   # Web-Copy-Paste-Parser
