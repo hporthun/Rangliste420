@@ -370,3 +370,20 @@ model AuditLog {
   @@index([createdAt])
   @@index([userId])
 }
+
+// ── RateLimitEntry ────────────────────────────────────────────────────────────
+// Sliding-Window-Counter fuer IP- (oder User-) basiertes Rate-Limiting,
+// Issue #59. Persistent in der DB, weil Vercel-Serverless-Instanzen ihren
+// In-Memory-State zwischen Cold-Starts verlieren. Cleanup laeuft lazy
+// beim Lesen — Eintraege ohne aktuelle Timestamps werden geloescht.
+//
+// `key` ist ein zusammengesetzter Schluessel, z.B. "login:1.2.3.4".
+// `timestamps` ist ein JSON-Array von epoch-ms-Werten (String, weil sowohl
+// SQLite als auch Postgres-Schema kompatibel bleiben sollen).
+model RateLimitEntry {
+  key        String   @id
+  timestamps String
+  updatedAt  DateTime @updatedAt
+
+  @@index([updatedAt])
+}

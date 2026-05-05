@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
   const ip = getIp(req.headers);
 
   // ── Rate limit ───────────────────────────────────────────────────────────────
-  const rl = checkRateLimit(`login:${ip}`, RATE_LIMIT_MAX, RATE_LIMIT_WINDOW_MS);
+  const rl = await checkRateLimit(`login:${ip}`, RATE_LIMIT_MAX, RATE_LIMIT_WINDOW_MS);
   if (!rl.allowed) {
     const retryAfterSec = Math.ceil((rl.resetAt - Date.now()) / 1000);
     await logAudit({ action: A.LOGIN_FAILED, detail: `Rate limit (IP: ${ip})`, ip });

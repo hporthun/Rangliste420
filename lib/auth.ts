@@ -158,7 +158,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           where: { id: user.id },
           data: { failedLoginAttempts: 0, lockedUntil: null },
         });
-        resetRateLimit(`login:${ip}`);
+        await resetRateLimit(`login:${ip}`);
 
         await logAudit({ userId: user.id, action: A.LOGIN_SUCCESS, detail: identifier, ip });
 
