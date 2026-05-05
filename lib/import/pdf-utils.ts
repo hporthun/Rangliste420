@@ -84,8 +84,10 @@ export async function extractPageItems(
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
 
   const data = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+  // isEvalSupported entfaellt seit pdfjs-dist 5.7 — eval ist standardmaessig
+  // deaktiviert, der Parameter wurde aus den Types entfernt.
   const doc = await pdfjs
-    .getDocument({ data, useWorkerFetch: false, isEvalSupported: false })
+    .getDocument({ data, useWorkerFetch: false })
     .promise;
   const pages: RawItem[][] = [];
   for (let p = 1; p <= doc.numPages; p++) {

@@ -105,7 +105,8 @@ type EntryBlock = {
 export async function parsePdfBuffer(buffer: ArrayBuffer | Uint8Array): Promise<ParsedRegatta> {
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
   const data = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
-  const doc = await pdfjs.getDocument({ data, useWorkerFetch: false, isEvalSupported: false }).promise;
+  // isEvalSupported entfaellt seit pdfjs-dist 5.7 (eval per Default deaktiviert).
+  const doc = await pdfjs.getDocument({ data, useWorkerFetch: false }).promise;
 
   const entries: ParsedEntry[] = [];
   let currentBlock: EntryBlock | null = null;
