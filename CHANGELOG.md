@@ -8,6 +8,24 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.42] — 2026-05-05
+
+**Update-Glocke nur fuer angemeldete Benutzer.**
+
+### Geaendert
+
+- Die App-Update-Markierung in der Glocke (und im OS-AppBadge)
+  erscheint nur noch, wenn man angemeldet ist — anonyme Visitors
+  haben keinen Zugriff auf /admin/changelog, und ein Klick fuehrte
+  sie bisher in die Login-Wand. Inhalts-Updates (neue Rangliste,
+  neue Regatta) bleiben fuer alle sichtbar.
+- Technisch: /api/badge liefert latestChangelogVersion nur an
+  authentifizierte Sessions. unreadItems() und countNew() springen
+  fuer die changelog-Kategorie damit nur dann an, wenn der Server
+  sie auch ausgeliefert hat.
+
+---
+
 ## [2026.05.41] — 2026-05-04
 
 **Glocke: schneller frischer Stand + verschwindet beim Klick.**

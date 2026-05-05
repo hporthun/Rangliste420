@@ -1,19 +1,22 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db/client";
 import { ENTRIES } from "@/lib/changelog";
+import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 /**
  * Public state used by the client-side App Badge (Issue #35).
  *
- * Returns three "latest known" markers — one per badgeable category. The
- * client compares them with values stored in localStorage and computes the
- * badge count locally; the server never sees per-user state, so this endpoint
- * needs no auth and can be cached aggressively per-deployment.
+ * Returns three "latest known" markers — one per badgeable category. Der
+ * Client vergleicht sie mit den localStorage-Werten und berechnet die
+ * Badge-Zaehlung lokal.
  *
  * Categories
- * - changelog: bumped whenever a new release entry is added (build-time)
+ * - changelog: bumped whenever a new release entry is added (build-time).
+ *   ONLY returned for authenticated requests — anonyme Visitors haben keinen
+ *   Zugriff auf /admin/changelog, deshalb ist eine Update-Glocke fuer sie
+ *   nutzlos (Klick fuehrt zur Login-Wand).
  * - regatta:   newest visible Ranglistenregatta (createdAt)
  * - ranking:   newest published public ranking (publishedAt)
  */
@@ -28,7 +31,8 @@ export type BadgeState = {
 };
 
 export async function GET() {
-  const [latestRegatta, latestRanking] = await Promise.all([
+  const [session, latestRegatta, latestRanking] = await Promise.all([
+    auth(),
     db.regatta.findFirst({
       where: { isRanglistenRegatta: true },
       orderBy: { createdAt: "desc" },
@@ -41,8 +45,13 @@ export async function GET() {
     }),
   ]);
 
+  const isSignedIn = !!session?.user;
+
   const body: BadgeState = {
-    latestChangelogVersion: ENTRIES[0]?.version ?? null,
+    // Changelog-Marker nur fuer angemeldete Sitzungen — anonyme Visitors
+    // koennen die Detailseite nicht oeffnen, deshalb darf die Glocke ihnen
+    // den Eintrag auch nicht anbieten.
+    latestChangelogVersion: isSignedIn ? ENTRIES[0]?.version ?? null : null,
     latestRegattaCreatedAt: latestRegatta?.createdAt.toISOString() ?? null,
     latestRegattaId: latestRegatta?.id ?? null,
     latestRegattaName: latestRegatta?.name ?? null,

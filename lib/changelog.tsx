@@ -77,6 +77,33 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.42",
+    date: "2026-05-05",
+    title: "Update-Glocke nur für angemeldete Benutzer",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            Die <strong>App-Update</strong>-Markierung in der Glocke (und im
+            OS-AppBadge) erscheint nur noch, wenn man angemeldet ist —
+            anonyme Visitors haben keinen Zugriff auf{" "}
+            <code>/admin/changelog</code>, und ein Klick führte sie bisher in
+            die Login-Wand. Inhalts-Updates (neue Rangliste, neue Regatta)
+            bleiben für alle sichtbar.
+          </>,
+          <>
+            Technisch: <code>/api/badge</code> liefert{" "}
+            <code>latestChangelogVersion</code> nur an authentifizierte
+            Sessions. <code>unreadItems()</code> und <code>countNew()</code>
+            {" "}springen für die changelog-Kategorie damit nur dann an, wenn
+            der Server sie auch ausgeliefert hat.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.41",
     date: "2026-05-04",
     title: "Glocke: schneller frischer Stand + verschwindet beim Klick",
