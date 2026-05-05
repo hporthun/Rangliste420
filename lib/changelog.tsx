@@ -77,6 +77,28 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.49",
+    date: "2026-05-05",
+    title: "Passkey-Library auf Stand 13.x",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            <strong>Issue #64</strong>: Major-Bump der WebAuthn-Library{" "}
+            <code>@simplewebauthn</code> von 9.x auf 13.x. Touchpoints
+            in Login-Form, Konto-Seite und den vier{" "}
+            <code>/api/webauthn/*</code>-Routes auf die neue API
+            (Objekt-Parameter, <code>credential</code>-Sub-Objekt,
+            BufferSource-userID) umgestellt. Bestehende Passkeys in
+            der Datenbank bleiben kompatibel — keine Daten-Migration
+            nötig.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.48",
     date: "2026-05-05",
     title: "Import-Robustheit & E2E-Stabilität",

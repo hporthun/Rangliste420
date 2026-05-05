@@ -8,6 +8,52 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.49] — 2026-05-05
+
+**Passkey-Library auf Stand 13.x.**
+
+### Geaendert
+
+- **Issue #64**: Major-Bump der WebAuthn-Library
+  `@simplewebauthn/browser` und `/server` von 9.x auf 13.x.
+  `@simplewebauthn/types` ist mit v13 deprecated und wurde
+  entfernt — die Types kommen jetzt direkt aus den
+  `browser`/`server`-Paketen.
+- **API-Umstellungen** (v10–v13 Breaking Changes):
+  - `startAuthentication` / `startRegistration` werden mit
+    `{ optionsJSON: options }` aufgerufen (v10).
+  - `generateRegistrationOptions.userID` ist BufferSource statt
+    String — Konvertierung via `TextEncoder` (v10).
+  - `excludeCredentials/allowCredentials.id` sind Base64URL-
+    Strings statt `Uint8Array` (v10).
+  - `verifyRegistrationResponse` liefert ein
+    `registrationInfo.credential`-Sub-Objekt (v11) — die
+    flachen Felder `credentialID`/`credentialPublicKey`/
+    `counter` sind weg.
+  - `verifyAuthenticationResponse`-Parameter heisst jetzt
+    `credential` (Typ `WebAuthnCredential`) statt
+    `authenticator` (v11).
+- **DB-Schema unveraendert.** Bestehende Passkeys in der
+  `WebAuthnCredential`-Tabelle bleiben kompatibel: `credentialId`
+  (Base64URL-String), `publicKey` (Base64URL), `counter`
+  (BigInt), `transports` (JSON-Array) passen ohne Migration zur
+  neuen API.
+
+### Hinweis
+
+`next-auth` v5-beta listet `@simplewebauthn` 9.x als peer-dep —
+wird via `.npmrc legacy-peer-deps` toleriert. Wir nutzen den
+WebAuthn-Provider von next-auth nicht (eigener Stack unter
+`app/api/webauthn/*`), daher kein Runtime-Konflikt.
+
+### Verifikation
+
+Manueller Passkey-Roundtrip (Register + Login) pro Browser/
+Authenticator-Setup ist Pflicht — nicht via Unit/E2E-Tests
+abdeckbar.
+
+---
+
 ## [2026.05.48] — 2026-05-05
 
 **Import-Robustheit & E2E-Stabilitaet.**
