@@ -8,6 +8,27 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.46] — 2026-05-05
+
+**Rate-Limit serverless-tauglich (DB-basiert).**
+
+### Geaendert
+
+- **Issue #59**: Der Login-Pre-Check-Rate-Limiter
+  (`lib/security/rate-limit.ts`) wurde von einer In-Memory-Map auf
+  eine `RateLimitEntry`-Tabelle in der DB umgebaut. Auf Vercel
+  haben parallele Lambda-Instanzen und Cold-Starts vorher zu
+  effektiv `n × maxRequests` Versuchen gefuehrt — jetzt sieht jede
+  Instanz denselben Counter.
+- Lazy-Cleanup: Eintraege ohne aktuelle Timestamps werden beim
+  naechsten Lesen verworfen. Zusatz-Helper
+  `purgeStaleRateLimitEntries(maxAgeMs)` steht fuer einen optionalen
+  Cron-Cleanup bereit, ist aber bei aktuellem Volumen nicht noetig.
+- Per-User-DB-Lockout (10 Failures -> 30 min) bleibt unveraendert
+  und ist weiterhin der primaere Brute-Force-Schutz.
+
+---
+
 ## [2026.05.45] — 2026-05-05
 
 **E2E-Test-Coverage erweitert.**

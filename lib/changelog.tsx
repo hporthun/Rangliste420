@@ -77,6 +77,28 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.46",
+    date: "2026-05-05",
+    title: "Rate-Limit serverless-tauglich (DB-basiert)",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            <strong>Issue #59</strong>: Der Login-Pre-Check-Rate-
+            Limiter wurde von einer In-Memory-Map auf eine{" "}
+            <code>RateLimitEntry</code>-Tabelle umgestellt. Vercel-
+            Lambda-Instanzen sehen jetzt denselben Counter; auf der
+            alten In-Memory-Variante konnte ein Angreifer pro neuer
+            Instanz einen frischen Versuchszaehler bekommen.
+            Per-User-DB-Lockout (10 Fehlversuche → 30 min Sperre)
+            bleibt der primäre Brute-Force-Schutz.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.45",
     date: "2026-05-05",
     title: "E2E-Test-Coverage erweitert",
