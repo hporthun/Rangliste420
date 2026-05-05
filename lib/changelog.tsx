@@ -77,6 +77,36 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.45",
+    date: "2026-05-05",
+    title: "E2E-Test-Coverage erweitert",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            <strong>Issue #61</strong>: Zwei neue Playwright-Spec-Files
+            (Sailor-CRUD und JWM/JEM-Quali Compute + Save). Die Setup-
+            Phase ist jetzt robust gegen Changelog-Popup und Tour-
+            Overlay — bisher blockierten beide jeden neuen
+            Changelog-Eintrag die komplette Suite.
+          </>,
+        ],
+      },
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            Bestehende Specs hatten zwei strict-mode-Bugs (Wizard-
+            Weiter-Button und Publish-Toggle), die mit dem
+            Page-Tour- bzw. Duplizieren-Feature aufkamen. Beide jetzt
+            spezifisch genug.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.44",
     date: "2026-05-05",
     title: "Sicherheits-Update: nodemailer 7 → 8 (SMTP-Injection-Patch)",

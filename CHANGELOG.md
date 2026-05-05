@@ -8,6 +8,34 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.45] — 2026-05-05
+
+**E2E-Test-Coverage erweitert.**
+
+### Neu
+
+- **Issue #61**: Zwei neue Playwright-Spec-Files:
+  - `e2e/segler.spec.ts` — Sailor-CRUD (Anlegen, Bearbeiten, Liste filtern)
+  - `e2e/zz-jwm-jem.spec.ts` — JWM/JEM-Quali Compute + Save mit
+    Schottenwechsel-Schutz. Datei-Praefix `zz-` erzwingt
+    Ausfuehrung nach `ranking.spec.ts`, damit dessen
+    Entwurf-Toggle-Test nicht durch zusaetzliche Drafts gestoert wird.
+
+### Korrigiert
+
+- `auth.setup.ts` haertet die Setup-Phase: Changelog-Popup und Tour-
+  Overlay werden vor dem `storageState`-Snapshot dismissed. Bisher
+  blockierten beide alle Klicks auf `/admin/*`, sodass jeder neue
+  Changelog-Eintrag die ganze Suite kippte.
+- `import.spec.ts` matchte den Wizard-"Weiter"-Button via Substring,
+  was seit dem Page-Tour-Feature einen zweiten "Weiter"-Button traf
+  (strict-mode violation). Jetzt mit Pfeil-Suffix eingeschraenkt.
+- `ranking.spec.ts` Publish-Toggle suchte den "Entwurf"-Button ohne
+  `exact: true` und matchte deshalb auch den Duplizieren-Button
+  ("Duplizieren — als neuer Entwurf"). Jetzt strict.
+
+---
+
 ## [2026.05.44] — 2026-05-05
 
 **Sicherheits-Update: nodemailer 7 → 8 (SMTP-Injection-Patch).**
