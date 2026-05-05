@@ -12,6 +12,8 @@
  *   node scripts/gitea-issue.mjs view <number>           — Detail eines Issues
  *   node scripts/gitea-issue.mjs close <number>          — Issue schließen
  *   node scripts/gitea-issue.mjs reopen <number>         — wieder öffnen
+ *   node scripts/gitea-issue.mjs create <title> <body>   — neues Issue anlegen
+ *                                                          (Body kann via "-" aus stdin)
  *
  * Antworten kommen als JSON auf stdout, damit sie ggf. mit `jq` o.ä.
  * weiterverarbeitet werden können.
@@ -109,6 +111,25 @@ async function setState(num, state) {
   console.log(`#${i.number}  state=${i.state}  ${i.title}`);
 }
 
+async function createIssue(title, body) {
+  const i = await api(``, {
+    method: "POST",
+    body: JSON.stringify({ title, body }),
+  });
+  console.log(`#${i.number}  ${i.title}`);
+  console.log(i.html_url);
+}
+
+function readStdin() {
+  return new Promise((resolve, reject) => {
+    let data = "";
+    process.stdin.setEncoding("utf-8");
+    process.stdin.on("data", (chunk) => (data += chunk));
+    process.stdin.on("end", () => resolve(data));
+    process.stdin.on("error", reject);
+  });
+}
+
 try {
   if (cmd === "list") {
     const state = args.includes("--all") ? "all" : "open";
@@ -119,13 +140,19 @@ try {
     await setState(args[1], "closed");
   } else if (cmd === "reopen" && args[1]) {
     await setState(args[1], "open");
+  } else if (cmd === "create" && args[1]) {
+    const title = args[1];
+    let body = args[2] ?? "";
+    if (body === "-") body = await readStdin();
+    await createIssue(title, body);
   } else {
     console.error(
       "Usage:\n" +
         "  node scripts/gitea-issue.mjs list [--all]\n" +
         "  node scripts/gitea-issue.mjs view <number>\n" +
         "  node scripts/gitea-issue.mjs close <number>\n" +
-        "  node scripts/gitea-issue.mjs reopen <number>"
+        "  node scripts/gitea-issue.mjs reopen <number>\n" +
+        "  node scripts/gitea-issue.mjs create <title> <body|->"
     );
     process.exit(1);
   }
