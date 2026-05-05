@@ -19,8 +19,10 @@ test("paste-import durch den wizard bis commit", async ({ page }) => {
   await expect(textarea).toBeVisible();
   await textarea.fill(pasteText);
 
-  // Submit source step ("Weiter →")
-  await page.getByRole("button", { name: /Weiter/i }).click();
+  // Submit source step. Pfeil im Match ist wichtig — der Page-Tour-Button
+  // hat ebenfalls "Weiter" im accessible name (ohne Pfeil), sonst wuerde
+  // strict-mode triggeren.
+  await page.getByRole("button", { name: /Weiter →/ }).click();
 
   // ── Schritt 2: Metadaten ─────────────────────────────────────────────────
   const regattaSelect = page.getByRole("combobox");
@@ -29,11 +31,11 @@ test("paste-import durch den wizard bis commit", async ({ page }) => {
   const wapoOption = page.locator("select option", { hasText: "Wannseepokal 2026" });
   const wapoValue = await wapoOption.getAttribute("value");
   await regattaSelect.selectOption(wapoValue!);
-  await page.getByRole("button", { name: /Weiter/i }).click();
+  await page.getByRole("button", { name: /Weiter →/ }).click();
 
   // ── Schritt 3: Startgebiet ───────────────────────────────────────────────
   await expect(page.getByText("Startgebiet-Review")).toBeVisible({ timeout: 10_000 });
-  await page.getByRole("button", { name: /Weiter/i }).click();
+  await page.getByRole("button", { name: /Weiter →/ }).click();
 
   // ── Schritt 4: Matching ──────────────────────────────────────────────────
   // Loading indicator first, then matching table

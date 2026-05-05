@@ -57,10 +57,12 @@ test("jahresrangliste speichern und veröffentlichen", async ({ page }) => {
   await page.waitForURL("/admin/ranglisten");
   await expect(page.getByText("E2E-Testrangliste 2025")).toBeVisible();
 
-  // Publish via toggle button
-  const toggle = page.getByRole("button", { name: "Entwurf" });
+  // Publish via toggle button. exact:true grenzt gegen den
+  // "Duplizieren — als neuer Entwurf"-Button ab, dessen accessible
+  // name ebenfalls "Entwurf" enthaelt (seit feat: Duplizieren-Button).
+  const toggle = page.getByRole("button", { name: "Entwurf", exact: true });
   await toggle.click();
-  await expect(page.getByRole("button", { name: "Veröffentlicht" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Veröffentlicht", exact: true })).toBeVisible();
 });
 
 test("öffentliche rangliste zeigt steuermann-detail mit R_A-Werten", async ({ page }) => {
