@@ -8,6 +8,38 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.43] — 2026-05-05
+
+**Senior-Code-Review: Korrektheit, Doku-Drift und tote Pfade.**
+
+### Korrigiert
+
+- **Issue #55**: `totalStarters` wurde beim PDF-Import von Auslandsregatten
+  faelschlicherweise nach dem GER-Filter gezaehlt, sodass `s` in der
+  DSV-Formel zu klein war (R-Werte zu hoch). `filterGerman` in
+  `lib/import/pdf-auto-detect.ts` zaehlt jetzt **vor** dem Filter.
+  Pre-Filter-Verhalten ist durch zwei neue Unit-Tests abgesichert.
+- **Issue #54**: `BadgeState`-Test-Fixtures hatten die in v2026.05.40
+  ergaenzten Felder (`latestRegattaId/Name`, `latestRankingId/Name`)
+  nicht. `npm run typecheck` ist wieder grün — bisher haette
+  `next build` auf Vercel an dieser Stelle abgebrochen.
+
+### Geaendert
+
+- **Issue #56**: Toten `useRegattaDateForAge`-Schalter aus
+  `DsvRankingInput` und `calculateDsvRanking` entfernt. Der Schalter
+  wurde von keinem Aufrufer mehr gesetzt; `idjm-quali.ts` nutzt schon
+  laenger korrekt den Saisonstichtag (`referenceDate`). Begleitende
+  Doku-Drift in `docs/architecture.md` korrigiert.
+- **Issue #57**: README aktualisiert auf die aktuelle Schema-
+  Verzeichnisstruktur (`prisma/prod/schema.prisma` statt
+  `prisma/schema.prod.prisma`), inkl. korrekter npm-Scripts
+  (`db:sync-prod`, `db:generate:prod`, `db:migrate:prod`) und
+  `vercel-build`-Pipeline.
+- `scripts/gitea-issue.mjs` um `create`-Subcommand erweitert.
+
+---
+
 ## [2026.05.42] — 2026-05-05
 
 **Update-Glocke nur fuer angemeldete Benutzer.**

@@ -77,6 +77,48 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.43",
+    date: "2026-05-05",
+    title: "Senior-Code-Review: Korrektheit, Doku-Drift und tote Pfade",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            <strong>Issue #55</strong>: <code>totalStarters</code> wurde
+            beim PDF-Import von Auslandsregatten fälschlicherweise nach
+            dem GER-Filter gezählt, sodass <code>s</code> in der
+            DSV-Formel zu klein war (R-Werte zu hoch).{" "}
+            <code>filterGerman</code> zählt jetzt <strong>vor</strong>{" "}
+            dem Filter.
+          </>,
+          <>
+            <strong>Issue #54</strong>: <code>BadgeState</code>-Test-
+            Fixtures hatten die neuen Regatta-/Ranking-Detail-Felder
+            nicht — <code>npm run typecheck</code> ist wieder grün und
+            der Vercel-Build läuft durch.
+          </>,
+        ],
+      },
+      {
+        kind: "geändert",
+        items: [
+          <>
+            <strong>Issue #56</strong>: Toter{" "}
+            <code>useRegattaDateForAge</code>-Schalter aus der
+            DSV-Engine entfernt. <code>idjm-quali.ts</code> nutzt schon
+            länger korrekt den Saisonstichtag, der Schalter war nur
+            noch Doku-Verwirrung.
+          </>,
+          <>
+            <strong>Issue #57</strong>: README aktualisiert auf die
+            aktuelle Schema-Verzeichnisstruktur und npm-Scripts.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.42",
     date: "2026-05-05",
     title: "Update-Glocke nur für angemeldete Benutzer",
