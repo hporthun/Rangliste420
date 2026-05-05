@@ -77,6 +77,34 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.47",
+    date: "2026-05-05",
+    title: "inStartArea-Heuristik vereinheitlicht",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            <strong>Issue #60</strong>: Die "Boot kam ins
+            Startgebiet"-Vorbelegung im Import-Wizard war an vier
+            Stellen mit drei verschiedenen Code-Sets definiert. Jetzt
+            eine einzige Konstante <code>IN_START_AREA_CODES</code> in{" "}
+            <code>lib/import/pdf-utils.ts</code> mit{" "}
+            <code>{`{DNS, OCS, BFD, UFD}`}</code>; alle Parser und der
+            Wizard importieren von dort.
+          </>,
+          <>
+            <strong>UFD neu im Default-Vorschlag</strong> — bisher
+            zeigte der Wizard für UFD-Einträge kein vorbelegtes
+            Häkchen, obwohl UFD per RRS A11 semantisch zu BFD gehört
+            (Frühstart-Disqualifikation). Persistierte Daten bleiben
+            unverändert; die Änderung wirkt nur auf zukünftige Imports.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.46",
     date: "2026-05-05",
     title: "Rate-Limit serverless-tauglich (DB-basiert)",

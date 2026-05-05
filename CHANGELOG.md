@@ -8,6 +8,37 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.47] — 2026-05-05
+
+**inStartArea-Heuristik vereinheitlicht.**
+
+### Geaendert
+
+- **Issue #60**: Die "Boot kam ins Startgebiet"-Heuristik fuer den
+  Import-Wizard war an vier Stellen mit drei verschiedenen Code-Sets
+  definiert (`{DNS,BFD,OCS,UFD}` in pdf-utils, `{DNS,BFD,OCS}` in den
+  Manage2Sail-Parsern und im Wizard-UI). Effektiv wirksam war nur die
+  Wizard-Stelle, weil die Parser-Suggestion ein totes Feld war.
+- Single source of truth: `IN_START_AREA_CODES` in
+  `lib/import/pdf-utils.ts` mit `{DNS, OCS, BFD, UFD}` (Option B
+  nach Pro/Kontra-Diskussion). Alle Parser und der Wizard
+  importieren von dort.
+- **UFD ist neu im Default-Vorschlag** — bisher zeigte der Wizard
+  fuer UFD-Eintraege kein vorbelegtes Haekchen, obwohl UFD per
+  RRS A11 semantisch zu BFD gehoert (Frühstart-DSQ).
+- Persistierte Daten bleiben unveraendert — die Aenderung wirkt
+  nur auf zukuenftige Importe.
+
+### Neu
+
+- `docs/business-rules.md` §2.1 listet jetzt die Code-Tabelle
+  explizit (welcher Code → welcher Default → kurze RRS-Begruendung).
+- `lib/import/__tests__/detect-in-start-area.test.ts` mit 14 Tests
+  fuer die Single-Source-Helper (alle 4 In-Start-Codes, alle
+  abgegrenzten Codes, Edge-Cases inkl. case-insensitive Matching).
+
+---
+
 ## [2026.05.46] — 2026-05-05
 
 **Rate-Limit serverless-tauglich (DB-basiert).**
