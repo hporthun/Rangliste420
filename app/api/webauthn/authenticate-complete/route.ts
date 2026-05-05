@@ -38,10 +38,11 @@ export async function POST(req: NextRequest) {
       expectedChallenge: challengeRecord.challenge,
       expectedOrigin: origin,
       expectedRPID: rpID,
-      // @simplewebauthn/server v9 uses 'authenticator' field
-      authenticator: {
-        credentialID: new Uint8Array(Buffer.from(storedCredential.credentialId, "base64url")),
-        credentialPublicKey: new Uint8Array(Buffer.from(storedCredential.publicKey, "base64url")),
+      // @simplewebauthn/server v11+ renamed 'authenticator' → 'credential';
+      // id is Base64URLString (kein Uint8Array-Convert mehr), publicKey bleibt Uint8Array.
+      credential: {
+        id: storedCredential.credentialId,
+        publicKey: new Uint8Array(Buffer.from(storedCredential.publicKey, "base64url")),
         counter: Number(storedCredential.counter),
         transports: JSON.parse(storedCredential.transports) as AuthenticatorTransport[],
       },

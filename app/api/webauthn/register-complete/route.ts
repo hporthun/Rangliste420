@@ -54,25 +54,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Verification failed" }, { status: 400 });
   }
 
-  // @simplewebauthn/server v9 uses flat registrationInfo fields (no .credential sub-object)
-  const {
-    credentialID,
-    credentialPublicKey,
-    credentialDeviceType,
-    credentialBackedUp,
-    counter,
-  } = verification.registrationInfo;
+  // @simplewebauthn/server v11+ wraps credential fields in a sub-object;
+  // credential.id is now Base64URLString, credential.publicKey stays Uint8Array.
+  const { credential, credentialDeviceType, credentialBackedUp } = verification.registrationInfo;
 
   await db.webAuthnCredential.create({
     data: {
       userId: session.user.id,
-      // credentialID is a Uint8Array in v9
-      credentialId: Buffer.from(credentialID).toString("base64url"),
-      publicKey: Buffer.from(credentialPublicKey).toString("base64url"),
-      counter: BigInt(counter),
+      credentialId: credential.id,
+      publicKey: Buffer.from(credential.publicKey).toString("base64url"),
+      counter: BigInt(credential.counter),
       deviceType: credentialDeviceType ?? "singleDevice",
       backedUp: credentialBackedUp ?? false,
-      transports: JSON.stringify([]),
+      transports: JSON.stringify(credential.transports ?? []),
       name,
     },
   });

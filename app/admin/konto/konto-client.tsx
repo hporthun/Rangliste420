@@ -432,7 +432,7 @@ function PasskeySection({ initialPasskeys }: { initialPasskeys: Passkey[] }) {
       if (!startRes.ok) throw new Error("Challenge konnte nicht abgerufen werden.");
       const options = await startRes.json();
 
-      const credential = await startRegistration(options);
+      const credential = await startRegistration({ optionsJSON: options });
 
       const completeRes = await fetch("/api/webauthn/register-complete", {
         method: "POST",

@@ -14,9 +14,9 @@ export async function GET(req: NextRequest) {
   });
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
+  // @simplewebauthn/server v10+ erwartet IDs als Base64URLString (nicht Uint8Array)
   const existingCredentials = user.webAuthnCredentials.map((c) => ({
-    id: new Uint8Array(Buffer.from(c.credentialId, "base64url")),
-    type: "public-key" as const,
+    id: c.credentialId,
     transports: JSON.parse(c.transports) as AuthenticatorTransport[],
   }));
 
@@ -24,7 +24,8 @@ export async function GET(req: NextRequest) {
   const options = await generateRegistrationOptions({
     rpName,
     rpID,
-    userID: user.id,
+    // v10+: userID ist jetzt BufferSource (Spec-konform); user.id kommt als String aus der DB
+    userID: new TextEncoder().encode(user.id),
     userName: user.username ?? user.email ?? user.id,
     userDisplayName: user.username ?? user.email ?? "Admin",
     attestationType: "none",

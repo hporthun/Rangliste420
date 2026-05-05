@@ -117,7 +117,7 @@ export function LoginForm({ oauthProviders }: Props) {
       const options = await startRes.json();
 
       // Browser WebAuthn ceremony
-      const credential = await startAuthentication(options);
+      const credential = await startAuthentication({ optionsJSON: options });
 
       // Verify on server
       const completeRes = await fetch("/api/webauthn/authenticate-complete", {
