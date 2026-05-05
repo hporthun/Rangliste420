@@ -11,7 +11,7 @@ Die fachliche Spezifikation steht in [`PLAN_1.md`](./PLAN_1.md), die Code-Konven
 - **Git**
 - **Windows / macOS / Linux** — auf Windows funktioniert sowohl PowerShell als auch Git-Bash
 
-> Hinweis: Lokal wird **SQLite** verwendet (`prisma/schema.prisma`). Produktion läuft auf **PostgreSQL/Neon** (`prisma/schema.prod.prisma`). Für die Entwicklung muss kein Postgres installiert sein.
+> Hinweis: Lokal wird **SQLite** verwendet (`prisma/schema.prisma`). Produktion läuft auf **PostgreSQL/Neon** (`prisma/prod/schema.prisma`, automatisch generiert via `scripts/sync-prod-schema.mjs`). Für die Entwicklung muss kein Postgres installiert sein.
 
 ## Setup (lokale Entwicklung mit SQLite)
 
@@ -106,7 +106,9 @@ Anschließend [http://localhost:3000](http://localhost:3000) öffnen. Der Admin-
 | `npm run db:seed` | Seed manuell ausführen |
 | `npm run db:migrate` | `prisma migrate dev` (Schema-Änderung + neue Migration) |
 | `npm run db:studio` | Prisma Studio (DB-Browser auf [http://localhost:5555](http://localhost:5555)) |
-| `npm run generate:prod` | Prisma-Client gegen Produktions-Schema (PostgreSQL) generieren |
+| `npm run db:sync-prod` | Prod-Schema (`prisma/prod/schema.prisma`) aus Dev-Schema regenerieren |
+| `npm run db:generate:prod` | Prisma-Client gegen Produktions-Schema (PostgreSQL) generieren |
+| `npm run db:migrate:prod` | Produktions-Migrationen (`prisma/prod/migrations`) gegen `DATABASE_URL` anwenden |
 
 ### E2E-Tests
 
@@ -141,9 +143,11 @@ lib/
 ├── totp.ts         TOTP-2FA
 ├── webauthn/       Passkey-/WebAuthn-Flows
 prisma/
-├── schema.prisma         Lokales Schema (SQLite)
-├── schema.prod.prisma    Produktions-Schema (PostgreSQL/Neon)
-├── migrations/           Migrationen (mit Lock provider=sqlite)
+├── schema.prisma         Lokales Schema (SQLite, Single Source of Truth)
+├── prod/
+│   ├── schema.prisma     Auto-generiertes Produktions-Schema (PostgreSQL/Neon)
+│   └── migrations/       Produktions-Migrationen (provider=postgresql)
+├── migrations/           Lokale Migrationen (provider=sqlite)
 └── seed.ts               Admin-Seed
 e2e/                Playwright-Tests
 scripts/            Hilfsskripte (PDF-Parser-Diagnose etc.)
@@ -165,17 +169,22 @@ Vollständig in [`CLAUDE.md`](./CLAUDE.md). Die wichtigsten:
 - **Port 3000 belegt** → `npm run dev -- -p 3001`
 - **Prisma-Client nach Schema-Änderung veraltet** → `npx prisma generate`
 - **`Environment variable not found: DATABASE_URL`** → `.env` fehlt oder wurde nicht geladen; prüfe Inhalt und Speicherort
-- **`The provider in your schema does not match the migration_lock.toml`** → die Migrationen sind für SQLite; lokal nicht versehentlich `schema.prod.prisma` als Default verwenden
+- **`The provider in your schema does not match the migration_lock.toml`** → die lokalen Migrationen sind für SQLite; nicht versehentlich `prisma/prod/schema.prisma` als Default verwenden
 - **Build/Lint klagt über fehlenden Prisma-Client** → `npx prisma generate` ausführen (passiert auch automatisch bei `migrate deploy`/`migrate dev`)
 - **Pre-existing `prisma/dev.db-journal` ohne `dev.db`** → Reste eines abgebrochenen Vorlaufs, einfach löschen und neu migrieren
 
 ## Deployment (Vercel + Neon)
 
-Die Produktion läuft auf Vercel mit Neon (PostgreSQL). Build-Command (siehe `vercel.json`):
+Die Produktion läuft auf Vercel mit Neon (PostgreSQL). Build-Command (siehe `vercel.json`): `npm run vercel-build`. Dieses Script führt vier Schritte aus:
 
 ```
-prisma generate --schema=prisma/schema.prod.prisma && next build
+npm run db:sync-prod \
+  && prisma migrate deploy --schema=prisma/prod/schema.prisma \
+  && prisma generate --schema=prisma/prod/schema.prisma \
+  && next build
 ```
+
+`db:sync-prod` regeneriert `prisma/prod/schema.prisma` aus der lokalen `prisma/schema.prisma` (datasource auf PostgreSQL umgestellt) — die Single Source of Truth bleibt das Dev-Schema.
 
 Erforderliche Vercel-Environment-Variablen:
 
@@ -188,8 +197,7 @@ Erforderliche Vercel-Environment-Variablen:
 Vor dem ersten Deploy gegen Neon einmalig die Migrationen anwenden:
 
 ```bash
-DATABASE_URL="<neon-direct-url>" \
-  npx prisma migrate deploy --schema=prisma/schema.prod.prisma
+DATABASE_URL="<neon-direct-url>" npm run db:migrate:prod
 ```
 
 Anschließend Seed ausführen, um den initialen Admin-Account anzulegen:
