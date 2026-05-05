@@ -77,6 +77,26 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.44",
+    date: "2026-05-05",
+    title: "Sicherheits-Update: nodemailer 7 → 8 (SMTP-Injection-Patch)",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            <strong>Issue #58</strong>: nodemailer auf <code>^8.0.7</code>{" "}
+            angehoben. Schließt die CRLF-SMTP-Command-Injection-CVE
+            (CVSS 4.9) und den <code>envelope.size</code>-
+            Sanitization-Bug. Einziger Breaking Change in v8 ist ein
+            Fehlercode, den wir nicht abprüfen — keine Code-Änderung
+            nötig.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.43",
     date: "2026-05-05",
     title: "Senior-Code-Review: Korrektheit, Doku-Drift und tote Pfade",

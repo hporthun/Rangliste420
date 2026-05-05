@@ -8,6 +8,22 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.44] — 2026-05-05
+
+**Sicherheits-Update: nodemailer 7 → 8 (SMTP-Injection-Patch).**
+
+### Geaendert
+
+- **Issue #58**: nodemailer auf `^8.0.7` angehoben. Schliesst die
+  CRLF-SMTP-Command-Injection-CVE (GHSA-vvjj-xcjg-gr5g, CVSS 4.9) und
+  den `envelope.size`-Sanitization-Bug (GHSA-c7w3-x93f-qmm8). Einziger
+  Breaking Change in v8 ist `'NoAuth'` → `'ENOAUTH'`-Fehlercode — wir
+  matchen den String nirgends, sonst keine Code-Aenderung noetig.
+  next-auth meldet eine peerOptional-Warnung (will `^7.0.7`), nutzt
+  nodemailer aber nur fuer den nicht aktivierten Email-Provider.
+
+---
+
 ## [2026.05.43] — 2026-05-05
 
 **Senior-Code-Review: Korrektheit, Doku-Drift und tote Pfade.**
