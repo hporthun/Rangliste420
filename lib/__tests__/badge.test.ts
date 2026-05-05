@@ -10,7 +10,11 @@ import {
 const STATE: BadgeState = {
   latestChangelogVersion: "2026.04.26",
   latestRegattaCreatedAt: "2026-04-30T08:00:00.000Z",
+  latestRegattaId: "reg-1",
+  latestRegattaName: "Test-Regatta",
   latestRankingPublishedAt: "2026-04-29T12:00:00.000Z",
+  latestRankingId: "rk-1",
+  latestRankingName: "Jahresrangliste 2026",
 };
 
 describe("countNew", () => {
@@ -52,7 +56,11 @@ describe("countNew", () => {
     const partial: BadgeState = {
       latestChangelogVersion: null,
       latestRegattaCreatedAt: null,
+      latestRegattaId: null,
+      latestRegattaName: null,
       latestRankingPublishedAt: null,
+      latestRankingId: null,
+      latestRankingName: null,
     };
     expect(countNew(partial, EMPTY_SEEN)).toBe(0);
   });
