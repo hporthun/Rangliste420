@@ -75,6 +75,20 @@ Ergänzend `PLAN_1.md` für die ursprüngliche Spezifikation:
 - **Import-Parser**: mindestens 3 echte Fixtures pro Parser + Startgebiet-Fälle
 - `npm run test` muss grün sein vor jedem Commit
 
+### Test-zuerst (scope-begrenzt)
+
+Für Änderungen an reinen Logik-Modulen **erst den fehlschlagenden Test
+schreiben, dann den Code**. Begründung: deterministisch, viele Edge-Cases,
+Test-Setup günstig. Gilt für:
+
+- `/lib/scoring/**` — DSV-Formel, Multiplikator, Filter, IDJM-Quali, JWM/JEM-Quali
+- `/lib/import/matching.ts` und `/lib/import/normalize.ts` — Fuzzy-Logik
+- `/lib/import/*-paste.ts`, `/lib/import/*-pdf.ts`, `/lib/import/*-api.ts` — Parser
+
+Außerhalb dieser Liste **nicht erzwingen**. UI, Server Actions, Migrationen,
+Library-Bumps haben anderes Test-Profil (E2E, manuelle Verifikation). Pflicht-
+Tests ohne Erkenntnisgewinn kosten Wartung ohne Wert.
+
 ## Git-Workflow
 
 - Kleine, atomare Commits
