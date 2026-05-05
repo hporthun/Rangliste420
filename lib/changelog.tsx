@@ -77,6 +77,38 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.51",
+    date: "2026-05-05",
+    title: "Prisma 6 → 7 mit Driver-Adapter",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            <strong>Issue #63 (PR 2/2)</strong>: Prisma-ORM auf 7.8
+            gehoben — Abschluss der zweiteiligen Migration.
+            Generator-Wechsel auf <code>prisma-client</code>,
+            generierter Client liegt jetzt im Source-Tree
+            (<code>generated/prisma</code>, gitignored).
+          </>,
+          <>
+            <strong>Driver-Adapter</strong>: lokal/E2E nutzt{" "}
+            <code>@prisma/adapter-better-sqlite3</code>, Vercel/Neon{" "}
+            <code>@prisma/adapter-pg</code>. Auswahl erfolgt
+            automatisch anhand des <code>DATABASE_URL</code>-Schemas
+            in <code>lib/db/client.ts</code>.
+          </>,
+          <>
+            <strong>Konfig-Konsolidierung</strong>:{" "}
+            <code>datasource.url</code> +{" "}
+            <code>package.json#prisma</code> wandern in eine neue{" "}
+            <code>prisma.config.ts</code> am Projektroot.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.50",
     date: "2026-05-05",
     title: "Prisma 5 → 6 (Schritt 1 von 2)",

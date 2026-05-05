@@ -8,6 +8,49 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.51] — 2026-05-05
+
+**Prisma 6 -> 7 mit Driver-Adapter (Schritt 2 von 2).**
+
+### Geaendert
+
+- **Issue #63 (PR 2/2)**: Prisma-ORM auf 7.8 gehoben — Abschluss
+  der zweiteiligen Migration.
+- **Generator-Wechsel** auf `prisma-client` (Pflicht in v7;
+  `prisma-client-js` wird in zukuenftigen Versionen entfernt).
+  Output landet jetzt im Source-Tree unter `generated/prisma`
+  (gitignored, regeneriert per `prisma generate`).
+- **Driver-Adapter** (Pflicht in v7):
+  - `@prisma/adapter-better-sqlite3` + `better-sqlite3` fuer
+    lokal/E2E
+  - `@prisma/adapter-pg` + `pg` fuer Vercel/Neon
+  - `lib/db/client.ts` waehlt den Adapter automatisch anhand des
+    `DATABASE_URL`-Schemas
+- **Konfig-Konsolidierung**: `datasource.url` (war im Schema)
+  und `package.json#prisma`-Block (Seed-Hook) wandern in eine
+  neue `prisma.config.ts` am Projektroot. `dotenv` ist neue
+  Dep, weil die Config das `.env` explizit laedt.
+- **Imports** in 5 Dateien (`lib/db/client.ts`, `prisma/seed.ts`,
+  `e2e/global-setup.ts`, `components/sailor-form.tsx`,
+  `components/regatta-form.tsx`) auf den neuen Pfad
+  `@/generated/prisma/client` umgestellt.
+- **`scripts/sync-prod-schema.mjs`** zieht den neuen Generator-
+  Block + die schlanke Datasource fuer `prisma/prod/schema.prisma`
+  mit.
+- **`e2e/global-setup.ts`**: `datasourceUrl`-Option des
+  PrismaClient ist in v7 entfallen — stattdessen explizit
+  `PrismaBetterSqlite3`-Adapter mit `TEST_DB_URL`.
+
+### Verifikation
+
+- `npm run lint && typecheck && test` (321 Tests) gruen.
+- `npm run build` (Next.js + Turbopack) lokal erfolgreich.
+- Vercel-Sanity-Check ist Pflicht — bei kaputter Adapter-
+  Konfiguration ist die Prod-DB unerreichbar. Rollback auf
+  v2026.05.50 (Prisma 6) ohne DB-Migration moeglich.
+
+---
+
 ## [2026.05.50] — 2026-05-05
 
 **Prisma 5 -> 6 (Schritt 1 von 2).**
