@@ -31,13 +31,17 @@ function isGermanEntry(entry: ParsedEntry): boolean {
   return m[1] === "GER";
 }
 
-function filterGerman(regatta: ParsedRegatta): ParsedRegatta {
+export function filterGerman(regatta: ParsedRegatta): ParsedRegatta {
+  // totalStarters muss die Gesamtteilnehmerzahl sein (s in der DSV-Formel),
+  // also VOR dem Nationalitäten-Filter. Siehe docs/business-rules.md §3.4 + §4.1
+  // sowie Issue #55.
+  const totalStarters = regatta.entries.length;
   const entries = regatta.entries.filter(isGermanEntry);
   const numRaces =
     entries.length > 0
       ? Math.max(...entries.map((e) => e.raceScores.length))
       : 0;
-  return { entries, numRaces, totalStarters: entries.length };
+  return { entries, numRaces, totalStarters };
 }
 
 export type PdfFormat =

@@ -35,3 +35,64 @@ describe("parsePdf – image-only PDF", () => {
     );
   });
 });
+
+describe("filterGerman – totalStarters bleibt Pre-Filter (Issue #55)", () => {
+  it("totalStarters spiegelt die Gesamtzahl, nicht die GER-gefilterte Anzahl", async () => {
+    const { filterGerman } = await import("../pdf-auto-detect");
+    const mkEntry = (
+      sailNumber: string,
+      nationality: string | null = null,
+      raceScores: unknown[] = [{}, {}],
+    ) => ({
+      sailNumber,
+      nationality,
+      helmName: { firstName: "F", lastName: "L" },
+      crewName: null,
+      club: null,
+      raceScores,
+      finalRank: 1,
+      finalPoints: 0,
+      inStartAreaSuggestion: false,
+    } as unknown as Parameters<typeof filterGerman>[0]["entries"][number]);
+
+    const parsed = {
+      entries: [
+        mkEntry("GER 12345"),
+        mkEntry("GER 67890"),
+        mkEntry("ITA 111", "ITA"),
+        mkEntry("FRA 222", "FRA"),
+        mkEntry("999"), // ohne NAT-Prefix → wird als deutsch behandelt
+      ],
+      numRaces: 2,
+      totalStarters: 5,
+    };
+
+    const filtered = filterGerman(parsed);
+    expect(filtered.totalStarters).toBe(5); // pre-filter
+    expect(filtered.entries).toHaveLength(3); // GER + GER + numeric-only
+  });
+
+  it("totalStarters bleibt korrekt auch wenn alle Einträge ausgefiltert werden", async () => {
+    const { filterGerman } = await import("../pdf-auto-detect");
+    const mkForeign = (nat: string) => ({
+      sailNumber: `${nat} 1`,
+      nationality: nat,
+      helmName: { firstName: "F", lastName: "L" },
+      crewName: null,
+      club: null,
+      raceScores: [],
+      finalRank: 1,
+      finalPoints: 0,
+      inStartAreaSuggestion: false,
+    } as unknown as Parameters<typeof filterGerman>[0]["entries"][number]);
+
+    const parsed = {
+      entries: [mkForeign("ITA"), mkForeign("FRA")],
+      numRaces: 0,
+      totalStarters: 2,
+    };
+    const filtered = filterGerman(parsed);
+    expect(filtered.totalStarters).toBe(2);
+    expect(filtered.entries).toHaveLength(0);
+  });
+});
