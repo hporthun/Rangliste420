@@ -64,7 +64,9 @@ console.log(`Entries: ${result.entries.length}, Races: ${result.numRaces}`);
 // 4) Suche nach Rank 99 (Grünau-Eintrag laut Issue)
 const rank99 = result.entries.find((e) => e.rank === 99);
 if (rank99) {
-  console.log(`\nRank 99: helm="${rank99.helm}", crew="${rank99.crew}"`);
+  const helm = `${rank99.helmFirstName} ${rank99.helmLastName}`.trim();
+  const crew = `${rank99.crewFirstName ?? ""} ${rank99.crewLastName ?? ""}`.trim();
+  console.log(`\nRank 99: helm="${helm}", crew="${crew}"`);
   console.log(`         club="${rank99.club}"`);
   console.log(`         sailNumber="${rank99.sailNumber}"`);
 }
