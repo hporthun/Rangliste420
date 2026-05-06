@@ -8,6 +8,24 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.56] — 2026-05-06
+
+**PDF-Import repariert doppelt encodierte Sonderzeichen automatisch.**
+
+### Korrigiert
+
+- Bei manchen PDFs (z. B. Velaware-EN, „5 Lupo Cup 420") lieferte die
+  PDF-Bibliothek `pdfjs-dist` Sonderzeichen als Mojibake zurück:
+  `Grünau` wurde zu `GrÃ¼nau`, `Tóth` zu `TÃƒÂ³th`. Das ließ das
+  Fuzzy-Matching gegen die Stammdaten ins Leere laufen und zwang Admins
+  zur manuellen Nachbearbeitung. Neue Hilfsfunktion
+  `fixDoubleEncodedUtf8` erkennt ein- und zweischichtige UTF-8-Mojibake
+  (Latin-1- und CP1252-Bytes) und dekodiert sie zurück. Wirkt für alle
+  PDF-Parser (Manage2Sail, Sailwave, SailResults, Velaware DE/EN), da der
+  Fix in `extractPageItems` einmalig pro Text-Item greift. (Issue #66)
+
+---
+
 ## [2026.05.55] — 2026-05-05
 
 **Suchfeld in den Ranglisten zeigt nur noch ein Löschkreuz.**

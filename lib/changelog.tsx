@@ -77,6 +77,29 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.56",
+    date: "2026-05-06",
+    title: "PDF-Import: Mojibake bei Sonderzeichen reparieren",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            Bei manchen PDFs (z. B. Velaware-EN, „5 Lupo Cup 420") lieferte
+            die PDF-Bibliothek Sonderzeichen doppelt encodiert zurück:
+            <code> Grünau</code> wurde zu <code>GrÃ¼nau</code>,{" "}
+            <code>Tóth</code> zu <code>TÃƒÂ³th</code>. Das verhinderte das
+            Fuzzy-Matching gegen die Stammdaten und zwang Admins zur
+            manuellen Nachbearbeitung. Ab jetzt werden ein- und
+            zweischichtige UTF-8-Mojibake automatisch erkannt und vor dem
+            Parsen repariert. Betrifft alle PDF-Parser (Manage2Sail,
+            Sailwave, SailResults, Velaware DE/EN).
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.55",
     date: "2026-05-05",
     title: "Suchfeld zeigt nur noch ein Löschkreuz",
