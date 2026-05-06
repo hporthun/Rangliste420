@@ -117,14 +117,28 @@ function tryDecodeOnce(s: string): string | null {
   }
 }
 
+/**
+ * Fingerprint fuer Mojibake: ein Latin-1/CP1252-Codepoint im Bereich
+ * 0xC2..0xF4 (UTF-8-Lead-Byte) — sichtbar als Â/Ã/Ä/Å/Æ/Ç…ô. Erfasst
+ * Diakritika aus Latin-Extended-A (z. B. ć/č/ě/š/ž — Lead-Byte 0xC4/0xC5)
+ * genauso wie aus Latin-1 Supplement (ü/ö/ä — Lead-Byte 0xC3).
+ */
+function hasMojibakeMarker(s: string): boolean {
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    if (c >= 0xc2 && c <= 0xf4) return true;
+  }
+  return false;
+}
+
 export function fixDoubleEncodedUtf8(s: string): string {
-  if (!s || !/[ÃÅÂƒ]/.test(s)) return s;
+  if (!s || !hasMojibakeMarker(s)) return s;
   let current = s;
   for (let i = 0; i < 2; i++) {
     const next = tryDecodeOnce(current);
     if (next === null || next === current) break;
     current = next;
-    if (!/[ÃÅÂƒ]/.test(current)) break;
+    if (!hasMojibakeMarker(current)) break;
   }
   return current;
 }

@@ -8,6 +8,23 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.57] — 2026-05-06
+
+**Mojibake-Fix erfasst jetzt auch Latin-Extended-A-Diakritika.**
+
+### Korrigiert
+
+- Der Marker-Filter im Mojibake-Fix erfasste anfangs nur `Ã/Å/Â/ƒ`
+  und übersprang damit Strings wie `KosteliÄ‡` (kroatisch
+  `Kostelić`) oder `Tonka GobiÄ‡`. Ursache: UTF-8-Sequenzen für
+  Latin-Extended-A beginnen mit Lead-Byte `0xC4` = `Ä`, der nicht
+  im engeren Marker-Set lag. Filter auf das gesamte UTF-8-Lead-
+  Byte-Spektrum (0xC2..0xF4) erweitert. Real-Verifikation am
+  Lupo-Cup-PDF: alle 25 Mojibake-Items werden repariert,
+  inkl. `Kostelić`, `Gobić`. (Issue #66, Folge-Fix)
+
+---
+
 ## [2026.05.56] — 2026-05-06
 
 **PDF-Import repariert doppelt encodierte Sonderzeichen automatisch.**

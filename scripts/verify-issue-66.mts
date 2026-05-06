@@ -79,15 +79,77 @@ const specialClubs = result.entries
 if (specialClubs.length === 0) console.log("(keine)");
 else specialClubs.forEach((s) => console.log(s));
 
-// 6) Sample-Helper-Test direkt am Raw-Output
-console.log(`\n--- Sample-Items aus rawer Pipeline (vor Helper) ---`);
-const moj = rawAll.filter((s) => /[ÃÅÂƒ]/.test(s)).slice(0, 5);
-moj.forEach((s) => {
+// 6) Alle Mojibake-Items im Raw-Output → Helper anwenden, Resultate sammeln
+console.log(`\n--- ALLE Mojibake-Items im Raw-Output ---`);
+const allMoj = rawAll.filter((s) => /[ÃÅÂƒ]/.test(s));
+console.log(`Anzahl Mojibake-Items roh: ${allMoj.length}`);
+const repaired = new Map<string, string>();
+let unrepaired = 0;
+for (const s of allMoj) {
   const fixed = fixDoubleEncodedUtf8(s);
-  console.log(`  "${s}" → "${fixed}"`);
+  if (fixed === s) {
+    unrepaired++;
+    console.log(`  NICHT REPARIERT: "${s}"`);
+  } else {
+    repaired.set(s, fixed);
+  }
+}
+console.log(`Repariert: ${repaired.size}, NICHT repariert: ${unrepaired}`);
+console.log(`\nUnique Reparaturen:`);
+for (const [k, v] of repaired) console.log(`  "${k}" → "${v}"`);
+
+// 7) Vollstaendigkeit: jeder Eintrag mit Helm + Crew + Club?
+console.log(`\n--- Vollstaendigkeit aller ${result.entries.length} Entries ---`);
+const incomplete = result.entries.filter(
+  (e) => !e.helmLastName || !e.club || e.rank === null,
+);
+console.log(`Unvollstaendige Entries: ${incomplete.length}`);
+incomplete.slice(0, 10).forEach((e) =>
+  console.log(`  Rank ${e.rank}: helm="${e.helmFirstName} ${e.helmLastName}".trim(), club="${e.club}", sail="${e.sailNumber}"`),
+);
+
+// 8) Alle Helm/Crew-Namen mit Sonderzeichen pruefen
+console.log(`\n--- Helm/Crew-Namen mit Sonderzeichen ---`);
+const specialNames: string[] = [];
+for (const e of result.entries) {
+  const helm = `${e.helmFirstName} ${e.helmLastName}`.trim();
+  const crew = `${e.crewFirstName ?? ""} ${e.crewLastName ?? ""}`.trim();
+  if (/[äöüÄÖÜßéèêíóúñžšćčáàÀÉőűŐŰÚÁÍÓ]/.test(helm)) {
+    specialNames.push(`Rank ${e.rank} helm: "${helm}"`);
+  }
+  if (/[äöüÄÖÜßéèêíóúñžšćčáàÀÉőűŐŰÚÁÍÓ]/.test(crew)) {
+    specialNames.push(`Rank ${e.rank} crew: "${crew}"`);
+  }
+}
+specialNames.forEach((s) => console.log(`  ${s}`));
+if (!specialNames.length) console.log("(keine)");
+
+// 9) Top-10-Sample (Sanity)
+console.log(`\n--- Top 10 (Sanity) ---`);
+result.entries.slice(0, 10).forEach((e) => {
+  const helm = `${e.helmFirstName} ${e.helmLastName}`.trim();
+  console.log(`  ${e.rank}. ${helm} | ${e.sailNumber} | ${e.club}`);
 });
 
+// 10) Kanonische Issue-#66-Beispiele 1:1 nachweisen
+console.log(`\n--- Kanonische Issue-#66-Beispiele ---`);
+const cases: Array<[string, string]> = [
+  ["GrÃ¼nau", "Grünau"],
+  ["PortoroÅ¾", "Portorož"],
+  ["TÃ³th", "Tóth"],
+  ["JÃºlia", "Júlia"],
+  ["CsermÃ¡k", "Csermák"],
+];
+for (const [moji, expected] of cases) {
+  const got = fixDoubleEncodedUtf8(moji);
+  console.log(`  ${got === expected ? "OK" : "FAIL"} "${moji}" → "${got}" (erwartet "${expected}")`);
+}
+
 // Exit-Code: 0 wenn Fix wirkt, 1 sonst
-const success = fixedHasGruenau && !fixedHasMojibake;
+const success =
+  fixedHasGruenau &&
+  !fixedHasMojibake &&
+  unrepaired === 0 &&
+  incomplete.length === 0;
 console.log(`\n${success ? "PASS" : "FAIL"}: Mojibake-Fix wirkt im Live-Pfad: ${success}`);
 process.exit(success ? 0 : 1);

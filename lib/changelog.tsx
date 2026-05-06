@@ -77,6 +77,29 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.57",
+    date: "2026-05-06",
+    title: "PDF-Import: Mojibake-Fix erfasst auch kroatische/slawische Diakritika",
+    changes: [
+      {
+        kind: "korrigiert",
+        items: [
+          <>
+            Beim ersten Wurf des Mojibake-Fixes (v2026.05.56) wurde nur
+            der Marker <code>Ã/Å/Â/ƒ</code> als Trigger gesucht. Ergebnis:
+            kroatische Namen wie <code>Kostelić</code> oder{" "}
+            <code>Gobić</code> blieben als <code>KosteliÄ‡</code>
+            stehen, weil deren Mojibake mit <code>Ä</code> beginnt
+            (UTF-8-Lead-Byte 0xC4 für Latin-Extended-A). Marker auf
+            alle UTF-8-Lead-Bytes (0xC2..0xF4) erweitert. Real-Test mit
+            dem Lupo-Cup-PDF: alle 25 Mojibake-Items werden jetzt
+            repariert (vorher 23/25). (Issue #66, Folge-Fix)
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.56",
     date: "2026-05-06",
     title: "PDF-Import: Mojibake bei Sonderzeichen reparieren",

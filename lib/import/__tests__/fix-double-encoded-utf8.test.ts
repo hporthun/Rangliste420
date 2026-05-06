@@ -20,6 +20,21 @@ describe("fixDoubleEncodedUtf8", () => {
     });
   });
 
+  describe("repariert Latin-Extended-A-Diakritika (Lead-Byte 0xC4 = 'Ä')", () => {
+    // ć/č/ě/š/ž etc. liegen in U+0100–U+017F. UTF-8: 0xC4..0xC5 als Lead.
+    // Mojibake liefert dann "Ä" oder "Å" als sichtbares Zeichen.
+    it("KosteliÄ‡ → Kostelić (kroatisch)", () => {
+      expect(fixDoubleEncodedUtf8("KosteliÄ‡")).toBe("Kostelić");
+    });
+    it("GobiÄ‡ → Gobić", () => {
+      expect(fixDoubleEncodedUtf8("GobiÄ‡")).toBe("Gobić");
+    });
+    it("LÅ‘rinc → Lőrinc (ungarisch őü)", () => {
+      // Wird auch ueber bestehende Marker abgedeckt, aber als Doppelpruefung.
+      expect(fixDoubleEncodedUtf8("LÅ‘rinc")).toBe("Lőrinc");
+    });
+  });
+
   describe("repariert Zwei-Schicht-Mojibake (UTF-8 → Latin-1 → CP1252)", () => {
     it("TÃƒÂ³th → Tóth", () => {
       expect(fixDoubleEncodedUtf8("TÃƒÂ³th")).toBe("Tóth");
