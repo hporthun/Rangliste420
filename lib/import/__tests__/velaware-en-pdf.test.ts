@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { parsePages } from "../velaware-en-pdf";
 import velawareEnPages from "../__fixtures__/velaware-en-pages.json";
-import type { RawItem } from "../pdf-utils";
+import { fixDoubleEncodedUtf8, type RawItem } from "../pdf-utils";
 
 /**
  * Tests for velaware-en-pdf.ts using a fixture extracted from the
@@ -206,5 +206,49 @@ describe("velaware-en-pdf parsePages – entry 100° (sail number with no NAT-pr
     const r4 = e.raceScores.find((s) => s.race === 4)!;
     expect(r4.points).toBe(51);
     expect(r4.isDiscard).toBe(true);
+  });
+});
+
+/**
+ * Issue #66 Regressionstest: simuliert das Mojibake, das pdfjs bei manchen
+ * Lupo-Cup-PDFs liefert ("Grünau" → "GrÃ¼nau"), und verifiziert, dass die
+ * extractPageItems-Layer-Reparatur (fixDoubleEncodedUtf8) den End-to-End-
+ * Pfad sauber durchlaufen laesst: Mojibake-Items → Helper → parsePages
+ * muss dasselbe Resultat liefern wie der Direct-Parse der sauberen Fixture.
+ */
+function mojibakeUtf8(s: string): string {
+  const bytes = new TextEncoder().encode(s);
+  let out = "";
+  for (const b of bytes) out += String.fromCharCode(b);
+  return out;
+}
+
+describe("velaware-en-pdf parsePages – Issue #66 Mojibake-Roundtrip", () => {
+  const mojibakedPages = (velawareEnPages as RawItem[][]).map((page) =>
+    page.map((it) => ({ ...it, str: mojibakeUtf8(it.str) })),
+  );
+  const fixedPages = mojibakedPages.map((page) =>
+    page.map((it) => ({ ...it, str: fixDoubleEncodedUtf8(it.str) })),
+  );
+  const cleanResult = parsePages(velawareEnPages as RawItem[][]);
+  const roundtripResult = parsePages(fixedPages);
+
+  it("Mojibake-Variante enthaelt erwartete Marker (Sanity)", () => {
+    const allText = mojibakedPages.flat().map((it) => it.str).join(" ");
+    expect(allText).toContain("GrÃ¼nau");
+  });
+
+  it("nach fixDoubleEncodedUtf8 ist die Mojibake-Variante deckungsgleich zur Original-Fixture", () => {
+    expect(fixedPages).toEqual(velawareEnPages);
+  });
+
+  it("Parse-Resultat des Roundtrips ist identisch zum Direct-Parse", () => {
+    expect(roundtripResult).toEqual(cleanResult);
+  });
+
+  it("Club 'Yacht Club Berlin Grünau' kommt nach Roundtrip korrekt durch", () => {
+    const clubs = roundtripResult.entries.map((e) => e.club);
+    const cleanClubs = cleanResult.entries.map((e) => e.club);
+    expect(clubs).toEqual(cleanClubs);
   });
 });
