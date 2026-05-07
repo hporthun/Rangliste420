@@ -77,6 +77,23 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.61",
+    date: "2026-05-07",
+    title: "Statistik-Filter ohne Anwenden-Button",
+    changes: [
+      {
+        kind: "geändert",
+        items: [
+          <>
+            Die Filter-Selects auf den Statistik-Seiten wirken jetzt sofort
+            beim Auswählen — kein <em>Anwenden</em>-Klick mehr nötig. Die
+            Seite lädt nach jedem Filterwechsel automatisch nach.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.60",
     date: "2026-05-07",
     title: "Statistik: Filter nach Altersklasse und Kategorie",

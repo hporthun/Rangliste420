@@ -8,10 +8,8 @@ import {
 } from "@/lib/scoring/filters";
 import { linearTrend, trendLine } from "@/lib/stats/trend";
 import { Sparkline } from "@/components/charts/sparkline";
-import {
-  StatsFilterBar,
-  parseFilterParams,
-} from "@/components/stats-filter-bar";
+import { StatsFilterBar } from "@/components/stats-filter-bar";
+import { parseFilterParams } from "@/lib/stats/filter-params";
 
 type Props = {
   searchParams: Promise<{ jahr?: string; alter?: string; gender?: string }>;

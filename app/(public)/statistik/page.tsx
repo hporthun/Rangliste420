@@ -11,10 +11,8 @@ import {
   type RegattaStat,
 } from "@/lib/stats/aggregates";
 import { BarChart, type BarDatum } from "@/components/charts/bar-chart";
-import {
-  StatsFilterBar,
-  parseFilterParams,
-} from "@/components/stats-filter-bar";
+import { StatsFilterBar } from "@/components/stats-filter-bar";
+import { parseFilterParams } from "@/lib/stats/filter-params";
 
 type Props = {
   searchParams: Promise<{ jahr?: string; alter?: string; gender?: string }>;

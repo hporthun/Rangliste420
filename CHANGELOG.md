@@ -8,6 +8,21 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.61] — 2026-05-07
+
+**Statistik-Filter wirken sofort beim Auswählen.**
+
+### Geändert
+
+- Die Filter-Selects auf `/statistik` und `/statistik/aufsteiger`
+  navigieren jetzt direkt beim `change`-Event — der `Anwenden`-Button
+  ist entfallen. Die Filter-Bar ist dazu eine Client-Component
+  geworden; `parseFilterParams` liegt nun in
+  `lib/stats/filter-params.ts`, damit Server-Pages den Helper
+  weiterhin direkt importieren können.
+
+---
+
 ## [2026.05.60] — 2026-05-07
 
 **Statistik-Seiten: Filter nach Altersklasse und Kategorie.**
