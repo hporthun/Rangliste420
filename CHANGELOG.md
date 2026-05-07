@@ -8,6 +8,21 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.60] — 2026-05-07
+
+**Statistik-Seiten: Filter nach Altersklasse und Kategorie.**
+
+### Neu
+
+- Filter-Leiste auf `/statistik` und `/statistik/aufsteiger` für
+  Altersklasse (U15/U16/U17/U19/U22/Open) und Kategorie
+  (Open/Männer/Mix/Girls). Filter wirkt auf Helm + Crew analog zur
+  DSV-Ranglistenfilterung; Saison-Übersicht, Top-Listen,
+  Faktor-Histogramm und Aufsteiger-Trend werden eingeschränkt.
+  Year-Switcher und Aufsteiger-Link behalten die gewählten Filter.
+
+---
+
 ## [2026.05.59] — 2026-05-07
 
 **Aufsteiger-Statistik (nur für angemeldete Benutzer).**

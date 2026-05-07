@@ -2,10 +2,20 @@ import Link from "next/link";
 import { db } from "@/lib/db/client";
 import { auth } from "@/lib/auth";
 import { calculateRAForResult } from "@/lib/scoring/dsv";
+import {
+  matchesAgeCategory,
+  matchesGenderCategory,
+} from "@/lib/scoring/filters";
 import { linearTrend, trendLine } from "@/lib/stats/trend";
 import { Sparkline } from "@/components/charts/sparkline";
+import {
+  StatsFilterBar,
+  parseFilterParams,
+} from "@/components/stats-filter-bar";
 
-type Props = { searchParams: Promise<{ jahr?: string }> };
+type Props = {
+  searchParams: Promise<{ jahr?: string; alter?: string; gender?: string }>;
+};
 
 export const metadata = {
   title: "Aufsteiger · Statistik · 420er Rangliste",
@@ -28,7 +38,9 @@ export default async function AufsteigerPage({ searchParams }: Props) {
     return <SignInGate />;
   }
 
-  const { jahr: yearParam } = await searchParams;
+  const sp = await searchParams;
+  const yearParam = sp.jahr;
+  const { age, gender } = parseFilterParams(sp);
 
   // Distinct Saison-Jahre aus den Ranglistenregatten mit Ergebnissen.
   const allDates = await db.regatta.findMany({
@@ -58,7 +70,16 @@ export default async function AufsteigerPage({ searchParams }: Props) {
           inStartArea: true,
           teamEntry: {
             select: {
-              helm: { select: { id: true, firstName: true, lastName: true } },
+              helm: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  birthYear: true,
+                  gender: true,
+                },
+              },
+              crew: { select: { birthYear: true, gender: true } },
             },
           },
         },
@@ -68,6 +89,9 @@ export default async function AufsteigerPage({ searchParams }: Props) {
   const regattas = allRegattas.filter(
     (r) => r.startDate.getFullYear() === selectedYear,
   );
+
+  // Referenzdatum für Alterscheck: 31.12. der Saison (analog Jahresrangliste).
+  const referenceDate = new Date(selectedYear, 11, 31);
 
   // Pro Helm: chronologische R_A-Serie. Pro Regatta zählt ein einziger R_A —
   // anders als in der DSV-Engine, die für die 9-besten-Wertung den
@@ -79,9 +103,21 @@ export default async function AufsteigerPage({ searchParams }: Props) {
     const s = reg.totalStarters ?? reg.results.length;
     if (s === 0) continue;
     for (const result of reg.results) {
+      const helm = result.teamEntry.helm;
+      const crew = result.teamEntry.crew;
+      // Alters-/Gender-Filter (bei OPEN/OPEN: alle passieren).
+      const entry = {
+        helm: { birthYear: helm.birthYear, gender: helm.gender },
+        crew:
+          crew && (crew.birthYear !== null || crew.gender !== null)
+            ? { birthYear: crew.birthYear, gender: crew.gender }
+            : null,
+      };
+      if (!matchesAgeCategory(entry, age, referenceDate)) continue;
+      if (!matchesGenderCategory(entry, gender)) continue;
+
       const rA = calculateRAForResult(f, s, result);
       if (rA == null) continue;
-      const helm = result.teamEntry.helm;
       const id = helm.id;
       const existing = byHelm.get(id);
       if (existing) {
@@ -140,21 +176,34 @@ export default async function AufsteigerPage({ searchParams }: Props) {
         </p>
       </div>
 
+      <StatsFilterBar
+        action="/statistik/aufsteiger"
+        selectedYear={selectedYear}
+        selectedAge={age}
+        selectedGender={gender}
+      />
+
       {years.length > 1 && (
         <div className="flex gap-1 rounded-lg bg-muted p-1 w-fit max-w-full overflow-x-auto">
-          {years.map((y) => (
-            <Link
-              key={y}
-              href={`/statistik/aufsteiger?jahr=${y}`}
-              className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
-                y === selectedYear
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {y}
-            </Link>
-          ))}
+          {years.map((y) => {
+            const params = new URLSearchParams();
+            params.set("jahr", String(y));
+            if (age !== "OPEN") params.set("alter", age);
+            if (gender !== "OPEN") params.set("gender", gender);
+            return (
+              <Link
+                key={y}
+                href={`/statistik/aufsteiger?${params.toString()}`}
+                className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+                  y === selectedYear
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {y}
+              </Link>
+            );
+          })}
         </div>
       )}
 

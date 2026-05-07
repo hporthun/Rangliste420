@@ -7,11 +7,18 @@ import {
   topRaceHelms,
   factorHistogram,
   listYears,
+  filterRegattas,
   type RegattaStat,
 } from "@/lib/stats/aggregates";
 import { BarChart, type BarDatum } from "@/components/charts/bar-chart";
+import {
+  StatsFilterBar,
+  parseFilterParams,
+} from "@/components/stats-filter-bar";
 
-type Props = { searchParams: Promise<{ jahr?: string }> };
+type Props = {
+  searchParams: Promise<{ jahr?: string; alter?: string; gender?: string }>;
+};
 
 export const metadata = {
   title: "Statistik · 420er Rangliste",
@@ -20,7 +27,9 @@ export const metadata = {
 };
 
 export default async function StatistikPage({ searchParams }: Props) {
-  const { jahr: yearParam } = await searchParams;
+  const sp = await searchParams;
+  const yearParam = sp.jahr;
+  const { age, gender } = parseFilterParams(sp);
   const session = await auth();
   const isSignedIn = !!session?.user;
 
@@ -37,13 +46,22 @@ export default async function StatistikPage({ searchParams }: Props) {
       teamEntries: {
         select: {
           sailNumber: true,
-          helm: { select: { id: true, firstName: true, lastName: true } },
+          helm: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              birthYear: true,
+              gender: true,
+            },
+          },
+          crew: { select: { birthYear: true, gender: true } },
         },
       },
     },
   });
 
-  const regattas: RegattaStat[] = dbRegattas.map((r) => ({
+  const allRegattas: RegattaStat[] = dbRegattas.map((r) => ({
     id: r.id,
     year: r.startDate.getFullYear(),
     completedRaces: r.completedRaces,
@@ -52,11 +70,20 @@ export default async function StatistikPage({ searchParams }: Props) {
       helmId: te.helm.id,
       helmFirstName: te.helm.firstName,
       helmLastName: te.helm.lastName,
+      helmBirthYear: te.helm.birthYear,
+      helmGender: te.helm.gender,
+      crewBirthYear: te.crew?.birthYear ?? null,
+      crewGender: te.crew?.gender ?? null,
       sailNumber: te.sailNumber,
     })),
   }));
 
-  const years = listYears(regattas);
+  const regattas = filterRegattas(allRegattas, age, gender);
+
+  // Years aus dem ungefilterten Datensatz, damit der Year-Switcher auch
+  // dann alle Saisons zeigt, wenn die aktuelle Filterkombination eine
+  // Saison leer macht.
+  const years = listYears(allRegattas);
   const latestYear = years[0] ?? new Date().getFullYear();
   const selectedYear = yearParam ? parseInt(yearParam, 10) : latestYear;
 
@@ -100,7 +127,14 @@ export default async function StatistikPage({ searchParams }: Props) {
         </p>
         {isSignedIn && (
           <Link
-            href="/statistik/aufsteiger"
+            href={(() => {
+              const params = new URLSearchParams();
+              if (yearParam) params.set("jahr", yearParam);
+              if (age !== "OPEN") params.set("alter", age);
+              if (gender !== "OPEN") params.set("gender", gender);
+              const qs = params.toString();
+              return qs ? `/statistik/aufsteiger?${qs}` : "/statistik/aufsteiger";
+            })()}
             className="inline-flex items-center gap-1.5 mt-3 text-sm font-medium text-accent hover:underline"
           >
             Aufsteiger der Saison →
@@ -108,9 +142,20 @@ export default async function StatistikPage({ searchParams }: Props) {
         )}
       </div>
 
+      <StatsFilterBar
+        action="/statistik"
+        selectedYear={selectedYear}
+        selectedAge={age}
+        selectedGender={gender}
+      />
+
       {regattas.length === 0 ? (
         <div className="rounded-lg border bg-card px-6 py-12 text-center">
-          <p className="text-muted-foreground text-sm">Noch keine Ranglistenregatten erfasst.</p>
+          <p className="text-muted-foreground text-sm">
+            {age === "OPEN" && gender === "OPEN"
+              ? "Noch keine Ranglistenregatten erfasst."
+              : "Keine Daten für die gewählte Filterkombination."}
+          </p>
         </div>
       ) : (
         <>
@@ -144,19 +189,25 @@ export default async function StatistikPage({ searchParams }: Props) {
           {/* Year-Switcher für Top-Listen + Faktor-Histogramm */}
           {years.length > 1 && (
             <div className="flex gap-1 rounded-lg bg-muted p-1 w-fit max-w-full overflow-x-auto">
-              {years.map((y) => (
-                <Link
-                  key={y}
-                  href={`/statistik?jahr=${y}`}
-                  className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
-                    y === selectedYear
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {y}
-                </Link>
-              ))}
+              {years.map((y) => {
+                const params = new URLSearchParams();
+                params.set("jahr", String(y));
+                if (age !== "OPEN") params.set("alter", age);
+                if (gender !== "OPEN") params.set("gender", gender);
+                return (
+                  <Link
+                    key={y}
+                    href={`/statistik?${params.toString()}`}
+                    className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+                      y === selectedYear
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {y}
+                  </Link>
+                );
+              })}
             </div>
           )}
 

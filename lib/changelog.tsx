@@ -77,6 +77,28 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.60",
+    date: "2026-05-07",
+    title: "Statistik: Filter nach Altersklasse und Kategorie",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Auf <code>/statistik</code> und <code>/statistik/aufsteiger</code>{" "}
+            gibt es jetzt eine Filter-Leiste für <strong>Altersklasse</strong>{" "}
+            (U15/U16/U17/U19/U22/Open) und <strong>Kategorie</strong>{" "}
+            (Open/Männer/Mix/Girls). Filter wirkt auf Helm + Crew analog zur
+            DSV-Ranglistenfilterung — Saison-Übersicht, Top-Listen,
+            Faktor-Histogramm und Aufsteiger-Trend werden alle entsprechend
+            eingeschränkt. Year-Switcher und Aufsteiger-Link behalten die
+            gewählten Filter beim Wechseln.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.59",
     date: "2026-05-07",
     title: "Aufsteiger-Statistik (nur für angemeldete Benutzer)",

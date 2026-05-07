@@ -6,6 +6,13 @@
  * auf dieses Modell.
  */
 
+import {
+  matchesAgeCategory,
+  matchesGenderCategory,
+  type AgeCategory,
+  type GenderCategory,
+} from "@/lib/scoring/filters";
+
 export type RegattaStat = {
   id: string;
   year: number;
@@ -18,8 +25,50 @@ export type TeamEntryStat = {
   helmId: string;
   helmFirstName: string;
   helmLastName: string;
+  helmBirthYear: number | null;
+  helmGender: string | null;
+  crewBirthYear: number | null;
+  crewGender: string | null;
   sailNumber: string | null;
 };
+
+/**
+ * Wendet Alter- und Gender-Filter (DSV-Kategorie-Matrix) auf die TeamEntries
+ * jeder Regatta an. Regatten ohne übrigbleibende Einträge werden komplett
+ * verworfen — sonst würden sie z.B. die Faktor-Verteilung verzerren, ohne
+ * dass irgendein passender Helm dabei war.
+ *
+ * Referenzdatum: 31.12. des Saisonjahrs (analog Jahresrangliste).
+ * Bei OPEN/OPEN ist die Liste unverändert.
+ */
+export function filterRegattas(
+  regattas: RegattaStat[],
+  age: AgeCategory,
+  gender: GenderCategory,
+): RegattaStat[] {
+  if (age === "OPEN" && gender === "OPEN") return regattas;
+
+  const out: RegattaStat[] = [];
+  for (const reg of regattas) {
+    const refDate = new Date(reg.year, 11, 31);
+    const filtered = reg.teamEntries.filter((te) => {
+      const entry = {
+        helm: { birthYear: te.helmBirthYear, gender: te.helmGender },
+        crew:
+          te.crewBirthYear !== null || te.crewGender !== null
+            ? { birthYear: te.crewBirthYear, gender: te.crewGender }
+            : null,
+      };
+      return (
+        matchesAgeCategory(entry, age, refDate) &&
+        matchesGenderCategory(entry, gender)
+      );
+    });
+    if (filtered.length === 0) continue;
+    out.push({ ...reg, teamEntries: filtered });
+  }
+  return out;
+}
 
 export type SeasonRow = {
   year: number;

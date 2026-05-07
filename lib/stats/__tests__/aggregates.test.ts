@@ -5,16 +5,35 @@ import {
   topRaceHelms,
   factorHistogram,
   listYears,
+  filterRegattas,
   type RegattaStat,
+  type TeamEntryStat,
 } from "../aggregates";
+
+type HelmOptions = {
+  sailNumber?: string | null;
+  helmBirthYear?: number | null;
+  helmGender?: string | null;
+  crewBirthYear?: number | null;
+  crewGender?: string | null;
+};
 
 function helm(
   helmId: string,
   firstName: string,
   lastName: string,
-  sailNumber: string | null = null,
-) {
-  return { helmId, helmFirstName: firstName, helmLastName: lastName, sailNumber };
+  opts: HelmOptions = {},
+): TeamEntryStat {
+  return {
+    helmId,
+    helmFirstName: firstName,
+    helmLastName: lastName,
+    sailNumber: opts.sailNumber ?? null,
+    helmBirthYear: opts.helmBirthYear ?? null,
+    helmGender: opts.helmGender ?? null,
+    crewBirthYear: opts.crewBirthYear ?? null,
+    crewGender: opts.crewGender ?? null,
+  };
 }
 
 function regatta(opts: Partial<RegattaStat> & { id: string; year: number }): RegattaStat {
@@ -33,19 +52,25 @@ describe("seasonOverview", () => {
         id: "r1",
         year: 2024,
         completedRaces: 6,
-        teamEntries: [helm("h1", "Anna", "B", "1"), helm("h2", "Ben", "C", "2")],
+        teamEntries: [
+          helm("h1", "Anna", "B", { sailNumber: "1" }),
+          helm("h2", "Ben", "C", { sailNumber: "2" }),
+        ],
       }),
       regatta({
         id: "r2",
         year: 2024,
         completedRaces: 4,
-        teamEntries: [helm("h1", "Anna", "B", "1"), helm("h3", "Cara", "D", "3")],
+        teamEntries: [
+          helm("h1", "Anna", "B", { sailNumber: "1" }),
+          helm("h3", "Cara", "D", { sailNumber: "3" }),
+        ],
       }),
       regatta({
         id: "r3",
         year: 2025,
         completedRaces: 7,
-        teamEntries: [helm("h2", "Ben", "C", "2")],
+        teamEntries: [helm("h2", "Ben", "C", { sailNumber: "2" })],
       }),
     ];
 
@@ -74,7 +99,7 @@ describe("seasonOverview", () => {
         id: "r1",
         year: 2025,
         completedRaces: 3,
-        teamEntries: [helm("h1", "A", "B", null), helm("h2", "C", "D", null)],
+        teamEntries: [helm("h1", "A", "B"), helm("h2", "C", "D")],
       }),
     ]);
     expect(rows[0]).toMatchObject({ distinctHelms: 2, distinctSailNumbers: 0 });
@@ -237,5 +262,95 @@ describe("listYears", () => {
       regatta({ id: "d", year: 2024 }),
     ];
     expect(listYears(data)).toEqual([2025, 2024, 2023]);
+  });
+});
+
+describe("filterRegattas", () => {
+  // Hilfs-Setup: zwei Regatten mit gemischten Helms.
+  const mkData = (): RegattaStat[] => [
+    regatta({
+      id: "r1",
+      year: 2025,
+      teamEntries: [
+        helm("h_boy_y", "Max", "U16", {
+          helmBirthYear: 2010, // im Saisonjahr 2025: 15 Jahre → U16 (max 15) ✓
+          helmGender: "M",
+          crewBirthYear: 2010,
+          crewGender: "M",
+        }),
+        helm("h_girl_y", "Lea", "U16", {
+          helmBirthYear: 2010,
+          helmGender: "F",
+          crewBirthYear: 2010,
+          crewGender: "F",
+        }),
+        helm("h_old", "Ana", "Open", {
+          helmBirthYear: 1990,
+          helmGender: "F",
+          crewBirthYear: 1990,
+          crewGender: "F",
+        }),
+      ],
+    }),
+    regatta({
+      id: "r2",
+      year: 2025,
+      teamEntries: [
+        helm("h_no_data", "X", "Y"), // alles null
+        helm("h_no_crew", "Z", "W", {
+          helmBirthYear: 2010,
+          helmGender: "M",
+          // keine Crew → bei MEN/U16 ausgeschlossen
+        }),
+      ],
+    }),
+  ];
+
+  it("OPEN/OPEN gibt unveränderte Liste zurück", () => {
+    const data = mkData();
+    expect(filterRegattas(data, "OPEN", "OPEN")).toEqual(data);
+  });
+
+  it("U16 + GIRLS lässt nur das Girls-Team mit passendem Alter durch", () => {
+    const filtered = filterRegattas(mkData(), "U16", "GIRLS");
+    expect(filtered.length).toBe(1);
+    expect(filtered[0]!.teamEntries.map((te) => te.helmId)).toEqual(["h_girl_y"]);
+  });
+
+  it("U16 + MEN lässt das Boy-Team durch, schließt h_no_crew aus", () => {
+    const filtered = filterRegattas(mkData(), "U16", "MEN");
+    expect(filtered.length).toBe(1);
+    expect(filtered[0]!.teamEntries.map((te) => te.helmId)).toEqual(["h_boy_y"]);
+  });
+
+  it("Regatta ohne passende Einträge wird komplett verworfen", () => {
+    // h_old ist Open-Alter, kein Match in U16
+    const data: RegattaStat[] = [
+      regatta({
+        id: "only-old",
+        year: 2025,
+        teamEntries: [
+          helm("h_old", "Ana", "Open", {
+            helmBirthYear: 1990,
+            helmGender: "F",
+            crewBirthYear: 1990,
+            crewGender: "F",
+          }),
+        ],
+      }),
+    ];
+    expect(filterRegattas(data, "U16", "OPEN")).toEqual([]);
+  });
+
+  it("Stammdaten-frei → ausgeschlossen sobald Filter gesetzt", () => {
+    const data: RegattaStat[] = [
+      regatta({
+        id: "r1",
+        year: 2025,
+        teamEntries: [helm("h_no_data", "X", "Y")],
+      }),
+    ];
+    expect(filterRegattas(data, "OPEN", "MEN")).toEqual([]);
+    expect(filterRegattas(data, "U17", "OPEN")).toEqual([]);
   });
 });
