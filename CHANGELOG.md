@@ -8,6 +8,26 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.59] — 2026-05-07
+
+**Aufsteiger-Statistik (nur für angemeldete Benutzer).**
+
+### Neu
+
+- Route `/statistik/aufsteiger`: Steuerleute mit dem stärksten positiven
+  R_A-Trend innerhalb einer Saison, berechnet via linearer Regression über
+  die chronologisch geordneten R_A-Werte. Slope ist der Trend-KPI, R² die
+  Konsistenz. Tabelle inkl. Sparkline mit Trendlinie pro Zeile, Year-Switcher
+  über `?jahr=…`. Mindestens 4 Wertungen erforderlich. Auth-Gate via
+  NextAuth-Session — nicht-eingeloggte Besucher sehen nur einen
+  Login-Hinweis. Auf `/statistik` ist der Link nur für eingeloggte
+  Benutzer sichtbar.
+- Aggregat-Logik in `lib/stats/trend.ts` mit 11 neuen Vitest-Tests.
+- Wiederverwendbare Sparkline-Komponente `components/charts/sparkline.tsx`
+  als reines Server-SVG.
+
+---
+
 ## [2026.05.58] — 2026-05-07
 
 **Neue öffentliche Statistik-Seite.**

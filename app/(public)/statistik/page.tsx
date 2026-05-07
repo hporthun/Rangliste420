@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { db } from "@/lib/db/client";
+import { auth } from "@/lib/auth";
 import {
   seasonOverview,
   topActiveHelms,
@@ -20,6 +21,8 @@ export const metadata = {
 
 export default async function StatistikPage({ searchParams }: Props) {
   const { jahr: yearParam } = await searchParams;
+  const session = await auth();
+  const isSignedIn = !!session?.user;
 
   // Nur Regatten mit Meldungen. Future-Termine ohne TeamEntries würden die
   // Aggregate verzerren (z.B. "60 Regatten, 30 Wettfahrten" wenn 55 davon
@@ -95,6 +98,14 @@ export default async function StatistikPage({ searchParams }: Props) {
           Saison-Kennzahlen der 420er-Ranglistenregatten — Anzahl Regatten,
           Wettfahrten und aktive Steuerleute über die Jahre.
         </p>
+        {isSignedIn && (
+          <Link
+            href="/statistik/aufsteiger"
+            className="inline-flex items-center gap-1.5 mt-3 text-sm font-medium text-accent hover:underline"
+          >
+            Aufsteiger der Saison →
+          </Link>
+        )}
       </div>
 
       {regattas.length === 0 ? (

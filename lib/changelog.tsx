@@ -77,6 +77,26 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.59",
+    date: "2026-05-07",
+    title: "Aufsteiger-Statistik (nur für angemeldete Benutzer)",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Neue Auswertung unter <code>/statistik/aufsteiger</code>: zeigt
+            die Steuerleute mit dem stärksten positiven R_A-Trend innerhalb
+            einer Saison. Berechnet als lineare Regression über die
+            chronologisch geordneten R_A-Werte; Slope ist der KPI, R² die
+            Konsistenz. Inkl. Sparkline mit Trendlinie pro Zeile.
+            Mindestens 4 Wertungen erforderlich. Sichtbar nur nach Login.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.58",
     date: "2026-05-07",
     title: "Neue öffentliche Statistik-Seite",
