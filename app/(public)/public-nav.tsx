@@ -8,6 +8,7 @@ import { UpdateIndicator } from "@/components/update-indicator";
 const navItems = [
   { href: "/rangliste", label: "Ranglisten" },
   { href: "/regatten",  label: "Regatten"  },
+  { href: "/statistik", label: "Statistik" },
 ];
 
 export function PublicNav() {

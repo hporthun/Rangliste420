@@ -77,6 +77,26 @@ export function unreadEntries(lastRead: string | null): ChangelogEntry[] {
 
 export const ENTRIES: ChangelogEntry[] = [
   {
+    version: "2026.05.58",
+    date: "2026-05-07",
+    title: "Neue öffentliche Statistik-Seite",
+    changes: [
+      {
+        kind: "neu",
+        items: [
+          <>
+            Unter <code>/statistik</code> gibt es eine neue öffentliche
+            Statistik-Seite: Saison-Übersicht (Regatten, Wettfahrten und
+            verschiedene Steuerleute pro Jahr als Bar-Charts), Top-Listen
+            der aktivsten Steuerleute und der meisten Wettfahrten pro
+            Saison sowie ein Histogramm der Ranglistenfaktoren.
+            Die Charts sind reines Server-SVG — kein zusätzliches JS-Bundle.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: "2026.05.57",
     date: "2026-05-06",
     title: "PDF-Import: Mojibake-Fix erfasst auch kroatische/slawische Diakritika",

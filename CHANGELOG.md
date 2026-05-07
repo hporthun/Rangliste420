@@ -8,6 +8,22 @@ Versionierung folgt [Calendar Versioning](https://calver.org/) im Format **JJJJ.
 
 ---
 
+## [2026.05.58] — 2026-05-07
+
+**Neue öffentliche Statistik-Seite.**
+
+### Neu
+
+- Route `/statistik` mit Saison-Übersicht (Regatten, Wettfahrten,
+  unterschiedliche Steuerleute pro Jahr), Top-Listen pro Saison
+  (aktivste Steuerleute, meiste Wettfahrten) und Histogramm der
+  Ranglistenfaktoren. Charts sind reines Server-SVG ohne zusätzliches
+  JS-Bundle. Aggregat-Logik in `lib/stats/aggregates.ts` mit Tests
+  abgedeckt.
+- Hauptnav um den Eintrag „Statistik" ergänzt.
+
+---
+
 ## [2026.05.57] — 2026-05-06
 
 **Mojibake-Fix erfasst jetzt auch Latin-Extended-A-Diakritika.**
