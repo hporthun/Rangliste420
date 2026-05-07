@@ -17,7 +17,7 @@
     "db:sync-prod": "node scripts/sync-prod-schema.mjs",
     "db:migrate:prod": "npm run db:sync-prod && prisma migrate deploy --schema=prisma/prod/schema.prisma",
     "db:generate:prod": "npm run db:sync-prod && prisma generate --schema=prisma/prod/schema.prisma",
-    "vercel-build": "npm run db:sync-prod && prisma migrate deploy --schema=prisma/prod/schema.prisma && prisma generate --schema=prisma/prod/schema.prisma && next build"
+    "vercel-build": "npm run db:sync-prod && DATABASE_URL=\"${DATABASE_URL_UNPOOLED:-$DATABASE_URL}\" prisma migrate deploy --schema=prisma/prod/schema.prisma && prisma generate --schema=prisma/prod/schema.prisma && next build"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
